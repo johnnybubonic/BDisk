@@ -1,0 +1,89 @@
+#!/bin/sh
+# change some versions around
+sed -i -e 's/^\(pkgbase=linux[[:space:]]*\)/#\1/g' ${1}
+sed -i -e 's/^#\(pkgbase=linux-\)custom.*$/\1BDisk/g' ${1}
+sed -i -e '/^_kernelname/a KERNVER=$(echo ${pkgver} | sed -e "s/\\\([0-9]\\\.[0-9]*\\\).*$/\\\1/")' ${1}
+sed -i -e "s/^\(makedepends=.*\))$/\1 'rsync' 'git')/g" ${1}
+##cp linux.preset linux-BDisk.preset
+##sed -i -e 's#^[[:space:]]*install\ -D\ -m644\ "${srcdir}/linux.preset".*$#install -D -m644 "${srcdir}/linux-BDisk.preset" "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"#g' ${1}
+##sed -i -e "s/\ 'fallback'//g" \
+##-e '/^fallback/d' \
+##-e '/^$/d' \
+##-e '/^[[:space:]]*$/d' \
+##-e 's#^\(default_image="/boot/initramfs-linux\).*#\1-BDisk"/g' linux-BDisk.preset
+##-e 's/^\(ALL_kver="/boot/vmlinuz-linux\)\(.*\)/\1-BDisk\2/g' linux-BDisk.preset
+
+# add source for aufs3
+## 12.07.2014 - remove the "git checkout <SPECIFIC COMMIT HASH>" once a bug is fixed. currently fails with:
+##  LD      fs/aufs/built-in.o
+##  CC [M]  fs/aufs/module.o
+##In file included from fs/aufs/module.c:24:0:
+##fs/aufs/inode.h:307:12: error: function declaration isn't a prototype
+##[-Werror=strict-prototypes]
+## AuStubInt0(au_cpup_xattr, h_dst, h_src, ignore_flags)
+##            ^
+##fs/aufs/aufs.h:28:21: note: in definition of macro 'AuStub'
+##  static inline type name(__VA_ARGS__) { body; }
+##                     ^
+##fs/aufs/inode.h:307:1: note: in expansion of macro 'AuStubInt0'
+## AuStubInt0(au_cpup_xattr, h_dst, h_src, ignore_flags)
+## ^
+##cc1: some warnings being treated as errors
+##scripts/Makefile.build:257: recipe for target 'fs/aufs/module.o' failed
+##make[2]: *** [fs/aufs/module.o] Error 1
+##scripts/Makefile.build:404: recipe for target 'fs/aufs' failed
+##make[1]: *** [fs/aufs] Error 2
+##Makefile:929: recipe for target 'fs' failed
+##make: *** [fs] Error 2
+sed -i -e '/^prepare()\ {/a\
+\ git clone git:\/\/aufs.git.sourceforge.net\/gitroot\/aufs\/aufs3-standalone.git aufs3  > \/dev\/null 2>&1\
+\ cd aufs3\
+\ git checkout aufs${KERNVER} > \/dev\/null 2>&1\
+\ git checkout c75f6dddc1c58950c76cc1581e4b4c7ac8365bff > \/dev\/null 2>&1\
+\ cd ..\/' ${1}
+#sed -i -e 's/^\(_kernelname=\).*$/\1"-BDisk"/' ${1}
+sed -i -e '/^[[:space:]]*patch.*pkgver}"$/i rsync -a ../aufs3/Documentation/. Documentation/. ; rsync -a ../aufs3/fs/. fs/. ; cp -a ../aufs3/include/uapi/linux/aufs_type.h include/uapi/linux/. \
+\ for i in $(ls -1 ../aufs3/*.patch) ; do patch -p1 -i ../aufs3/${i} ; done' ${1}
+# and we need to be sure to build aufs3-util
+#sed -i -e '/^[[:space:]]*install\ -D\ -m644\ vmlinux.*$/a\
+#\ git clone git:\/\/git.code.sf.net\/p\/aufs\/aufs-util > \/dev\/null 2>&1\
+#\ cd aufs-util\
+#\ UTILVER=$(git branch -a | grep -v master | sort -nr | grep -v rcN | head -n1 | cut -f3 -d"\/")\
+#\ git checkout ${UTILVER} > \/dev\/null 2>&1\
+#\ make' ${1}
+
+# and configure the kernel. this gets messy.
+#-e "s/^#[[:space:]]\\\(CONFIG_AUFS_FS\\\).*$/\\\1=m/g" \\\
+sed -i -e '/^[[:space:]]*make\ prepare.*$/i yes "" | make olddefconfig >/dev/null' ${1}
+sed -i -e '/^[[:space:]]*make\ prepare.*$/a sed -i \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_FS\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_BRANCH_MAX_127\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_SBILIST\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_HNOTIFY\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_HFSNOTIFY\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_EXPORT\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_INO_T_64\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_FHSM\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_RDU\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_BDEV_LOOP\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(AUFS_BRANCH_MAX_511\\\).*$/\\\1=n/g" \\\
+-e "s/^#[[:space:]]\\\(AUFS_BRANCH_MAX_1023\\\).*$/\\\1=n/g" \\\
+-e "s/^#[[:space:]]\\\(AUFS_BRANCH_MAX_32767\\\).*$/\\\1=n/g" ${srcdir}/../config{,.x86_64}' ${1}
+# yes, we have to do this twice. with a hammer.
+sed -i -e '/^[[:space:]]*make\ prepare.*$/a sed -i \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_FS\\\).*$/\\\1=m/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_BRANCH_MAX_127\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_SBILIST\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_HNOTIFY\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_HFSNOTIFY\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_EXPORT\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_INO_T_64\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_FHSM\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_RDU\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(CONFIG_AUFS_BDEV_LOOP\\\).*$/\\\1=y/g" \\\
+-e "s/^#[[:space:]]\\\(AUFS_BRANCH_MAX_511\\\).*$/\\\1=n/g" \\\
+-e "s/^#[[:space:]]\\\(AUFS_BRANCH_MAX_1023\\\).*$/\\\1=n/g" \\\
+-e "s/^#[[:space:]]\\\(AUFS_BRANCH_MAX_32767\\\).*$/\\\1=n/g" .config' ${1}
+sed -i -e 's/^\([[:space:]]*yes\ ""\ |\ \)make\ config/\1make olddefconfig/' ${1}
+# and we have to edit the linux.install as well.
+sed -i -e 's/^\(KERNEL_NAME=\).*$/\1-BDisk/g' linux.install*

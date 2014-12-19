@@ -1,0 +1,38 @@
+## General ##
+
+-include WinMTR, build Mac OS X MTR for dist/tools on CD
+
+
+## NETWORKING ##
+
+-shorewall/some other firewall?
+-WISH: locked-down VPN?
+-autodetection/configuration of network. DHCP is currently running by default, but does it need to support IPv6? if so, how would the user configure their network?
+-WISH: support iPXE? would save on ISO file size (letting us create MUCH bigger squash systems), but the downside is we lose EFI support and it requires a working network configuration- which defeats the purpose of a diagnostic disc.
+
+
+## Building ##
+
+-WISH: Better logging[0]
+-use manual chrooting functions ONLY if distro not detected as arch. if /usr/bin/systemd-nspawn exists, use that instead
+--does arch-chroot work across all distros? see https://wiki.archlinux.org/index.php/Install_bundled_32-bit_system_in_Arch64 and https://wiki.archlinux.org/index.php/Chroot
+--i think this might be unnecessary. testing across other major distros is necessary, but i think i can just use the chroot'd arch-chroot
+-tweak build.conf (and build.conf.sample) to source the pwd and set as BASEDIR ***if*** the project resources are present in pwd, otherwise throw warning
+--this is half-done;PWD is currently used by default.
+-does gummiboot? loader? wtfever it's called support splash backgrounds? can i implement that differently somehow?
+-Host-specific chroot customizations (i.e. -J in <chroot>/etc/makepkg.conf
+-strip out/remove unnecessary and orphan packages (e.g. gcc, make, automake, etc.)
+
+__________________________________________________________
+FOOTNOTES:
+
+
+[0] I'd really like to implement the following in build.conf; like:
+http://forums.fedoraforum.org/showthread.php?t=275743
+# The following is the setting for "verbosity". A more accurate way of saying it is how output should be handled.
+# Note that for it to be properly parsed, it MUST be in the form of a linear array (e.g. VAR=(1 2 3) ).
+# '| tee -a ${BASEDIR}/logs/${FUNCNAME}.$(date +%s)' means "display output for STDOUT and STDERR, and also log STDOUT to logs/<function name>.EPOCH_TIME"
+# '2>&1 /dev/null' means "hide STDOUT and STDERR, no logging"
+# '>> ${BASEDIR}/logs/${FUNCNAME}.$(date +%s) 2>&1' means "log both STDOUT and STDERR to logs/<function name>.EPOCH_TIME, no output"
+# '>> ${BASEDIR}/logs/${FUNCNAME}.$(date +%s)' means "log STDOUT to logs/<function name>.EPOCH_TIME, display (but don't log) STDERR)"
+# '' means "no logging; display both STDOUT and STDERR"

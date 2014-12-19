@@ -1,0 +1,25 @@
+# We don't want local build settings
+/build.conf
+
+# The chroots should be generated locally ONLY. The perms/ownership would get futzed up anyways if checked into git.
+/root.x86_64
+/root.i686
+
+# We don't want the copied/stripped/compressed chroots
+/build64
+/build32
+
+# We don't need these in git. They should be generated dynamically.
+/http
+/iso
+/temp
+/TMPBOOT
+/tftpboot
+/latest.64.tar.gz
+/latest.32.tar.gz
+/lockfile.lck
+/VERSION_INFO.txt
+/BUILDNO
+/screenlog*
+/logs
+*.swp

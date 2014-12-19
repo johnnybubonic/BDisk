@@ -1,0 +1,142 @@
+######################################################################################################################################
+#####                                                       BDisk                                                               #####
+#####                                                                                                                            #####
+#####    Written by Brent Saner                                                                                                  #####
+#####    <bts@square-r00t.net>                                                                                                   #####
+#####    Built upon my (Brent's) 'BDisk' ISO-building framework (http://bdisk.square-r00t.net)                                   #####
+######################################################################################################################################
+
+## Why Arch? ##
+Because it's a largely easy-to-use, well-documented (https://wiki.archlinux.org/) distro. It's no-frills and incredibly
+flexible/customizable, and can be made rather slim. It's also very friendly to run as a chroot inside any other distro.
+
+All commands below should be issued in the root working directory of this git repository. (For me, this is
+/opt/dev/work/BDisk but this may be entirely different for you, depending on where you cloned the repository to.)
+
+!!!!!! WARNING !!!!!!!
+I do NOT recommend running this on a machine that is using wireless, as it will download a LOT of data.
+If you ignore this warning, be prepared to explain to anyone you share your wifi with why Facebook takes 20 seconds to load,
+because they WILL ask.
+
+It should be fine over ethernet, since hardware switches are much faster and efficient than a single duplex wireless radio.
+
+Future versions, once this project has a dumping ground, will fetch highly compressed snapshotted chroot filesystems instead
+of dynamically building the entire install chroots (both x86_64 and i686) instead (with the option of building fresh locally,
+disabled by default).
+Till then, sorry for the inconvenience.
+!!!!!!!!!!!!!!!!!!!!!!
+
+## Prerequisites ##
+-At least ~20Gb disk space free (remember, you need room for not only four chroots (one developing and one staging for i686/x86_64),
+but also disk space for working, the finished ISO(s), etc.)
+
+-The following packages installed on the build host:
+(NOTE: future versions will have dependencies checked automatically and installed if necessary,
+depending on distro your host build machine is. the OS detection and package installation component of that isn't
+done yet though. 2014.10.31)
+
+curl
+dosfstools
+libisoburn ("libisofs" on CentOS)
+lynx
+rsync
+sed
+squashfs-tools
+xorriso (in RPMForge repo for CentOS 7)
+xz
+
+and *probably* a few others. the scripts run with set -e for the most part, so if something's missed, you'll know.
+oh, you will know.
+
+
+## (Re)Building ##
+$ sudo bin/build.sh
+
+Yeah. It's that easy. The finished product is in iso/.
+
+Build output should look something like this:
+
+
+[root@dawid BDisk]# time nice -n "-19" bin/build.sh 
+You have not configured a build.conf OR you are not running from the project's root directory (the git repository's working directory).
+ If you are indeed in the correct directory, you may copy the sample at extra/build.conf.sample,
+ edit it for appropriate values, and copy to <PROJECT ROOT>/build.conf
+For now, though, I am copying over the default.
+Checking directory structure and creating lockfile at /opt/dev/work/BDisk/lockfile.lck...
+/opt/dev/work/BDisk/root.i686 does not exist - creating.
+/opt/dev/work/BDisk/root.x86_64 does not exist - creating.
+/opt/dev/work/BDisk/build32 does not exist - creating.
+/opt/dev/work/BDisk/build64 does not exist - creating.
+/opt/dev/work/BDisk/iso does not exist - creating.
+/opt/dev/work/BDisk/temp/bdisk does not exist - creating.
+/opt/dev/work/BDisk/temp/FPOS does not exist - creating.
+/opt/dev/work/BDisk/src does not exist - creating.
+/opt/dev/work/BDisk/tftpboot does not exist - creating.
+/opt/dev/work/BDisk/http/FPOS does not exist - creating.
+/opt/dev/work/BDisk/logs does not exist - creating.
+No existing chroot environment found. Creating...
+Now importing settings/variables.
+Checking/fetching snapshots...
+Extracting snapshots. This will take a while...
+Configuring snapshots...
+Initializing chroots...
+Prepping /opt/dev/work/BDisk/root.i686. This will take a while...
+...Key initializing...Done.
+...Importing keys...Done.
+...Installing base packages...Done.
+...Upgrading any outdated packages...Done. Finishing/cleaning up...
+Prepping /opt/dev/work/BDisk/root.x86_64. This will take a while...
+...Key initializing...Done.
+...Importing keys...Done.
+...Installing base packages...Done.
+...Upgrading any outdated packages...Done. Finishing/cleaning up...
+Installing common packages...
+...Packages installing to /opt/dev/work/BDisk/root.i686...Compiling kernel sources...Regular packages......Creating bdisk user...Done.
+Done.
+...Packages installing to /opt/dev/work/BDisk/root.x86_64...Compiling kernel sources...Regular packages......Creating bdisk user...Done.
+Done.
+Installing packages for 32-bit...
+Done.
+Installing packages for 64-bit...
+Done.
+Syncing overlay...
+Done.
+Chroot setup complete.
+Checking for appropriate kernel version and mksquashfs version...
+Data is not sync'd to buildroot; syncing...
+Syncing important files to /opt/dev/work/BDisk/build64 for building the squashed filesystem (this may take some time)...
+Compressing the package DB...
+cp: ‘/opt/dev/work/BDisk/build64/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/build64/etc/localtime’ are the same file
+cp: ‘/opt/dev/work/BDisk/root.x86_64/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/root.x86_64/etc/localtime’ are the same file
+Cleaning up unnecessary cruft in /opt/dev/work/BDisk/build64...
+[64-bit] Now generating the squashed image (if we need to) and hashes. This may take some time.
+[64-bit] Squashing filesystem. This can take a while depending on the size of your chroot(s).
+[64-bit] Copying files for PXE, and ISO building, please be patient.
+Data is not sync'd to buildroot; syncing...
+Syncing important files to /opt/dev/work/BDisk/build32 for building the squashed filesystem (this may take some time)...
+Compressing the package DB...
+cp: ‘/opt/dev/work/BDisk/build32/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/build32/etc/localtime’ are the same file
+cp: ‘/opt/dev/work/BDisk/root.i686/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/root.i686/etc/localtime’ are the same file
+Cleaning up unnecessary cruft in /opt/dev/work/BDisk/build32...
+[32-bit] Now generating the squashed image (if we need to) and hashes. This may take some time.
+[32-bit] Squashing filesystem. This can take a while depending on the size of your chroot(s).
+[32-bit] Copying files for PXE, and ISO building, please be patient.
+Building the actual .iso image. This may take a while.
+Setting up EFI stuff...
+Checking/fetching UEFI shells...
+Generating the EFI embedded FAT filesystem...
+EFI configuration complete...
+ISO generated; size is 1.3G.
+You can find it at /opt/dev/work/BDisk/iso/bdisk-v1.04-a8666bd-any.iso
+Cleaning up some stuff leftover from the build...
+Finished successfully!
+
+real    250m48.104s
+user    163m6.046s
+sys     8m26.573s
+
+
+
+
+
+If you want more verbosity, check out the logs/ directory.

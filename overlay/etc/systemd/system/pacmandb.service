@@ -1,0 +1,10 @@
+[Unit]
+Description=Restoring Installed Packages DB
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/tar -Jxf /usr/local/pacman.db.tar.xz -C /var/lib/pacman/
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
