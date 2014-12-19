@@ -1,0 +1,11 @@
+[Unit]
+Description=Various LiveCD fixes
+After=pacmandb.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /etc/systemd/scripts/livecd.fix.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
