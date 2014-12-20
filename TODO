@@ -1,6 +1,7 @@
 ## General ##
 
 -include WinMTR, build Mac OS X MTR for dist/tools on CD
+-include pre-compiled DoxBox for opening LUKS parts on Windows (https://github.com/t-d-k/doxbox)
 
 
 ## NETWORKING ##
