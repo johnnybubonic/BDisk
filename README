@@ -34,6 +34,8 @@ but also disk space for working, the finished ISO(s), etc.)
 (NOTE: future versions will have dependencies checked automatically and installed if necessary,
 depending on distro your host build machine is. the OS detection and package installation component of that isn't
 done yet though. 2014.10.31)
+(NOTE2: Make sure all the packages you specify are valid package names. A mistyped package name will cause the chroot creation to
+break and everything else will break as a result.)
 
 curl
 dosfstools
