@@ -70,7 +70,7 @@ dumpet
 duplicity
 dvd+rw-tools
 e2fsprogs
-encryptfs-utils
+ecryptfs-utils
 ed
 efibootmgr
 efivar
@@ -84,7 +84,7 @@ ext3grep
 extundelete
 f2fs-tools
 fang
-fbest
+fbset
 fcgi
 fcgiwrap
 fcrackzip
