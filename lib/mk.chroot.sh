@@ -173,7 +173,7 @@ EOF
     
     ${CHROOTCMD} ${i}/ pacman -Syy >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
-    ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed base >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed base syslinux >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo "Done."
     echo -n "...Upgrading any outdated packages..."
