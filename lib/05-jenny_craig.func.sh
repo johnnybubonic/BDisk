@@ -39,6 +39,7 @@ function jenny_craig () {
   rm -f ${BUILDDIR}/root/.bashrc
   # DISABLE when no longer building custom kernel
   find ${BUILDDIR}/usr/lib/modules/ -maxdepth 1 -iname "*-ARCH" -exec rm -rf '{}' \;
+  find ${BUILDDIR}/ -type f -name "*.pacnew" -exec rm -rf '{}' \;
   rm -rf ${BUILDDIR}/usr/share/locale/*
   mv -f ${BUILDDIR}/tmp/locale.alias ${BUILDDIR}/usr/share/locale/.
   rm -rf ${BUILDDIR}/var/cache/pacman/*
