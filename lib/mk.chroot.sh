@@ -196,6 +196,7 @@ EOF
     set +e
     ${CHROOTCMD} ${i}/ bash -c "yaourt -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     set -e
+    #${CHROOTCMD} ${i}/ bash -c "yaourt -S --needed --noconfirm debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
     set +e
@@ -208,6 +209,10 @@ EOF
     ${CHROOTCMD} ${i}/ passwd -d ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     mkdir -p ${i}/etc/sudoers.d ; chmod 750 ${i}/etc/sudoers.d
     echo "${REGUSR} ALL=(ALL) ALL" >> ${i}/etc/sudoers.d/${REGUSR}
+    if [ -n "${REGUSR_PASS}" ];
+    then
+      ${CHROOTCMD} ${i}/ echo "${REGUSR}:${REGUSR_PASS}" | chpasswd -e 
+    fi
     echo "Done."
  done
  

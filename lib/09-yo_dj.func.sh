@@ -12,7 +12,7 @@ function yo_dj () {
 
   if [[ "${I_AM_A_RACECAR}" == "y" ]]; 
   then
-    RACECAR_CHK='nice -n "-19" '
+    RACECAR_CHK='nice -n -19 '
   else
     RACECAR_CHK=""
   fi
