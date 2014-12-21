@@ -71,13 +71,6 @@ function mkchroot {
     CHROOTCMD="${CHROOTDIR64}/bin/arch-chroot"
  fi
 
- if [[ "${I_AM_A_RACECAR}" == "y" ]];
- then
-   RACECAR_CHK="nice -n \"-19\" "
- else
-   RACECAR_CHK=""
- fi
-
  cd "${BASEDIR}"
  
  ## Set some vars.
@@ -162,10 +155,10 @@ EOF
    do
     echo "Prepping ${i}. This will take a while..."
     echo -n "...Key initializing..."
-    ${CHROOTCMD} ${i}/ ${RACECAR_CHK}pacman-key --init >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ pacman-key --init >> "${LOGFILE}.${FUNCNAME}" 2>&1
     echo "Done."
     echo -n "...Importing keys..."
-    ${CHROOTCMD} ${i}/ ${RACECAR_CHK}pacman-key --populate archlinux >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ pacman-key --populate archlinux >> "${LOGFILE}.${FUNCNAME}" 2>&1
     echo "Done."
     echo -n "...Installing base packages..."
     #${CHROOTCMD} ${i}/ pacstrap -dGcM  base 
@@ -177,7 +170,7 @@ EOF
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo "Done."
     echo -n "...Upgrading any outdated packages..."
-    ${CHROOTCMD} ${i}/ ${RACECAR_CHK}pacman -Syyu --noconfirm >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ pacman -Syyu --noconfirm >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo "Done. Finishing/cleaning up..."
     ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -201,12 +194,12 @@ EOF
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Compiling kernel sources..."
     set +e
-    ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}yaourt -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "yaourt -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     set -e
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
     set +e
-    ${CHROOTCMD} ${i}/ bash -c "yes '' | ${RACECAR_CHK}yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "yes '' | yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     set -e
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "...Creating ${REGUSR} user..."
@@ -220,7 +213,7 @@ EOF
  
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
-  ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}mkinitcpio -p linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  ${CHROOTCMD} ${i}/ bash -c "mkinitcpio -p linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  done
  
  # 32-bit
@@ -228,7 +221,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "${RACECAR_CHK}yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
     for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
  echo "Done."
@@ -238,7 +231,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "${RACECAR_CHK}yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
     for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
  echo "Done."
