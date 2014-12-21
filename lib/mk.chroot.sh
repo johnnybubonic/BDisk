@@ -213,6 +213,8 @@ EOF
     then
       ${CHROOTCMD} ${i}/ echo "${REGUSR}:${REGUSR_PASS}" | chpasswd -e 
     fi
+    # COMMENT THIS LINE IF YOU WANT TO SET A ROOT PASSWORD
+    ${CHROOTCMD} ${i}/ usermod -L root
     echo "Done."
  done
  
