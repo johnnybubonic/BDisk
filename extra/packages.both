@@ -138,7 +138,8 @@ iso-codes
 isomaster
 jasper
 jfsutils
-john-mpi
+#john-mpi
+john
 keyutils
 kismet-allplugins
 libisoburn
@@ -217,7 +218,7 @@ php
 php-fpm
 php-gd
 php-mcrypt
-phrasendrescher
+#phrasendrescher
 pigz
 pkgfile
 pkgtools
@@ -240,7 +241,6 @@ rdiff-backup
 read-edid
 reaver
 rename
-rescan-scsi-bus
 rfkill
 rp-pppoe
 rpcbind
