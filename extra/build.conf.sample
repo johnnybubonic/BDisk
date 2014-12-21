@@ -74,6 +74,22 @@ LOGFILE="${BASEDIR}/logs/$(date +%s)"
 # What should the regular username be? (Automatically logged in on boot)
 REGUSR="${UXNAME}"
 
+# Should the REGUSR have a password? IF THIS IS NOT SET, THE PASSWORD WILL BE BLANK!
+# Do NOT use a plaintext password here. You will need to generate a salted and hashed string
+# in a shadow-compatible format.
+# Debian can do this with the mkpasswd utility (it's in Arch's AUR as debian-whois-mkpasswd):
+# mkpasswd --method=sha-512 --salt=aBcDeFgHiJ PASSWORD
+# (If a salt is not provided, one will be automatically generated. That is is the suggested method.)
+# Or perl:
+# perl -e 'print crypt("PASSWORD","\$6\$aBcDeFgHiJ\$") . "\n"'
+# Or python:
+# python -c "import crypt, getpass, pwd; print crypt.crypt('PASSWORD', '\$6\$aBcDeFgHiJ\$')"
+# Or grub-crypt, even:
+# /sbin/grub-crypt --sha-512
+# The end-product should look something like this:
+# $6$aBcDeFgHiJ$Yh342vFH7MOjPNu9InFymD1Dd42i5cFsr1cTWdpKGNIkbRGR/ZKQDRPJ1ZeeGb7y894Tfh3iWZIJKu3phlsqQ1
+REGUSR_PASS=""
+
 # Do we have enough horsepower on the build system to jack up the resources we throw at building?
 # Enabling this will give absolute CPU preference to building the kernels and do make-time
 # enhancements/optimizations (i.e. use the maximum number of CPU cores detected).
