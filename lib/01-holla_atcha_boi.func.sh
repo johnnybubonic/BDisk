@@ -2,7 +2,7 @@ function holla_atcha_boi {
 
  if [[ "${I_AM_A_RACECAR}" == "y" ]]; 
  then
-   RACECAR_CHK="nice -n '-19' "
+   RACECAR_CHK='nice -n -19 '
  else
    RACECAR_CHK=""
  fi
@@ -13,7 +13,7 @@ function holla_atcha_boi {
   then
     echo "No existing chroot environment found. Creating..."
     rm -f ${LOCKFILE}
-    ${RACECAR_CHK}${BASEDIR}/lib/mk.chroot.sh
+    ${RACECAR_CHK} ${BASEDIR}/lib/mk.chroot.sh
     touch ${LOCKFILE}
   fi
 }
