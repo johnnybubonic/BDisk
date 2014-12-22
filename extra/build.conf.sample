@@ -74,7 +74,9 @@ LOGFILE="${BASEDIR}/logs/$(date +%s)"
 # What should the regular username be? (Automatically logged in on boot)
 REGUSR="${UXNAME}"
 
-# Should the REGUSR have a password? IF THIS IS NOT SET, THE PASSWORD WILL BE BLANK!
+# Should the REGUSR have a password? IF THIS IS NOT SET, PASSWORD LOGIN WILL BE DISABLED!
+# If you wish to have a blank password, use the string '{[BLANK]}'.
+# You MUST USE SINGLE-QUOTES, OR ESCAPE SHELL-EXPANDED CHARACTERS (e.g. $,*,etc.)
 # Do NOT use a plaintext password here. You will need to generate a salted and hashed string
 # in a shadow-compatible format.
 # Debian can do this with the mkpasswd utility (it's in Arch's AUR as debian-whois-mkpasswd):
@@ -88,7 +90,21 @@ REGUSR="${UXNAME}"
 # /sbin/grub-crypt --sha-512
 # The end-product should look something like this:
 # $6$aBcDeFgHiJ$Yh342vFH7MOjPNu9InFymD1Dd42i5cFsr1cTWdpKGNIkbRGR/ZKQDRPJ1ZeeGb7y894Tfh3iWZIJKu3phlsqQ1
-REGUSR_PASS=""
+#
+# Note that if you want an automatic login, this is *not* where it would be set.
+# It should instead be controlled via overlay/etc/systemd/system/getty@ttyN.service.d/autologin.conf
+# In the following format:
+#  [Service]
+#  Type=idle
+#  ExecStart=
+#  ExecStart=-/usr/bin/agetty --autologin <USERNAME> --noclear %I 38400 linux
+# (where N is the TTY number). Alternatively, if booting to a GUI, it can be set as according
+# to that GUI (e.g. for LXDE, overlay/etc/lxdm/lxdm.conf, "autologin=<USERNAME>")
+REGUSR_PASS=''
+
+# Same exact thing as REGUSR_PASS, but for the root password (i.e. if no password hash is
+# specified, password login will be disabled, etc.).
+ROOT_PASS=''
 
 # Do we have enough horsepower on the build system to jack up the resources we throw at building?
 # Enabling this will give absolute CPU preference to building the kernels and do make-time
