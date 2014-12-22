@@ -138,7 +138,8 @@ iso-codes
 isomaster
 jasper
 jfsutils
-john-mpi
+#john-mpi
+john
 keyutils
 kismet-allplugins
 libisoburn
