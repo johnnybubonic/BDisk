@@ -218,7 +218,7 @@ php
 php-fpm
 php-gd
 php-mcrypt
-phrasendrescher
+#phrasendrescher
 pigz
 pkgfile
 pkgtools
