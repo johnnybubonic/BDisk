@@ -212,7 +212,7 @@ EOF
     echo "${REGUSR} ALL=(ALL) ALL" >> ${i}/etc/sudoers.d/${REGUSR}
     if [ -n "${REGUSR_PASS}" ];
     then
-      ${CHROOTCMD} ${i}/ "echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e"
+      ${CHROOTCMD} ${i}/ "echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     fi
     # COMMENT THIS LINE IF YOU WANT TO SET A ROOT PASSWORD
     ${CHROOTCMD} ${i}/ usermod -L root
