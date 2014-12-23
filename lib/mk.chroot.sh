@@ -213,12 +213,18 @@ EOF
     if [ -n "${REGUSR_PASS}" ];
     then
       ${CHROOTCMD} ${i}/ "echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    elif [[ "${REGUSR_PASS}" == '{[BLANK]}' ]];
+    then
+      continue
     else
       sed -i -e "s/^${REGUSR}::/${REGUSR}:!:/g" ${i}/etc/shadow
     fi
     if [ -n "${ROOT_PASS}" ];
     then
       ${CHROOTCMD} ${i}/ "echo ${root}:${ROOT_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    elif [[ "${ROOT_PASS}" == '{[BLANK]}' ]];
+    then
+      continue
     else
       sed -i -e 's/^root::/root:!:/g' ${i}/etc/shadow
     fi
