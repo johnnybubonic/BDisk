@@ -90,6 +90,10 @@ REGUSR="${UXNAME}"
 # $6$aBcDeFgHiJ$Yh342vFH7MOjPNu9InFymD1Dd42i5cFsr1cTWdpKGNIkbRGR/ZKQDRPJ1ZeeGb7y894Tfh3iWZIJKu3phlsqQ1
 REGUSR_PASS=""
 
+# Same exact thing as REGUSR_PASS, but for the root password (i.e. if no password hash is
+# specified, password login will be disabled).
+ROOT_PASS=""
+
 # Do we have enough horsepower on the build system to jack up the resources we throw at building?
 # Enabling this will give absolute CPU preference to building the kernels and do make-time
 # enhancements/optimizations (i.e. use the maximum number of CPU cores detected).

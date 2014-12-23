@@ -213,9 +213,15 @@ EOF
     if [ -n "${REGUSR_PASS}" ];
     then
       ${CHROOTCMD} ${i}/ "echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    else
+      sed -i -e "s/^${REGUSR}::/${REGUSR}:!:/g" ${i}/etc/shadow
     fi
-    # COMMENT THIS LINE IF YOU WANT TO SET A ROOT PASSWORD
-    sed -i -e 's/^root::/root:!:/g' ${i}/etc/shadow
+    if [ -n "${ROOT_PASS}" ];
+    then
+      ${CHROOTCMD} ${i}/ "echo ${root}:${ROOT_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    else
+      sed -i -e 's/^root::/root:!:/g' ${i}/etc/shadow
+    fi
     # The following is supposed to do the same as the above, but "cleaner". However, it currently fails with "execv() failed: No such file or directory"
     ##${CHROOTCMD} ${i}/ usermod -L root >> "${LOGFILE}.${FUNCNAME}" 2>&1
     echo "Done."
