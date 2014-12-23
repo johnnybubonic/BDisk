@@ -270,7 +270,7 @@ s-nail
 socat
 squashfs3-tools
 squashfs-tools
-star
+#star
 strace
 stress
 sucrack
