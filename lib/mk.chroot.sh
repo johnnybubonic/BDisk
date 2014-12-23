@@ -203,6 +203,7 @@ EOF
     set +e
     ${CHROOTCMD} ${i}/ bash -c "yes '' | yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+    # User creation
     set -e
     echo -n "...Creating ${REGUSR} user..."
     ${CHROOTCMD} ${i}/ useradd -m -s /bin/bash -c "Default user" ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -221,7 +222,7 @@ EOF
     fi
     if [ -n "${ROOT_PASS}" ];
     then
-      ${CHROOTCMD} ${i}/ "echo ${root}:${ROOT_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      ${CHROOTCMD} ${i}/ "echo root:${ROOT_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     elif [[ "${ROOT_PASS}" == '{[BLANK]}' ]];
     then
       continue
