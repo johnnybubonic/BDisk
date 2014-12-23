@@ -231,7 +231,9 @@ EOF
  then
    ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
-    for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
+ set +e
+ for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
+ set -e
  echo "Done."
  
  # 64-bit
@@ -241,7 +243,9 @@ EOF
  then
    ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
-    for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
+ set +e
+ for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
+ set -e
  echo "Done."
 
  echo "Syncing overlay..."
