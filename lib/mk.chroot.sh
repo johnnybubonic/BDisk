@@ -190,11 +190,11 @@ EOF
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
     echo -n "...Packages installing to ${i}..."
-    ${CHROOTCMD} ${i}/ bash -c "yaourt -S --needed --noconfirm customizepkg-scripting" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm customizepkg-scripting" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Compiling kernel sources..."
     set +e
-    ${CHROOTCMD} ${i}/ bash -c "yaourt -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     set -e
     # Uncomment if you wish to use the mkpasswd binary from within the chroot...
     #${CHROOTCMD} ${i}/ bash -c "yaourt -S --needed --noconfirm debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -213,21 +213,23 @@ EOF
     echo "${REGUSR} ALL=(ALL) ALL" >> ${i}/etc/sudoers.d/${REGUSR}
     if [ -n "${REGUSR_PASS}" ];
     then
-      ${CHROOTCMD} ${i}/ "echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      #${CHROOTCMD} ${i}/ "/usr/bin/echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      sed -i -e "s|^${REGUSR}::|${REGUSR}:${REGUSR_PASS}:|g" ${i}/etc/shadow
     elif [[ "${REGUSR_PASS}" == '{[BLANK]}' ]];
     then
-      continue
+      ${CHROOTCMD} ${i}/ passwd -d ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     else
-      sed -i -e "s/^${REGUSR}::/${REGUSR}:!:/g" ${i}/etc/shadow
+      ${CHROOTCMD} ${i}/ usermod -L ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     fi
     if [ -n "${ROOT_PASS}" ];
     then
-      ${CHROOTCMD} ${i}/ "echo root:${ROOT_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      #${CHROOTCMD} ${i}/ "/usr/bin/echo root:${ROOT_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      sed -i -e "s|^root::|root:${ROOT_PASS}:|g" ${i}/etc/shadow
     elif [[ "${ROOT_PASS}" == '{[BLANK]}' ]];
     then
-      continue
+      ${CHROOTCMD} ${i}/ passwd -d root >> "${LOGFILE}.${FUNCNAME}" 2>&1
     else
-      sed -i -e 's/^root::/root:!:/g' ${i}/etc/shadow
+      ${CHROOTCMD} ${i}/ passwd -d root >> "${LOGFILE}.${FUNCNAME}" 2>&1
     fi
     # The following is supposed to do the same as the above, but "cleaner". However, it currently fails with "execv() failed: No such file or directory"
     ##${CHROOTCMD} ${i}/ usermod -L root >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -236,8 +238,7 @@ EOF
  
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
-echo "[DEBUG] ${i}: mkinitcpio" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  ${CHROOTCMD} ${i}/ bash -c "mkinitcpio -p linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  ${CHROOTCMD} ${i}/ /usr/bin/bash -c "mkinitcpio -p linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  done
  
  # 32-bit
@@ -245,12 +246,10 @@ echo "[DEBUG] ${i}: mkinitcpio" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-echo "[DEBUG] 32-bit: installing packages" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-   ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
-echo "[DEBUG] 32-bit: pacorig move" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  set -e
  echo "Done."
  
@@ -259,12 +258,10 @@ echo "[DEBUG] 32-bit: pacorig move" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-echo "[DEBUG] 64-bit: installing packages" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
-echo "[DEBUG] 64-bit: pacorig move" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  set -e
  echo "Done."
 

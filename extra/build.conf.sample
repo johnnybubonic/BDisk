@@ -75,7 +75,8 @@ LOGFILE="${BASEDIR}/logs/$(date +%s)"
 REGUSR="${UXNAME}"
 
 # Should the REGUSR have a password? IF THIS IS NOT SET, PASSWORD LOGIN WILL BE DISABLED!
-# If you wish to have a blank password, use the string "{[BLANK]}".
+# If you wish to have a blank password, use the string '{[BLANK]}'.
+# You MUST USE SINGLE-QUOTES, OR ESCAPE SHELL-EXPANDED CHARACTERS (e.g. $,*,etc.)
 # Do NOT use a plaintext password here. You will need to generate a salted and hashed string
 # in a shadow-compatible format.
 # Debian can do this with the mkpasswd utility (it's in Arch's AUR as debian-whois-mkpasswd):
@@ -99,11 +100,11 @@ REGUSR="${UXNAME}"
 #  ExecStart=-/usr/bin/agetty --autologin <USERNAME> --noclear %I 38400 linux
 # (where N is the TTY number). Alternatively, if booting to a GUI, it can be set as according
 # to that GUI (e.g. for LXDE, overlay/etc/lxdm/lxdm.conf, "autologin=<USERNAME>")
-REGUSR_PASS=""
+REGUSR_PASS=''
 
 # Same exact thing as REGUSR_PASS, but for the root password (i.e. if no password hash is
 # specified, password login will be disabled, etc.).
-ROOT_PASS=""
+ROOT_PASS=''
 
 # Do we have enough horsepower on the build system to jack up the resources we throw at building?
 # Enabling this will give absolute CPU preference to building the kernels and do make-time
