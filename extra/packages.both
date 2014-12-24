@@ -157,7 +157,7 @@ lsscsi
 lxde
 lynx
 lz4
-lzip
+#lzip
 lzo
 lzop
 macchanger

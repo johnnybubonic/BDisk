@@ -181,6 +181,15 @@ EOF
    ${CHROOTCMD} ${CHROOTDIR64}/ 'pacman --noconfirm -R gcc-libs libtool' >> "${LOGFILE}.${FUNCNAME}" 2>&1
    ${CHROOTCMD} ${CHROOTDIR64}/ 'pacman --noconfirm -S multilib-devel' >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
+
+ # And let's do some more optimization.
+ if [[ "${I_AM_A_RACECAR}" == "y" ]];
+ then
+  CPUCNT=$(grep processor /proc/cpuinfo | wc -l)
+  ((CPUCNT++))
+  sed -i -e "/^[[:space:]]*#*MAKEFLAGS=.*$/aMAKEFLAGS=\"-j${CPUCNT}\"" ${CHROOTDIR64}/etc/makepkg.conf
+  sed -i -e "/^[[:space:]]*#*MAKEFLAGS=.*$/aMAKEFLAGS=\"-j${CPUCNT}\"" ${CHROOTDIR32}/etc/makepkg.conf
+ fi
  
  # preprocessing
  sed -i -e '/base-devel/d ; /multilib-devel/d' ${BASEDIR}/extra/packages.*

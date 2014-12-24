@@ -40,6 +40,7 @@ function jenny_craig () {
   # DISABLE when no longer building custom kernel
   find ${BUILDDIR}/usr/lib/modules/ -maxdepth 1 -iname "*-ARCH" -exec rm -rf '{}' \;
   find ${BUILDDIR}/ -type f -name "*.pacnew" -exec rm -rf '{}' \;
+  sed -i -e '/^MAKEFLAGS=.*$/d' ${BUILDDIR}/etc/makepkg.conf
   rm -rf ${BUILDDIR}/usr/share/locale/*
   mv -f ${BUILDDIR}/tmp/locale.alias ${BUILDDIR}/usr/share/locale/.
   rm -rf ${BUILDDIR}/var/cache/pacman/*
