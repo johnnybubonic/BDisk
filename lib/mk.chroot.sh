@@ -238,7 +238,7 @@ EOF
     then
       ${CHROOTCMD} ${i}/ passwd -d root >> "${LOGFILE}.${FUNCNAME}" 2>&1
     else
-      ${CHROOTCMD} ${i}/ passwd -d root >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      ${CHROOTCMD} ${i}/ usermod -L ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     fi
     # The following is supposed to do the same as the above, but "cleaner". However, it currently fails with "execv() failed: No such file or directory"
     ##${CHROOTCMD} ${i}/ usermod -L root >> "${LOGFILE}.${FUNCNAME}" 2>&1
