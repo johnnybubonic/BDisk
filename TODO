@@ -10,6 +10,7 @@
 -WISH: locked-down VPN?
 -autodetection/configuration of network. DHCP is currently running by default, but does it need to support IPv6? if so, how would the user configure their network?
 -WISH: support iPXE? would save on ISO file size (letting us create MUCH bigger squash systems), but the downside is we lose EFI support and it requires a working network configuration- which defeats the purpose of a diagnostic disc.
+-SECURE SSH: https://stribika.github.io/2015/01/04/secure-secure-shell.html
 
 
 ## Building ##
