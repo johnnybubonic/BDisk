@@ -209,16 +209,11 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.both | tr '\n' ' ')
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
-    echo -n "...Packages installing to ${i}..."
-    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed --noconfirm customizepkg-scripting" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    echo "Running post-build tasks (building kernel, etc.)"
+    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "/root/post-build.sh" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
-    echo -n "Compiling kernel sources..."
-    set +e
-    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    set -e
-    # Uncomment if you wish to use the mkpasswd binary from within the chroot...
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit -S --needed --noconfirm debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+    #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
     set +e
     ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
