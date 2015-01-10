@@ -182,10 +182,8 @@ EOF
     ## https://projects.archlinux.org/pacman.git/tree/NEWS#n54
     ## https://bugs.archlinux.org/task/43302
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    mkdir -p ${i}/tmp/apacman && cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/tmp/.
-    tar -zxf ${i}/tmp/apacman.tar.gz -C ${i}/tmp/apacman
-    chown -R nobody:nobody ${i}/tmp/apacman* 
-    ${CHROOTCMD} ${i} "cd /tmp/apacman/apacman ; sudo -u nobody makepkg ; pacman --noconfirm -U apacman-*.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/tmp/.
+    ${CHROOTCMD} ${i} "pacman --noconfirm -U /tmp/apacman-*.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     ${CHROOTCMD} ${i}/ "apacman -S --noconfirm --noedit apacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
