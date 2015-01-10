@@ -182,9 +182,12 @@ EOF
     ## https://projects.archlinux.org/pacman.git/tree/NEWS#n54
     ## https://bugs.archlinux.org/task/43302
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/tmp/.
-    ${CHROOTCMD} ${i} "pacman --noconfirm -U /tmp/apacman-*.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    mkdir ${i}/var/tmp/pkg
+    cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/var/tmp/pkg/apacman.tar.xz
+    #${CHROOTCMD} ${i} "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${i}/usr/bin/pacman --noconfirm -r ${i} -U ${i}/var/tmp/pkg/apacman.tar.xz >> "${LOGFILE}.${FUNCNAME}" 2>&1
     ${CHROOTCMD} ${i}/ "apacman -S --noconfirm --noedit apacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    #rm -rf ${i}/var/tmp/pkg
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
    done
@@ -211,11 +214,16 @@ EOF
     echo "Running post-build tasks (building kernel, etc.)"
     ${CHROOTCMD} ${i}/ /usr/bin/bash -c "/root/post-build.sh" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+    #set +e
+    #${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    #set -e
+    #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+    # Uncomment if you wish to use the mkpasswd binary from within the chroot...
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit -S --needed --noconfirm debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
     set +e
-    ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     # User creation
     set -e
