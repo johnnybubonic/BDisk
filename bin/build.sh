@@ -67,7 +67,7 @@ for i in ${ROOTDIR} ${CHROOTDIR32} ${CHROOTDIR64} ${BUILDDIR}32 ${BUILDDIR}64 ${
 do
  if [ ! -d ${i} ];
  then
-  echo "${i} does not exist - creating."
+  #echo "${i} does not exist - creating."
   mkdir -p ${i}
  fi
 done
