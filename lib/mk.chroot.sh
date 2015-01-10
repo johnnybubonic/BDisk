@@ -153,6 +153,7 @@ EOF
    
    for i in ${CHROOTDIR32} ${CHROOTDIR64};
    do
+    # Prep pacman
     echo "Prepping ${i}. This will take a while..."
     echo -n "...Key initializing..."
     ${CHROOTCMD} ${i}/ pacman-key --init >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -160,22 +161,32 @@ EOF
     echo -n "...Importing keys..."
     ${CHROOTCMD} ${i}/ pacman-key --populate archlinux >> "${LOGFILE}.${FUNCNAME}" 2>&1
     echo "Done."
+    # Prep base building system
     echo -n "...Installing base packages..."
     #${CHROOTCMD} ${i}/ pacstrap -dGcM  base 
     # if that doesn't work,
-    
     ${CHROOTCMD} ${i}/ pacman -Syy >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
-    ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed base syslinux >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed base syslinux wget rsync unzip jshon sed sudo >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo "Done."
     echo -n "...Upgrading any outdated packages..."
     ${CHROOTCMD} ${i}/ pacman -Syyu --noconfirm >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo "Done. Finishing/cleaning up..."
-    ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed base-devel >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+    # Yaourt is busted because Arch Pacman devs are fucking neasighted closed-minded jackasses.
+    # If they ever fix their crap, checkout extra/pre-build.d/etc/yaourtrc from git (commit 583a5df84af415990b8c49d7e4ac11dd7b23e0e0)
+    ## https://github.com/archlinuxfr/yaourt/issues/67
+    ## https://projects.archlinux.org/pacman.git/tree/NEWS#n54
+    ## https://bugs.archlinux.org/task/43302
+    #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    mkdir -p ${i}/tmp/apacman && cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/tmp/.
+    tar -zxf ${i}/tmp/apacman.tar.gz -C ${i}/tmp/apacman
+    ${CHROOTCMD} ${i}/ "chown -R nobody:nobody /tmp/apacman* ; cd /tmp/apacman/apacman ' sudo -u nobody makepkg ; pacman --noconfirm -U apacman-*.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ "apacman -S --noconfirm --noedit apacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
    done
    ${CHROOTCMD} ${CHROOTDIR64}/ 'pacman --noconfirm -R gcc-libs libtool' >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -199,18 +210,18 @@ EOF
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
     echo -n "...Packages installing to ${i}..."
-    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm customizepkg-scripting" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed --noconfirm customizepkg-scripting" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Compiling kernel sources..."
     set +e
-    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed --noconfirm linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     set -e
     # Uncomment if you wish to use the mkpasswd binary from within the chroot...
-    #${CHROOTCMD} ${i}/ bash -c "yaourt -S --needed --noconfirm debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit -S --needed --noconfirm debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
     set +e
-    ${CHROOTCMD} ${i}/ bash -c "yes '' | yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     # User creation
     set -e
@@ -255,7 +266,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
@@ -267,7 +278,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "yaourt -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
