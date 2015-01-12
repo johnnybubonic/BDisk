@@ -27,8 +27,8 @@ function jenny_craig () {
   # sync over new changes and trim out the fat
   rsync -a --delete ${CHROOTDIR}/. ${BUILDDIR}/.
   set +e
-  cp -af ${BUILDDIR}/usr/share/zoneinfo/EST5EDT ${BUILDDIR}/etc/localtime
-  cp -af ${CHROOTDIR}/usr/share/zoneinfo/EST5EDT ${CHROOTDIR}/etc/localtime
+  cp -af ${BUILDDIR}/usr/share/zoneinfo/EST5EDT ${BUILDDIR}/etc/localtime > /dev/null 2>&1
+  cp -af ${CHROOTDIR}/usr/share/zoneinfo/EST5EDT ${CHROOTDIR}/etc/localtime > /dev/null 2>&1
   set -e
   cp -af ${BUILDDIR}/usr/share/locale/locale.alias ${BUILDDIR}/tmp/.
   echo "Cleaning up unnecessary cruft in ${BUILDDIR}..."
