@@ -39,14 +39,14 @@ function mentos {
 
     if [[ -n $(find ${BASEDIR}/extra/pre-build.d/ -type f -newer ${BASEDIR}/root.x86_64/boot/vmlinuz-linux-${PNAME}) ]] || [[ "${INSTKERN}" != "${NEWKERN}" ]];
     then
-     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -Syyua --noconfirm --devel" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -Syyua --devel" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     else
-     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -Syyua --noconfirm --devel --ignore linux,linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -Syyua --devel --ignore linux,linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     fi
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
-    ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -S --needed  --ignore linux,linux-${PNAME} --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -S --needed  --ignore linux,linux-${PNAME} ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
-    #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}"
+    #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit -S --needed ${PKGLIST}"
     if [[ -n $(find ${BASEDIR}/extra/pre-build.d/ -type f -newer root.x86_64/boot/vmlinuz-linux-${PNAME}) ]];
     then
      ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}mkinitcpio -p linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -60,7 +60,7 @@ function mentos {
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "yes '' | ${RACECAR_CHK}apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "yes '' | ${RACECAR_CHK}apacman --noconfirm --noedit -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
 
@@ -69,10 +69,10 @@ function mentos {
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
- #${CHROOTCMD} ${CHROOTDIR64}/ bash -c "apacman --noconfirm --noedit -S --needed --noconfirm ${PKGLIST}"
+ #${CHROOTCMD} ${CHROOTDIR64}/ bash -c "apacman --noconfirm --noedit -S --needed ${PKGLIST}"
  echo "Syncing overlay..."
  rsync -a ${BASEDIR}/overlay/64/. ${CHROOTDIR64}/.
  echo "Done."
