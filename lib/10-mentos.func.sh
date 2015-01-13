@@ -99,6 +99,8 @@ function mentos {
  find ${CHROOTDIR64}/root/ -type f -exec chmod 600 '{}' \;
  find ${CHROOTDIR32}/root/ -type d -exec chmod 700 '{}' \;
  find ${CHROOTDIR32}/root/ -type f -exec chmod 600 '{}' \;
+ chmod 600 ${CHROOTDIR64}/etc/ssh/*
+ chmod 600 ${CHROOTDIR32}/etc/ssh/*
  echo "Done."
  
 }

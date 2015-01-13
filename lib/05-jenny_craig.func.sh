@@ -45,6 +45,7 @@ function jenny_craig () {
   mv -f ${BUILDDIR}/tmp/locale.alias ${BUILDDIR}/usr/share/locale/.
   rm -rf ${BUILDDIR}/var/cache/pacman/*
   rm -rf ${BUILDDIR}/var/cache/pkgfile/*
+  rm -rf ${BUILDDIR}/var/cache/apacman/pkg/*
   rm -rf ${BUILDDIR}/var/lib/pacman/*
   mkdir -p ${BUILDDIR}/var/lib/pacman/local
   rm -rf ${BUILDDIR}/var/abs/local/yaourtbuild/*
@@ -54,6 +55,8 @@ function jenny_craig () {
   rm -rf ${BUILDDIR}/var/abs/*
   rm -rf ${BUILDDIR}/run/*
   rm -rf ${BUILDDIR}/boot/*
+  #rm -rf ${BUILDDIR}/root/*
+  rm -rf ${BUILDDIR}/root/post-build.sh
   rm -rf ${BUILDDIR}/usr/src/*
   rm -rf ${BUILDDIR}/var/log/*
   rm -rf ${BUILDDIR}/.git

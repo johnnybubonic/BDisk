@@ -251,7 +251,7 @@ EOF
     then
       ${CHROOTCMD} ${i}/ passwd -d root >> "${LOGFILE}.${FUNCNAME}" 2>&1
     else
-      ${CHROOTCMD} ${i}/ usermod -L ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      ${CHROOTCMD} ${i}/ usermod -L root >> "${LOGFILE}.${FUNCNAME}" 2>&1
     fi
     # The following is supposed to do the same as the above, but "cleaner". However, it currently fails with "execv() failed: No such file or directory"
     ##${CHROOTCMD} ${i}/ usermod -L root >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -307,6 +307,8 @@ EOF
  find ${CHROOTDIR64}/root/ -type f -exec chmod 600 '{}' \;
  find ${CHROOTDIR32}/root/ -type d -exec chmod 700 '{}' \;
  find ${CHROOTDIR32}/root/ -type f -exec chmod 600 '{}' \;
+ chmod 600 ${CHROOTDIR64}/etc/ssh/*
+ chmod 600 ${CHROOTDIR32}/etc/ssh/*
  echo "Done."
 
  

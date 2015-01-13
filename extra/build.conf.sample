@@ -71,7 +71,7 @@ RSYNC_DEST="${BASEDIR}"
 # Note that the code appends, rather than replaces, logs- hence the timestamp in EPOCH time format.
 LOGFILE="${BASEDIR}/logs/$(date +%s)"
 
-# What should the regular username be? (Automatically logged in on boot)
+# What should the regular username be? (Can be automatically logged in on boot; see below)
 REGUSR="${UXNAME}"
 
 # Should the REGUSR have a password? IF THIS IS NOT SET, PASSWORD LOGIN WILL BE DISABLED!
