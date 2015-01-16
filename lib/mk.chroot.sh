@@ -182,11 +182,11 @@ EOF
     ## https://projects.archlinux.org/pacman.git/tree/NEWS#n54
     ## https://bugs.archlinux.org/task/43302
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    mkdir ${i}/var/tmp/pkg
+    mkdir -p ${i}/var/tmp/pkg
     cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/var/tmp/pkg/apacman.tar.xz
     #${CHROOTCMD} ${i} "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     ${CHROOTCMD} ${i} bash -c "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    ${CHROOTCMD} ${i} bash -c "apacman -S --noconfirm --noedit apacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i} bash -c "apacman -S --noconfirm --noedit --skipintegapacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #rm -rf ${i}/var/tmp/pkg
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
@@ -215,15 +215,15 @@ EOF
     ${CHROOTCMD} ${i}/ "/root/post-build.sh" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     #set +e
-    #${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    #${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg-S --needed linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #set -e
     #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     # Uncomment if you wish to use the mkpasswd binary from within the chroot...
-    #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit -S --needed debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit --skipinteg-S --needed debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
     set +e
-    ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit --skipinteg-S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     # User creation
     set -e
@@ -268,7 +268,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg-S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
@@ -280,7 +280,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "apacman --noconfirm --noedit -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg-S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
