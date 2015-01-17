@@ -16,12 +16,14 @@ cd /tmp/core/linux
 customizepkg --modify
 
 chown -R nobody:nobody /tmp/core/linux
-sudo -u nobody makepkg
+sudo -u nobody makepkg --skipinteg
 set -e
 
-for i in $(ls -1 linux-*.pkg.tar.xz | sort);
-do
- pacman --noconfirm -U ${i}
-done
+yes '' | apacman --skipinteg --noconfirm --noedit -U /tmp/core/linux/linux-*.pkg.tar.xz
+
+#for i in $(ls -1 linux-*.pkg.tar.xz | sort);
+#do
+ #apacman --skipinteg --noconfirm --noedit --noconfirm -U ${i}
+#done
 
 echo "Done."

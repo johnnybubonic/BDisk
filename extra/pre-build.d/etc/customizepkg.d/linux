@@ -3,6 +3,7 @@
 sed -i -e 's/^\(pkgbase=linux[[:space:]]*\)/#\1/g' ${1}
 sed -i -e 's/^#\(pkgbase=linux-\)custom.*$/\1BDisk/g' ${1}
 sed -i -e '/^_kernelname/a KERNVER=$(echo ${pkgver} | sed -e "s/\\\([0-9]\\\.[0-9]*\\\).*$/\\\1/")' ${1}
+sed -i -e '/^_kernelname/a KERNVER_MIN=$(echo ${pkgver} | sed -e "s/\\\([0-9]\\\.[0-9]*\\\)\\\.\\\(.*\\\)$/\\\2/")' ${1}
 sed -i -e "s/^\(makedepends=.*\))$/\1 'rsync' 'git')/g" ${1}
 ##cp linux.preset linux-BDisk.preset
 ##sed -i -e 's#^[[:space:]]*install\ -D\ -m644\ "${srcdir}/linux.preset".*$#install -D -m644 "${srcdir}/linux-BDisk.preset" "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"#g' ${1}
@@ -15,6 +16,7 @@ sed -i -e "s/^\(makedepends=.*\))$/\1 'rsync' 'git')/g" ${1}
 
 # add source for aufs3
 ## 12.07.2014 - remove the "git checkout <SPECIFIC COMMIT HASH>" once a bug is fixed. currently fails with:
+##\ git checkout c75f6dddc1c58950c76cc1581e4b4c7ac8365bff > \/dev\/null 2>&1\
 ##  LD      fs/aufs/built-in.o
 ##  CC [M]  fs/aufs/module.o
 ##In file included from fs/aufs/module.c:24:0:
@@ -38,8 +40,9 @@ sed -i -e "s/^\(makedepends=.*\))$/\1 'rsync' 'git')/g" ${1}
 sed -i -e '/^prepare()\ {/a\
 \ git clone git:\/\/aufs.git.sourceforge.net\/gitroot\/aufs\/aufs3-standalone.git aufs3  > \/dev\/null 2>&1\
 \ cd aufs3\
-\ git checkout aufs${KERNVER} > \/dev\/null 2>&1\
-\ git checkout c75f6dddc1c58950c76cc1581e4b4c7ac8365bff > \/dev\/null 2>&1\
+\ AUFS_MIN=$(git branch -a | grep "${KERNVER}" | tail -n1 | cut -f3 -d"/" | sed -e "s/aufs${KERNVER}//g ; s/\\\.\\\([0-9]*\\\).*$/\\\1/g")\
+\ if [ -n "${AUFS_MIN}" ] && [ -n "${KERNVER_MIN}" ] && [[ "${AUFS_MIN}" -le "${KERNVER_MIN}" ]] ; then CO="$(git branch -a | grep "${KERNVER}" | tail -n1 | cut -f3 -d"/")" ; else CO=aufs${KERNVER} ; fi \
+\ git checkout ${CO} > \/dev\/null 2>&1\
 \ cd ..\/' ${1}
 #sed -i -e 's/^\(_kernelname=\).*$/\1"-BDisk"/' ${1}
 sed -i -e '/^[[:space:]]*patch.*pkgver}"$/i rsync -a ../aufs3/Documentation/. Documentation/. ; rsync -a ../aufs3/fs/. fs/. ; cp -a ../aufs3/include/uapi/linux/aufs_type.h include/uapi/linux/. \
