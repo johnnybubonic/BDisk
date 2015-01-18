@@ -43,15 +43,21 @@ PS1='[\u@\h \W]\$ '
 export HISTTIMEFORMAT="%F %T "
 export PATH="${PATH}:/sbin:/bin:/usr/sbin"
 
+DEFROUTEIF=$(ip route show | egrep '^default' | awk '{print $5}')
+
 echo
 echo "==================================="
 date
+if [ -n "${DEFROUTEIF}" ];
+then
+ echo
+ echo -n "${DEFROUTEIF} is: "
+ ifconfig "${DEFROUTEIF}" | egrep 'inet|ether' | grep -v "inet6" | awk '{print $2}'
+fi
 echo
-echo "eth0 is:"
-ifconfig eth0 | egrep 'inet|ether' | grep -v "inet6" | awk '{print $2}'
-echo
-echo "tun0 is:"
+echo  -n "tun0 is:"
 ifconfig tun0 | grep inet | grep -v "inet6" | awk '{print $2}'
+echo
 echo "http://bdisk.square-r00t.net/"
 echo "==================================="
 echo
