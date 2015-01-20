@@ -62,7 +62,8 @@ EOF
   FTSIZE=$(du -sc ${TEMPDIR}/{boot,EFI,loader} | tail -n1 | awk '{print $1}')
   FATSIZE=$((${FTSIZE} + 64)) # let's give a little wiggle room
   ${RACECAR_CHK}truncate -s "${FATSIZE}"K ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img
-  ${RACECAR_CHK}mkfs.vfat -n ${DISTNAME}_EFI ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  ${RACECAR_CHK}mkfs.vfat -F 32 -n ${DISTNAME}_EFI ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  #${RACECAR_CHK}mkfs.vfat -F32 -s2 -n ${DISTNAME}_EFI ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img >> "${LOGFILE}.${FUNCNAME}" 2>&1
   mkdir -p ${SRCDIR}/efiboot
   mount ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img ${SRCDIR}/efiboot
   mkdir -p ${SRCDIR}/efiboot/EFI/${DISTNAME}
