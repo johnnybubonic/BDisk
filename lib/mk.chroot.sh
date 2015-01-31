@@ -186,6 +186,8 @@ EOF
     cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/var/tmp/pkg/apacman.tar.xz
     #${CHROOTCMD} ${i} "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     ${CHROOTCMD} ${i} bash -c "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    mkdir ${i}/var/tmp/apacman ; chmod 0750 ${i}/var/tmp/apacman ; chown 0:$(egrep '^aurbuild' ${i}/etc/group | cut -f3 -d":") ${i}/var/tmp/apacman
+    for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     ${CHROOTCMD} ${i} bash -c "apacman -S --noconfirm --noedit --skipinteg -S apacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #rm -rf ${i}/var/tmp/pkg
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -211,13 +213,15 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.both | tr '\n' ' ')
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
-    echo "Running post-build tasks (building kernel, etc.) in ${i}..."
+    echo "Running post-build tasks in ${i}..."
     ${CHROOTCMD} ${i}/ "/root/post-build.sh" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
-    #set +e
-    #${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    #set -e
-    #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+    set +e
+    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz/vmlinuz-linux-${PNAME}
+    cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${PNAME}.img
+    set -e
+    for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     # Uncomment if you wish to use the mkpasswd binary from within the chroot...
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
@@ -261,7 +265,7 @@ EOF
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
   set +e
-  ${CHROOTCMD} ${i}/ /usr/bin/bash -c "mkinitcpio -p linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  ${CHROOTCMD} ${i}/ /usr/bin/bash -c "mkinitcpio -p linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   set -e
  done
  

@@ -37,22 +37,10 @@ function mentos {
     local MIRROR=$(egrep '^Server' ${i}/etc/pacman.d/mirrorlist | head -n1 | sed -e 's/^Server\ =\ //g  ; s#$repo.*#core/os/x86_64/#g')
     local NEWKERN=$(curl -s "${MIRROR}" | grep linux | awk '{print $3}' | cut -f2 -d\" | egrep '^linux-[0-9].*pkg.tar.xz$' | cut -f2 -d"-")
 
-    if [[ -n $(find ${BASEDIR}/extra/pre-build.d/ -type f -newer ${BASEDIR}/root.x86_64/boot/vmlinuz-linux-${PNAME}) ]] || [[ "${INSTKERN}" != "${NEWKERN}" ]];
-    then
-     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -Syyu --devel" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    else
-     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -Syyu --devel --ignore linux,linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    fi
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
-    ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed  --ignore linux,linux-${PNAME} ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed --ignore linux ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}"
-    if [[ -n $(find ${BASEDIR}/extra/pre-build.d/ -type f -newer root.x86_64/boot/vmlinuz-linux-${PNAME}) ]];
-    then
-     set +e
-     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}mkinitcpio -p linux-${PNAME}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-     set -e
-    fi
     echo "Done."
  done
  
@@ -71,7 +59,7 @@ function mentos {
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "yes '' | ${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
  #${CHROOTCMD} ${CHROOTDIR64}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}"

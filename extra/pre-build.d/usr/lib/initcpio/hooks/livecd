@@ -1,8 +1,8 @@
 # vim: set ft=sh:
 
 run_cleanuphook () {
-        msg ":: Mounting aufs on / with tmpfs=rw, ${root}=ro ..."
-        modprobe aufs
+        msg ":: Mounting OverlayFS on / with tmpfs=rw, ${root}=ro ..."
+        modprobe overlay
 
 	echo "Now attempting aufs mount..."
 
@@ -10,6 +10,6 @@ run_cleanuphook () {
 	mount --move /new_root /new_root.hw
 	mkdir /dev/shm
 	mount -t tmpfs none /dev/shm
-	mount -t aufs none /new_root -o dirs=/dev/shm=rw:/new_root.hw=ro -o noatime
+	mount -t overlay overlay -olowerdir=/new_root.hw,upperdir=/new_root,workdir=/dev/shm -o noatime
 	pkill -9 dropbear #kill SSH (in preparation for the live system starting ssh on port 22
 }
