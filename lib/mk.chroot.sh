@@ -74,7 +74,8 @@ function mkchroot {
  cd "${BASEDIR}"
  
  ## Set some vars.
- MIRROR='http://mirrors.kernel.org/archlinux'
+ #MIRROR='http://mirrors.kernel.org/archlinux'
+ MIRROR='http://mirror.us.leaseweb.net/archlinux'
  RLSDIR="${MIRROR}/iso/latest"
  
  CURRLS64=$(curl -s ${RLSDIR}/sha1sums.txt | grep bootstrap | awk '{print $2}' | grep 'x86_64')
@@ -185,8 +186,7 @@ EOF
     mkdir -p ${i}/var/tmp/pkg
     cp ${BASEDIR}/extra/bootstrap/apacman* ${i}/var/tmp/pkg/apacman.tar.xz
     #${CHROOTCMD} ${i} "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    ${CHROOTCMD} ${i} bash -c "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    mkdir ${i}/var/tmp/apacman ; chmod 0750 ${i}/var/tmp/apacman ; chown 0:$(egrep '^aurbuild' ${i}/etc/group | cut -f3 -d":") ${i}/var/tmp/apacman
+    ${CHROOTCMD} ${i} bash -c "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz && mkdir /var/tmp/apacman && chmod 0750 /var/tmp/apacman && chown root:aurbuild /var/tmp/apacman " >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     ${CHROOTCMD} ${i} bash -c "apacman -S --noconfirm --noedit --skipinteg -S apacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #rm -rf ${i}/var/tmp/pkg
@@ -218,7 +218,7 @@ EOF
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     set +e
     ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz/vmlinuz-linux-${PNAME}
+    cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz-linux-${PNAME}
     cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${PNAME}.img
     set -e
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
@@ -265,7 +265,9 @@ EOF
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
   set +e
+  for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
   ${CHROOTCMD} ${i}/ /usr/bin/bash -c "mkinitcpio -p linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${PNAME}.img
   set -e
  done
  

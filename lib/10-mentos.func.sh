@@ -40,7 +40,10 @@ function mentos {
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
     ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed --ignore linux ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
+    ${CHROOTCMD} ${i}/ /usr/bin/bash -c "mkinitcpio -p linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}"
+    cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz-linux-${PNAME}
+    cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${PNAME}.img
     echo "Done."
  done
  

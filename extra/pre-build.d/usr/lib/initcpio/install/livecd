@@ -4,7 +4,6 @@ build()
 {
 	add_module 'squashfs'
 	add_module 'loop'
-	add_module 'aufs'
 	add_module 'overlay'
 
         add_binary "sed"

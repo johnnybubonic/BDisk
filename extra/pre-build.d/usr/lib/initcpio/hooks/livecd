@@ -4,7 +4,7 @@ run_cleanuphook () {
         msg ":: Mounting OverlayFS on / with tmpfs=rw, ${root}=ro ..."
         modprobe overlay
 
-	echo "Now attempting aufs mount..."
+	echo "Now attempting overlay mount..."
 
 	mkdir /new_root.hw
 	mount --move /new_root /new_root.hw
