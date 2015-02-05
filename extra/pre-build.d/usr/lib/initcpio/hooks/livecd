@@ -6,10 +6,8 @@ run_cleanuphook () {
 
 	echo "Now attempting overlay mount..."
 
-	mkdir /new_root.hw
+	mkdir -p /new_root.hw /overlay /overlay-rw
 	mount --move /new_root /new_root.hw
-	mkdir /dev/shm
-	mount -t tmpfs none /dev/shm
-	mount -t overlay overlay -olowerdir=/new_root.hw,upperdir=/new_root,workdir=/dev/shm -o noatime
+	mount -t overlay overlay -olowerdir=/new_root.hw,upperdir=/overlay,workdir=/overlay-rw,noatime /new_root
 	pkill -9 dropbear #kill SSH (in preparation for the live system starting ssh on port 22
 }
