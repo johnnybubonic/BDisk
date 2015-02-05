@@ -6,10 +6,13 @@ run_cleanuphook () {
 
 	echo "Now attempting overlay mount..."
 
-	mkdir /new_root.hw
-	mount --move /new_root /new_root.hw
-	mkdir /dev/shm
-	mount -t tmpfs none /dev/shm
-	mount -t overlay overlay -olowerdir=/new_root.hw,upperdir=/new_root,workdir=/dev/shm -o noatime
+	#mkdir /new_root.hw
+	mkdir -p /run/archiso/cowspace/upperdir /run/archiso/cowspace/workdir
+	#mount --move /new_root /new_root.hw
+	#mkdir /dev/shm
+	#mount -t tmpfs none /dev/shm
+	#mount -t overlay overlay -olowerdir=/new_root.hw,upperdir=/new_root,workdir=/dev/shm -o noatime
+	umount -l /new_root > /dev/null 2>&1
+	mount -t overlay -o lowerdir=/run/archiso/sfs/airootfs,upperdir=/run/archiso/cowspace/upperdir,workdir=/run/archiso/cowspace/workdir airootfs /new_root
 	pkill -9 dropbear #kill SSH (in preparation for the live system starting ssh on port 22
 }
