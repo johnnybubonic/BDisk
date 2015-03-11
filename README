@@ -1,17 +1,10 @@
 ######################################################################################################################################
-#####                                                       BDisk                                                               #####
+#####                                                       BDisk                                                                #####
 #####                                                                                                                            #####
 #####    Written by Brent Saner                                                                                                  #####
 #####    <bts@square-r00t.net>                                                                                                   #####
 #####    Built upon my (Brent's) 'BDisk' ISO-building framework (http://bdisk.square-r00t.net)                                   #####
 ######################################################################################################################################
-
-## Why Arch? ##
-Because it's a largely easy-to-use, well-documented (https://wiki.archlinux.org/) distro. It's no-frills and incredibly
-flexible/customizable, and can be made rather slim. It's also very friendly to run as a chroot inside any other distro.
-
-All commands below should be issued in the root working directory of this git repository. (For me, this is
-/opt/dev/work/BDisk but this may be entirely different for you, depending on where you cloned the repository to.)
 
 !!!!!! WARNING !!!!!!!
 I do NOT recommend running this on a machine that is using wireless, as it will download a LOT of data.
@@ -25,6 +18,35 @@ of dynamically building the entire install chroots (both x86_64 and i686) instea
 disabled by default).
 Till then, sorry for the inconvenience.
 !!!!!!!!!!!!!!!!!!!!!!
+
+
+## Why Arch? ##
+Because it's a largely easy-to-use, well-documented (https://wiki.archlinux.org/) distro. It's no-frills and incredibly
+flexible/customizable, and can be made rather slim. It's also very friendly to run as a chroot inside any other distro.
+
+All commands below should be issued in the root working directory of this git repository. (For me, this is
+/opt/dev/work/BDisk but this may be entirely different for you, depending on where you cloned the repository to.)
+
+## Features ##
+-Builds a hybrid ISO
+	A hybrid ISO allows one to simply dd if=/path/to/file.iso of=/dev/<USB STICK> instead of using e.g. UNetBootin while also
+	working with traditional optical media.
+-Builds a dual-architecture ISO
+	BDisk allows you to create both a 32-bit and 64-bit ISO, either separately or part of the same ISO, and customize each
+	based on architecture.
+-Supports both BIOS and UEFI booting in one ISO
+	It can be difficult finding a live distribution that offers full UEFI support, which is frustrating if you're trying to
+	install e.g. UEFI-enabled Gentoo, for instance. Not only does this ISO framework build support for both in the same ISO,
+	but it also includes some UEFI shells as well.
+-Arch install scripts
+	This live distro, assuming default packages are kept, should be 100% compatible with the Arch install guide
+	(https://wiki.archlinux.org/index.php/installation_guide).
+-Allows for non-interactive runs, is git-friendly, logs all output while keeping the runtime output relatively sane, and allows
+	the inclusion of arbitrary files in the finished filesystem.
+-TFP/HTTP/PXE support
+	It will automatically copy over some files to tftpboot/ and http/, greatly saving some time in PXE booting. It also
+	supports, by default, booting PXE with HTTP fetching for the squashed filesystems. Say goodbye to NFS.
+-Automatic versioning based on git tags
 
 ## Prerequisites ##
 -At least ~20Gb disk space free (remember, you need room for not only four chroots (one developing and one staging for i686/x86_64),
@@ -47,98 +69,89 @@ squashfs-tools
 xorriso (in RPMForge repo for CentOS 7)
 xz
 
-and *probably* a few others. the scripts run with set -e for the most part, so if something's missed, you'll know.
-oh, you will know.
+and *probably* a few others. The scripts run with set -e for the most part, so if something's missed, you'll know.
+Oh, you will know.
 
+
+## Configuration ##
+See extra/build.conf.sample. Copy to <PROJECT ROOT>/build.conf if you wish to modify any of the values, otherwise the defaults
+will be used. I recommend enabling I_AM_A_RACECAR if you have the hardware for it, as it can speed things up greatly.
+The file should be well-commented.
+
+Also note the following files/paths:
+
+-bin:
+	The building/cleaning scripts.
+--/build.sh:
+	Supports several modes:
+	bin/build.sh update		Updates existing chroots (does an apacman -Syyu --devel, copies over fresh files from
+					overlays, etc.)
+	bin/build.sh chroot		Chroots you into the runtime for any interactive tasks you may wish to run.
+	bin/build.sh build		(DEFAULT) Builds the chroots, ISO, etc.
+	bin/build.sh all		Same as bin/build.sh build
+	bin/build.sh			Same as bin/build.sh build
+--/clean.sh:
+	Supports several modes:
+	bin/clean.sh all		Clears everything out to a near-pristine working state. For convenience, it DOES NOT clear
+					out build.conf.
+	bin/clean.sh chroot		Clears out only the working spaces, old ISOs, and the chroot directories. Hnady if you want to "start
+					fresh" but still want to keep logs from earlier runs.
+	bin/clean.sh squash		Clears out only the working spaces and old ISOs. Useful if you're on a slow connection and would
+					rather update the chroots instead of downloading filesystem snapshots again.
+	bin/clean.sh			Only clears workspaces and old ISOs.
+--/mirror.lst.sh:
+	Builds a fresh mirror list. Note that it is US based.
+
+-extra:
+	Supporting files for the base building system (mirrorlist, etc.).
+--/${UXNAME}.png:
+	A 640x480 8-bit RGBA colour PNG which will be used as the background for the bootsplash (if booting via BIOS and not UEFI)
+--/bootstrap/apacman-*.tar.xz:
+	An AUR-enabled package manager. Necessary for AUR support.
+--/build.conf.sample:
+	Sample/default config file. If you wish to override any settings, copy to <PROJECT ROOT>/build.conf and make your changes there.
+	First run of the script will do this for you automatically.
+--/mirrorlist:
+	A set of default mirrorlists to be used for the chroots during building and runtime. Feel free to replace with your own
+	mirrorlist (current list is speed-optimized for east coast US).
+--/packages.32:
+	A list of packages to install in the base system (32-bit runtime only).
+--/packages.64:
+	A list of packages to install in the base system (64-bit runtime only).
+--/packages.both:
+	A list of packages to install in the base system (these should be installed and are supported on both 64- AND 32-bit)
+--/pre-build.d:
+	Contains files injected into the system. Both 64-bit and 32-bit environments. Note: be sure to place them in hierarchical order
+	(e.g. if you wish to have a file at /usr/foo/bar, you will need to place it in <PROJECT ROOT>/extra/pre-build.d/usr/foo/bar)
+--/pre-build.d/32:
+	Same as above, but only for 32-bit environments.
+--/pre-build.d/64:
+	You get the picture.
+-http:
+	Files to be hosted for PXE booting the environment go here. Set this as your root/DocumentRoot in nginx/Apache (or, ideally,
+	copy over to a separate webserver). This directory is wiped out during any bin/clean.sh operation.
+-lib:
+	The "guts" of BDisk.
+-logs:
+	Here you can find full output of the runs. They are prefixed with run's PID number, and named after the function they occur in.
+-overlay:
+	These files are applied AFTER the initial setup of the chroots. Same hierarchy rules as extra/pre-build.d.
+-README:
+	This file.
+-tftpboot:
+	Files to be served via TFTP for PXE booting. This directory is wiped out during any bin/clean.sh operation.
+-TODO:
+	This is just what I'm using to track stuff I want to add.
+
+
+You may notice other files come and go; they're mostly there for extra goodies/used to determine other things.
 
 ## (Re)Building ##
-$ sudo bin/build.sh
+Building must be done as root, and on an Arch x86_64 system (future versions will allow for non-Arch distros).
+
+# bin/build.sh
 
 Yeah. It's that easy. The finished product is in iso/.
-
-Build output should look something like this:
-
-
-[root@dawid BDisk]# time nice -n "-19" bin/build.sh 
-You have not configured a build.conf OR you are not running from the project's root directory (the git repository's working directory).
- If you are indeed in the correct directory, you may copy the sample at extra/build.conf.sample,
- edit it for appropriate values, and copy to <PROJECT ROOT>/build.conf
-For now, though, I am copying over the default.
-Checking directory structure and creating lockfile at /opt/dev/work/BDisk/lockfile.lck...
-/opt/dev/work/BDisk/root.i686 does not exist - creating.
-/opt/dev/work/BDisk/root.x86_64 does not exist - creating.
-/opt/dev/work/BDisk/build32 does not exist - creating.
-/opt/dev/work/BDisk/build64 does not exist - creating.
-/opt/dev/work/BDisk/iso does not exist - creating.
-/opt/dev/work/BDisk/temp/bdisk does not exist - creating.
-/opt/dev/work/BDisk/temp/FPOS does not exist - creating.
-/opt/dev/work/BDisk/src does not exist - creating.
-/opt/dev/work/BDisk/tftpboot does not exist - creating.
-/opt/dev/work/BDisk/http/FPOS does not exist - creating.
-/opt/dev/work/BDisk/logs does not exist - creating.
-No existing chroot environment found. Creating...
-Now importing settings/variables.
-Checking/fetching snapshots...
-Extracting snapshots. This will take a while...
-Configuring snapshots...
-Initializing chroots...
-Prepping /opt/dev/work/BDisk/root.i686. This will take a while...
-...Key initializing...Done.
-...Importing keys...Done.
-...Installing base packages...Done.
-...Upgrading any outdated packages...Done. Finishing/cleaning up...
-Prepping /opt/dev/work/BDisk/root.x86_64. This will take a while...
-...Key initializing...Done.
-...Importing keys...Done.
-...Installing base packages...Done.
-...Upgrading any outdated packages...Done. Finishing/cleaning up...
-Installing common packages...
-...Packages installing to /opt/dev/work/BDisk/root.i686...Compiling kernel sources...Regular packages......Creating bdisk user...Done.
-Done.
-...Packages installing to /opt/dev/work/BDisk/root.x86_64...Compiling kernel sources...Regular packages......Creating bdisk user...Done.
-Done.
-Installing packages for 32-bit...
-Done.
-Installing packages for 64-bit...
-Done.
-Syncing overlay...
-Done.
-Chroot setup complete.
-Checking for appropriate kernel version and mksquashfs version...
-Data is not sync'd to buildroot; syncing...
-Syncing important files to /opt/dev/work/BDisk/build64 for building the squashed filesystem (this may take some time)...
-Compressing the package DB...
-cp: ‘/opt/dev/work/BDisk/build64/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/build64/etc/localtime’ are the same file
-cp: ‘/opt/dev/work/BDisk/root.x86_64/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/root.x86_64/etc/localtime’ are the same file
-Cleaning up unnecessary cruft in /opt/dev/work/BDisk/build64...
-[64-bit] Now generating the squashed image (if we need to) and hashes. This may take some time.
-[64-bit] Squashing filesystem. This can take a while depending on the size of your chroot(s).
-[64-bit] Copying files for PXE, and ISO building, please be patient.
-Data is not sync'd to buildroot; syncing...
-Syncing important files to /opt/dev/work/BDisk/build32 for building the squashed filesystem (this may take some time)...
-Compressing the package DB...
-cp: ‘/opt/dev/work/BDisk/build32/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/build32/etc/localtime’ are the same file
-cp: ‘/opt/dev/work/BDisk/root.i686/usr/share/zoneinfo/EST5EDT’ and ‘/opt/dev/work/BDisk/root.i686/etc/localtime’ are the same file
-Cleaning up unnecessary cruft in /opt/dev/work/BDisk/build32...
-[32-bit] Now generating the squashed image (if we need to) and hashes. This may take some time.
-[32-bit] Squashing filesystem. This can take a while depending on the size of your chroot(s).
-[32-bit] Copying files for PXE, and ISO building, please be patient.
-Building the actual .iso image. This may take a while.
-Setting up EFI stuff...
-Checking/fetching UEFI shells...
-Generating the EFI embedded FAT filesystem...
-EFI configuration complete...
-ISO generated; size is 1.3G.
-You can find it at /opt/dev/work/BDisk/iso/bdisk-v1.04-a8666bd-any.iso
-Cleaning up some stuff leftover from the build...
-Finished successfully!
-
-real    250m48.104s
-user    163m6.046s
-sys     8m26.573s
-
-
-
 
 
 If you want more verbosity, check out the logs/ directory.

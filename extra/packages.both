@@ -192,6 +192,7 @@ netctl
 netselect
 nettle
 networkmanager
+networkmanager-pptp
 nginx-devel
 ngrep
 nmap

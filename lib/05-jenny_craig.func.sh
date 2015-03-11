@@ -38,7 +38,8 @@ function jenny_craig () {
   #rm -f ${BUILDDIR}/etc/localtime
   rm -f ${BUILDDIR}/root/.bashrc
   # DISABLE when no longer building custom kernel
-  find ${BUILDDIR}/usr/lib/modules/ -maxdepth 1 -iname "*-ARCH" -exec rm -rf '{}' \;
+  #find ${BUILDDIR}/usr/lib/modules/ -maxdepth 1 -iname "*-ARCH" -exec rm -rf '{}' \;
+  for i in $(ls -1t ${BUILDDIR}/usr/lib/modules | tail -n "+2") ; do rm -rf ${BUILDDIR}/usr/lib/modules/${i} ; done
   find ${BUILDDIR}/ -type f -name "*.pacnew" -exec rm -rf '{}' \;
   sed -i -e '/^MAKEFLAGS=.*$/d' ${BUILDDIR}/etc/makepkg.conf
   rm -rf ${BUILDDIR}/usr/share/locale/*
