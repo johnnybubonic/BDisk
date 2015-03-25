@@ -38,7 +38,7 @@ do
   sed -i -re "s/^([[:space:]]*ESSID[[:space:]]*=).*/\1${ESSID}/g" /etc/netctl/${i}
   ifconfig ${i} down
  fi
- netctl start ${i} > /dev/null 2>&1
+ netctl restart ${i} > /dev/null 2>&1
 done
 }
 
