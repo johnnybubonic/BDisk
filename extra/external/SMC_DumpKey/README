@@ -1,0 +1,3 @@
+taken with graces to http://www.contrib.andrew.cmu.edu/~somlo/OSXKVM/
+
+Needs to be compiled on linux with gcc, and only runs on genuine Apple hardware (as it polls the SMC chip for the given value)
