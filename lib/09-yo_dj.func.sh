@@ -60,7 +60,7 @@ MENU BACKGROUND /${UXNAME}.png
 LABEL check
   MENU LABEL Your best supported kernel should be detected automatically.
   COM32 ifcpu64.c32
-  APPEND ${UXNAME}_ram_64 -- ${UXNAME}_ram_32
+  APPEND ${UXNAME}_64 -- ${UXNAME}_32
   MENU DEFAULT
 
 
@@ -84,10 +84,10 @@ MENU SEPARATOR
 ## 64 BIT
 MENU BEGIN 64BIT
 MENU LABEL ^1) 64-Bit ...
-ONTIMEOUT ${UXNAME}_ram_64
+ONTIMEOUT ${UXNAME}_64
   
 LABEL ${UXNAME}_ram_64
-  MENU LABEL ^1) ${PNAME} (run from RAM) (Default)
+  MENU LABEL ^1) ${PNAME} (run from RAM)
   LINUX /boot/${UXNAME}.64.kern
   INITRD /boot/${UXNAME}.64.img
   APPEND copytoram archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
@@ -97,7 +97,7 @@ LABEL ${UXNAME}_ram_64
   MENU DEFAULT
 
 LABEL ${UXNAME}_64 
-  MENU LABEL ^1) ${PNAME}
+  MENU LABEL ^1) ${PNAME} (Default)
   LINUX /boot/${UXNAME}.64.kern
   INITRD /boot/${UXNAME}.64.img
   APPEND archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
@@ -110,11 +110,11 @@ MENU END
 
 MENU BEGIN 32BIT
 MENU LABEL ^2) 32-Bit ...
-ONTIMEOUT ${UXNAME}_ram_32
+ONTIMEOUT ${UXNAME}_32
 
 ## 32 BIT
 LABEL ${UXNAME}_ram_32
-  MENU LABEL ^1) ${PNAME} (run from RAM) (Default)
+  MENU LABEL ^1) ${PNAME} (run from RAM)
   LINUX /boot/${UXNAME}.32.kern
   INITRD /boot/${UXNAME}.32.img
   APPEND copytoram archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
@@ -124,7 +124,7 @@ LABEL ${UXNAME}_ram_32
   MENU DEFAULT
 
 LABEL ${UXNAME}_32 
-  MENU LABEL ^2) ${PNAME}
+  MENU LABEL ^2) ${PNAME} (Default)
   LINUX /boot/${UXNAME}.32.kern
   INITRD /boot/${UXNAME}.32.img
   APPEND archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
@@ -188,10 +188,10 @@ MENU SEPARATOR
 
 MENU BEGIN ${ARCH}BIT
 MENU LABEL ^1) ${ARCH}-Bit ...
-ONTIMEOUT ${UXNAME}_ram_${ARCH}
+ONTIMEOUT ${UXNAME}_${ARCH}
   
 LABEL ${UXNAME}_ram_${ARCH}
-  MENU LABEL ^1) ${PNAME} (run from RAM) (Default)
+  MENU LABEL ^1) ${PNAME} (run from RAM)
   LINUX /boot/${UXNAME}.${ARCH}.kern
   INITRD /boot/${UXNAME}.${ARCH}.img
   APPEND copytoram archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
@@ -201,7 +201,7 @@ LABEL ${UXNAME}_ram_${ARCH}
   MENU DEFAULT
 
 LABEL ${UXNAME}_${ARCH} 
-  MENU LABEL ^1) ${PNAME}
+  MENU LABEL ^1) ${PNAME} (Default)
   LINUX /boot/${UXNAME}.${ARCH}.kern
   INITRD /boot/${UXNAME}.${ARCH}.img
   APPEND archisobasedir=${DISTNAME} archisolabel=${DISTNAME}

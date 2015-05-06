@@ -32,16 +32,16 @@ function stuffy {
   # now for setting up loader config/entries. maybe add memtest or something in the future? i dunno.
   cat > ${TEMPDIR}/loader/loader.conf << EOF
 timeout 3
-default ${UXNAME}_ram
+default ${UXNAME}
 EOF
   cat > ${TEMPDIR}/loader/entries/${UXNAME}_ram.conf << EOF
-title   ${PNAME}
+title   ${PNAME} (RAM)
 linux   /boot/${UXNAME}.kern
 initrd  /boot/${UXNAME}.img
 options copytoram archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
 EOF
   cat > ${TEMPDIR}/loader/entries/${UXNAME}.conf << EOF
-title   ${PNAME} (Run from media)
+title   ${PNAME} (Media)
 linux   /boot/${UXNAME}.kern
 initrd  /boot/${UXNAME}.img
 options archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
@@ -73,16 +73,16 @@ EOF
   # GETTING DEJA VU HERE.
   cat > ${SRCDIR}/efiboot/loader/loader.conf << EOF
 timeout 3
-default ${UXNAME}_ram
+default ${UXNAME}
 EOF
   cat > ${SRCDIR}/efiboot/loader/entries/${UXNAME}_ram.conf << EOF
-title   ${PNAME}
+title   ${PNAME} (RAM)
 linux   /EFI/${DISTNAME}/${UXNAME}.efi
 initrd  /EFI/${DISTNAME}/${UXNAME}.img
 options copytoram archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
 EOF
   cat > ${SRCDIR}/efiboot/loader/entries/${UXNAME}.conf << EOF
-title   ${PNAME} (Run from media)
+title   ${PNAME} (Media)
 linux   /EFI/${DISTNAME}/${UXNAME}.efi
 initrd  /EFI/${DISTNAME}/${UXNAME}.img
 options archisobasedir=${DISTNAME} archisolabel=${DISTNAME}
