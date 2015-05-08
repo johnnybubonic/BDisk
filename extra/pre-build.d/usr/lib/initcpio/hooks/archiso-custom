@@ -46,7 +46,8 @@ _mnt_sfs() {
 
     if [[ "${copytoram}" == "y" ]]; then
         msg -n ":: Copying squashfs image to RAM..."
-        if ! cp "${img}" "/run/archiso/copytoram/${img_fullname}" ; then
+        #if ! cp "${img}" "/run/archiso/copytoram/${img_fullname}" ; then
+        if ! pv -pterabT "${img}" > "/run/archiso/copytoram/${img_fullname}" ; then
             echo "ERROR: while copy '${img}' to '/run/archiso/copytoram/${img_fullname}'"
             launch_interactive_shell
         fi
