@@ -7,6 +7,7 @@
 -- https://code.google.com/p/byte-unixbench/
 -- https://github.com/akopytov/sysbench
 -- (http://blog.due.io/2014/linode-digitalocean-and-vultr-comparison/ etc.)
+-write doc on required chroot packages (e.g. pv, archiso*, etc.) so those wanting to remaster know which packages to leave in
 
 
 ## NETWORKING ##
