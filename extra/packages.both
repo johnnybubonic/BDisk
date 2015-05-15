@@ -2,7 +2,7 @@
 # We need to install all X drivers.
 abs
 acpi
-acpidump
+#acpidump
 afflib
 aircrack-ng
 apr
