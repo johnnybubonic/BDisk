@@ -59,24 +59,30 @@ EOF
   # create the embedded efiboot FAT stuff
   # how big should we make the disk?
   echo "Generating the EFI embedded FAT filesystem..."
-  rm -f ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img
-  FTSIZE=$(du -sc ${TEMPDIR}/{boot,EFI,loader} | tail -n1 | awk '{print $1}')
-  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ))) # now we need to calculate the space for various files we're going to include...
-  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi))) # now we need to calculate the space for various files we're going to include...
-  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/gummiboot/gummibootx64.efi))) # now we need to calculate the space for various files we're going to include...
-  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v1.efi))) # now we need to calculate the space for various files we're going to include...
-  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v2.efi))) # now we need to calculate the space for various files we're going to include...
-  FATSIZE=$((${FATSIZE} + 64)) # let's give a little wiggle room
-  ${RACECAR_CHK}truncate -s "${FATSIZE}"K ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img
+  # are we building split-arch ISOs?
+  if [[ "${MULTIARCH}" == "n" ]];
+  then
+   rm -f ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img
+  fi
+  # now we need to calculate the space for various files we're going to include...
+  FATSIZE=$(stat --format="%s" ${TEMPDIR}/boot/${UXNAME}.64.kern) # EFI/BDISK/bdisk.efi
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/boot/${UXNAME}.64.img))) # EFI/BDISK/bdisk.img
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi))) # EFI/boot/bootx64.efi
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi))) # EFI/boot/HashTool.efi
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/gummiboot/gummibootx64.efi))) # EFI/boot/loader.efi
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v1.efi)))
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v2.efi)))
+  FATSIZE=$((${FATSIZE} + $(du -sb ${TEMPDIR}/loader | tail -n1 | awk '{print $1}'))) # loader/* (okay so i cheated a little here.)
+  FATSIZE=$((${FATSIZE} + 786432)) # let's give a little wiggle room; 768k should do it. -_-
+  ${RACECAR_CHK}truncate -s "${FATSIZE}" ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img
   ${RACECAR_CHK}mkfs.vfat -F 32 -n ${DISTNAME}_EFI ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  #${RACECAR_CHK}mkfs.vfat -F32 -s2 -n ${DISTNAME}_EFI ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img >> "${LOGFILE}.${FUNCNAME}" 2>&1
   mkdir -p ${SRCDIR}/efiboot
   mount ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img ${SRCDIR}/efiboot
   mkdir -p ${SRCDIR}/efiboot/EFI/${DISTNAME}
   cp ${TEMPDIR}/boot/${UXNAME}.64.kern ${SRCDIR}/efiboot/EFI/${DISTNAME}/${UXNAME}.efi
   cp ${TEMPDIR}/boot/${UXNAME}.64.img ${SRCDIR}/efiboot/EFI/${DISTNAME}/${UXNAME}.img
   mkdir -p ${SRCDIR}/efiboot/{EFI/boot,loader/entries}
-  # GETTING DEJA VU HERE.
+# GETTING DEJA VU HERE.
   cat > ${SRCDIR}/efiboot/loader/loader.conf << EOF
 timeout 3
 default ${UXNAME}

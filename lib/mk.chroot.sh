@@ -157,6 +157,8 @@ EOF
     # Disable NetworkManager. Fuck that shit.
     ln -s /dev/null ${i}/etc/systemd/system/NetworkManager.service
     ln -s /dev/null ${i}/etc/systemd/system/NetworkManager-dispatcher.service
+    # Remove the machine-id file so it's automatically generated.
+    rm -f ${i}/etc/machine-id
     # Prep pacman
     echo "Prepping ${i}. This will take a while..."
     echo -n "...Key initializing..."
