@@ -59,8 +59,14 @@ EOF
   # create the embedded efiboot FAT stuff
   # how big should we make the disk?
   echo "Generating the EFI embedded FAT filesystem..."
+  rm -f ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img
   FTSIZE=$(du -sc ${TEMPDIR}/{boot,EFI,loader} | tail -n1 | awk '{print $1}')
-  FATSIZE=$((${FTSIZE} + 64)) # let's give a little wiggle room
+  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ))) # now we need to calculate the space for various files we're going to include...
+  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi))) # now we need to calculate the space for various files we're going to include...
+  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/gummiboot/gummibootx64.efi))) # now we need to calculate the space for various files we're going to include...
+  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v1.efi))) # now we need to calculate the space for various files we're going to include...
+  FATSIZE=$((${FTSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v2.efi))) # now we need to calculate the space for various files we're going to include...
+  FATSIZE=$((${FATSIZE} + 64)) # let's give a little wiggle room
   ${RACECAR_CHK}truncate -s "${FATSIZE}"K ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img
   ${RACECAR_CHK}mkfs.vfat -F 32 -n ${DISTNAME}_EFI ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img >> "${LOGFILE}.${FUNCNAME}" 2>&1
   #${RACECAR_CHK}mkfs.vfat -F32 -s2 -n ${DISTNAME}_EFI ${TEMPDIR}/EFI/${DISTNAME}/efiboot.img >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -99,7 +105,7 @@ EOF
   cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ${SRCDIR}/efiboot/EFI/boot/bootx64.efi
   cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi ${SRCDIR}/efiboot/EFI/boot/.
   cp ${BASEDIR}/root.x86_64/usr/lib/gummiboot/gummibootx64.efi ${SRCDIR}/efiboot/EFI/boot/loader.efi # TODO: can i use syslinux.efi instead?
-  cp ${TEMPDIR}/EFI/shellx64_v* ${SRCDIR}/efiboot/EFI/.
+  cp ${TEMPDIR}/EFI/shellx64_v{1,2}.efi ${SRCDIR}/efiboot/EFI/.
   umount ${SRCDIR}/efiboot
   echo "EFI configuration complete..."
 

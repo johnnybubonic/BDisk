@@ -94,10 +94,10 @@ function mkchroot {
     echo "Local: ${LOCSUM64}"
     echo "Remote: ${CKSUM64}"
     echo "Fetching fresh copy."
-    curl -o latest.64.tar.gz "${RLSDIR}/${CURRLS64}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    curl -o latest.64.tar.gz "${RLSDIR}/${CURRLS64}"
   fi
  else
-  curl -o latest.64.tar.gz "${RLSDIR}/${CURRLS64}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  curl -o latest.64.tar.gz "${RLSDIR}/${CURRLS64}"
  fi
  
  if [ -f "latest.32.tar.gz" ];
