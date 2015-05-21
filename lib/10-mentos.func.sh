@@ -38,7 +38,7 @@ function mentos {
     local NEWKERN=$(curl -s "${MIRROR}" | grep linux | awk '{print $3}' | cut -f2 -d\" | egrep '^linux-[0-9].*pkg.tar.xz$' | cut -f2 -d"-")
 
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
-    ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed --ignore linux ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ bash -c "${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed --purgebuild --ignore linux ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
     ${CHROOTCMD} ${i}/ /usr/bin/bash -c "mkinitcpio -p linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}"
@@ -53,7 +53,7 @@ function mentos {
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "yes '' | ${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ bash -c "yes '' | ${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed --purgebuild ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
 
@@ -62,7 +62,7 @@ function mentos {
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "yes '' | ${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ bash -c "yes '' | ${RACECAR_CHK}apacman --noconfirm --noedit --skipinteg -S --needed --purgebuild ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
  #${CHROOTCMD} ${CHROOTDIR64}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}"
