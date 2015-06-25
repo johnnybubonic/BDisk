@@ -235,14 +235,14 @@ psmisc
 pv
 pwgen
 pxz
-pyrit
+pyrit-svn
 python2-gnuplot
 python2-pyx
 rarcrack
 rcracki_mt
 rdiff-backup
 read-edid
-reaver
+reaver-wps-fork-t6x-git
 rename
 rfkill
 rp-pppoe
@@ -319,7 +319,7 @@ vpnc
 weplab
 whdd
 whois
-wifite
+wifite-mod-pixiewps-git
 wipe
 wireshark-cli
 wpscrack

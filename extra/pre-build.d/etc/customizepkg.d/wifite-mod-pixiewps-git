@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sed -i -e 's/any/x86_64/g' ${1}
