@@ -24,3 +24,4 @@
 /logs
 *.swp
 *.lck
+i#src/ipxe/src/
