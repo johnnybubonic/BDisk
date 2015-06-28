@@ -30,7 +30,7 @@ BASEDIR="$(pwd)"
 ISODIR="${BASEDIR}/iso"
 
 # Where source code is kept.
-SRCDIR="${BASEDIR}/src"
+SRCDIR="${BASEDIR}/extrasrc"
 
 # Where we mount for chroots etc.
 MOUNTPT="/mnt/${UXNAME}"

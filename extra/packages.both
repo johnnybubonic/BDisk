@@ -16,6 +16,7 @@ autopsy
 autossh
 beep
 bin86
+bind-tools
 binutils
 bluez-utils
 bonnie++
@@ -60,7 +61,7 @@ djohn
 dmidecode
 dnssec-anchors
 dnstracer
-dnsutils
+#dnsutils #replaced by bind-tools, https://www.archlinux.org/packages/extra/x86_64/bind-tools/
 dos2unix
 dosfstools
 dropbear
