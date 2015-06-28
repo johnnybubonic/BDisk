@@ -31,6 +31,7 @@
 -does gummiboot? loader? wtfever it's called support splash backgrounds? can i implement that differently somehow?
 -Host-specific chroot customizations (i.e. -J in <chroot>/etc/makepkg.conf
 -strip out/remove unnecessary and orphan packages (e.g. gcc, make, automake, etc.)
+-incorporate iPXE image building for "mini-iso's/mini-img's"
 
 __________________________________________________________
 FOOTNOTES:
