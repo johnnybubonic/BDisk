@@ -1,0 +1,14 @@
+http://ipxe.org/download#efi
+
+"
+
+iPXE supports the EFI and UEFI environments, as well as the standard PC BIOS. You can build an EFI driver ROM using the .efirom image format. For example:
+
+  make bin-i386-efi/808610de.efirom     # 32-bit driver ROM
+  make bin-x86_64-efi/808610de.efirom   # 64-bit driver ROM
+
+"
+
+
+
+http://ipxe.org/efi/vision
