@@ -162,3 +162,6 @@ $ git submodule init
 $ git submodule update
 
 to make sure you pull the submodules into your working tree.
+You'll then want to cd src/ipxe/src and do:
+
+ $ make everything EMBED=../../ipxe_local/EMBED

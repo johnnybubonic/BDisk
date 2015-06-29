@@ -287,10 +287,15 @@ EOF
   # are we rsyncing?
   if [ -n "${RSYNC_HOST}" ];
   then
-   rsync -a ${TFTPDIR}/. ${RSYNC_HOST}:${RSYNC_DEST}/tftpboot/.
-   rsync -a ${HTTPDIR}/. ${RSYNC_HOST}:${RSYNC_DEST}/http/.
+   echo "Now sending to ${RSYNC_HOST} via rsync. This may take a while..."
+   echo "Sending TFTP files..."
+   rsync -a --info=progress2 ${TFTPDIR} ${RSYNC_HOST}:${RSYNC_DEST}/.
+   echo "Sending HTTP files..."
+   rsync -a --info=progress2 ${HTTPDIR} ${RSYNC_HOST}:${RSYNC_DEST}/.
 #   rsync -a  ${TEMPDIR}/boot/${UXNAME}.* ${RSYNC_HOST}:${RSYNC_DEST}/http/.
-   rsync -a ${ISODIR}/. ${RSYNC_HOST}:${RSYNC_DEST}/iso/.
-   rsync -a ${ROOTDIR}/extra/. ${RSYNC_HOST}:${RSYNC_DEST}/extra/.
+   echo "Sending the ISO files..."
+   rsync -a --info=progress2 ${ISODIR} ${RSYNC_HOST}:${RSYNC_DEST}/.
+   echo "Sending extra files..."
+   rsync -a --info=progress2 ${ROOTDIR}/extra ${RSYNC_HOST}:${RSYNC_DEST}/.
   fi
 }
