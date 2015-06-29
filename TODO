@@ -35,6 +35,7 @@
 --http://ipxe.org/crypto
 --http://ipxe.org/cmd/imgtrust
 --http://ipxe.org/cmd/imgverify
+--https://aur.archlinux.org/packages/ip/ipxe-git/PKGBUILD (NOTE the patches- banner and efi iso specifically)
 
 __________________________________________________________
 FOOTNOTES:
