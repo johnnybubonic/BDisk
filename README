@@ -155,3 +155,10 @@ Yeah. It's that easy. The finished product is in iso/.
 
 
 If you want more verbosity, check out the logs/ directory.
+
+As I incorporate iPXE into it, you'll want to run:
+
+$ git submodule init
+$ git submodule update
+
+to make sure you pull the submodules into your working tree.
