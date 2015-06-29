@@ -32,6 +32,9 @@
 -Host-specific chroot customizations (i.e. -J in <chroot>/etc/makepkg.conf
 -strip out/remove unnecessary and orphan packages (e.g. gcc, make, automake, etc.)
 -incorporate iPXE image building for "mini-iso's/mini-img's"
+--http://ipxe.org/crypto
+--http://ipxe.org/cmd/imgtrust
+--http://ipxe.org/cmd/imgverify
 
 __________________________________________________________
 FOOTNOTES:
