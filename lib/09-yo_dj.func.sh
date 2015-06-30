@@ -3,7 +3,9 @@ function yo_dj () {
   echo "Building the actual .iso image. This may take a while."
   im_batman
   ISOFILENAME="${UXNAME}-${VERSION}.iso"
-  MINIFILENAME="${UXNAME}-${VERSION}-mini.iso"
+  #MINIFILENAME="${UXNAME}-${VERSION}-mini.iso"
+  MINIFILENAME="${UXNAME}-mini.iso"
+  USBFILENAME="${UXNAME}-mini.usb.img"
   if [[ "${MULTIARCH}" == "y" ]];
   then
     ISOFILENAME="${UXNAME}-${VERSION}-any.iso"
@@ -276,37 +278,59 @@ EOF
 -output "${ISODIR}/${ISOFILENAME}" "${TEMPDIR}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
 
   ## Build the mini-ISO ##
+  echo "Now generating the iPXE images; please wait..."
   cd ${BASEDIR}/src/ipxe/src
+  git reset --hard HEAD > /dev/null 2>&1
   git pull > /dev/null 2>&1
   git checkout master > /dev/null 2>&1
   for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n');
   do
     patch -Np2 < $(BASEDIR)/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
   done
-  make everything EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  cp -f ${BASEDIR}/src/ipxe/src
+  #make everything EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  make bin/ipxe.eiso EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  make bin/ipxe.eiso EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  make all EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.usb  ${ISODIR}/${USBFILENAME}
+  mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
+  make clean > /dev/null 2>&1
+  git reset --hard HEAD > /dev/null 2>&1
+  echo
 
   #isohybrid ${ISOFILENAME}
   cd ${ISODIR}
   ${RACECAR_CHK}sha256sum ${ISOFILENAME} > ${ISOFILENAME}.sha256
+  ${RACECAR_CHK}sha256sum ${MINIFILENAME} > ${MINIFILENAME}.sha256
+  ${RACECAR_CHK}sha256sum ${USBFILENAME} > ${USBFILENAME}.sha256
   cd ..
-  echo "ISO generated; size is $(ls -lh ${ISODIR}/${ISOFILENAME} | awk '{print $5}')."
-  echo "SHA256 sum is: $(awk '{print $1}' ${ISODIR}/${ISOFILENAME}.sha256)"
-  echo "You can find it at ${ISODIR}/${ISOFILENAME}"
+  echo "=ISO="
+  echo "Size: $(ls -lh ${ISODIR}/${ISOFILENAME} | awk '{print $5}')"
+  echo "SHA256: $(awk '{print $1}' ${ISODIR}/${ISOFILENAME}.sha256)"
+  echo "Location: ${ISODIR}/${ISOFILENAME}"
+  echo "=Mini="
+  echo "Size: $(ls -lh ${ISODIR}/${MINIFILENAME} | awk '{print $5}')"
+  echo "SHA256: $(awk '{print $1}' ${ISODIR}/${MINIFILENAME}.sha256)"
+  echo "Location: ${ISODIR}/${MINIFILENAME}"
+  echo "=Mini USB="
+  echo "Size: $(ls -lh ${ISODIR}/${USBFILENAME} | awk '{print $5}')"
+  echo "SHA256: $(awk '{print $1}' ${ISODIR}/${USBFILENAME}.sha256)"
+  echo "Location: ${ISODIR}/${MINIFILENAME}"
   #rm -rf ${TEMPDIR}/*
 
   # are we rsyncing?
   if [ -n "${RSYNC_HOST}" ];
   then
+   echo
    echo "Now sending to ${RSYNC_HOST} via rsync. This may take a while..."
    echo "Sending TFTP files..."
    rsync -a --info=progress2 ${TFTPDIR} ${RSYNC_HOST}:${RSYNC_DEST}/.
    echo "Sending HTTP files..."
    rsync -a --info=progress2 ${HTTPDIR} ${RSYNC_HOST}:${RSYNC_DEST}/.
 #   rsync -a  ${TEMPDIR}/boot/${UXNAME}.* ${RSYNC_HOST}:${RSYNC_DEST}/http/.
-   echo "Sending the ISO files..."
+   echo "Sending the image files..."
    rsync -a --info=progress2 ${ISODIR} ${RSYNC_HOST}:${RSYNC_DEST}/.
    echo "Sending extra files..."
-   rsync -a --info=progress2 ${ROOTDIR}/extra ${RSYNC_HOST}:${RSYNC_DEST}/.
+   rsync -a --info=progress2 ${ROOTDIR}/extra/packages.* ${RSYNC_HOST}:${RSYNC_DEST}/.
+   rsync -a --info=progress2 ${ROOTDIR}/VERSION_INFO.txt ${RSYNC_HOST}:${RSYNC_DEST}/.
   fi
 }
