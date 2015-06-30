@@ -251,7 +251,7 @@ EOF
 
   cd ..
   ${RACECAR_CHK}xorriso -as mkisofs \
--quiet \
+`#-quiet` \
 `#-joliet` \
 `#-rock` \
 `#-omit-version-number` \
@@ -280,17 +280,19 @@ EOF
   ## Build the mini-ISO ##
   echo "Now generating the iPXE images; please wait..."
   cd ${BASEDIR}/src/ipxe/src
-  git reset --hard HEAD > /dev/null 2>&1
-  git pull > /dev/null 2>&1
-  git checkout master > /dev/null 2>&1
+  git reset --hard HEAD >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  git pull > /dev/null >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
   for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n');
   do
-    patch -Np2 < $(BASEDIR)/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    patch -Np2 < ${BASEDIR}/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
   done
-  #make everything EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  make bin/ipxe.eiso EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  make bin/ipxe.eiso EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  make all EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  #make everything EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  make bin/ipxe.eiso EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  #make bin/ipxe.eiso EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  # Change this to USB-only...
+  make all EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.usb  ${ISODIR}/${USBFILENAME}
   mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
   make clean > /dev/null 2>&1

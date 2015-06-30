@@ -1,5 +1,5 @@
+[submodule "ipxe"]
+	branch = master
 [submodule "src/ipxe"]
 	path = src/ipxe
 	url = git://git.ipxe.org/ipxe.git
-[submodule "ipxe"]
-	branch = master
