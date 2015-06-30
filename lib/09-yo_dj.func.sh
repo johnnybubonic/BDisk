@@ -3,6 +3,7 @@ function yo_dj () {
   echo "Building the actual .iso image. This may take a while."
   im_batman
   ISOFILENAME="${UXNAME}-${VERSION}.iso"
+  MINIFILENAME="${UXNAME}-${VERSION}-mini.iso"
   if [[ "${MULTIARCH}" == "y" ]];
   then
     ISOFILENAME="${UXNAME}-${VERSION}-any.iso"
@@ -276,7 +277,14 @@ EOF
 
   ## Build the mini-ISO ##
   cd ${BASEDIR}/src/ipxe/src
-  for i in $(find ${BASEDIR}/
+  git pull > /dev/null 2>&1
+  git checkout master > /dev/null 2>&1
+  for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n');
+  do
+    patch -Np2 < $(BASEDIR)/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  done
+  make everything EMBED="$(BASEDIR)/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  cp -f ${BASEDIR}/src/ipxe/src
 
   #isohybrid ${ISOFILENAME}
   cd ${ISODIR}
