@@ -26,15 +26,13 @@ index 4bcb64d..74b5b77 100644
  	 */
 -	printf ( NORMAL "\n\n" PRODUCT_NAME "\n" BOLD PRODUCT_SHORT_NAME " %s"
 +	printf ( NORMAL "\n\n" PRODUCT_NAME "\n" BOLD PRODUCT_SHORT_NAME
- 		 NORMAL " -- " PRODUCT_TAG_LINE " -- "
+- 		 NORMAL " -- " PRODUCT_TAG_LINE " -- "
 -		 CYAN PRODUCT_URI NORMAL "\nFeatures:", product_version );
 +		 CYAN PRODUCT_URI NORMAL "\n"
-+		 BOLD "Arch" BLUE "Linux" NORMAL " -- make it simple and lightweight -- "
-+		 BOLD BLUE "http://archlinux.org" NORMAL "\n"
-+		 "Version %s compiled on " __DATE__ ", " __TIME__ "\n"
-+		 "Features:", product_version );
- 	for_each_table_entry ( feature, FEATURES )
- 		printf ( " %s", feature->name );
++		 BOLD BLUE "http://bdisk.square-r00t.net/" NORMAL "\n"
++		 "%s"
+- 	for_each_table_entry ( feature, FEATURES )
+- 		printf ( " %s", feature->name );
  	printf ( "\n" );
 -- 
 2.3.0

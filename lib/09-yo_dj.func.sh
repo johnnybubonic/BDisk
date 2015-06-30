@@ -274,6 +274,9 @@ EOF
 -isohybrid-gpt-basdat \
 -output "${ISODIR}/${ISOFILENAME}" "${TEMPDIR}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
 
+  ## Build the mini-ISO ##
+  cd ${BASEDIR}/src/ipxe/src
+  for i in $(find ${BASEDIR}/
 
   #isohybrid ${ISOFILENAME}
   cd ${ISODIR}
