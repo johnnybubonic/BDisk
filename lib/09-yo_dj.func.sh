@@ -297,8 +297,9 @@ EOF
   mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.usb  ${ISODIR}/${USBFILENAME}
   mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
   make clean > /dev/null 2>&1
-  git checkout . > /dev/null 2>&1
-  git reset > /dev/null 2>&1
+  git reset --hard > /dev/null 2>&1
+  git clean -xdf > /dev/null 2>&1
+  git checkout -- HEAD > /dev/null 2>&1
   #git reset --hard HEAD > /dev/null 2>&1
   echo
 
