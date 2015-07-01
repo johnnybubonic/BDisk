@@ -280,9 +280,10 @@ EOF
   ## Build the mini-ISO ##
   echo "Now generating the iPXE images; please wait..."
   cd ${BASEDIR}/src/ipxe/src
+  git clean -xdf > /dev/null 2>&1
   git reset --hard HEAD >> "${LOGFILE}.${FUNCNAME}" 2>&1
   git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  git pull > /dev/null >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  git pull >> "${LOGFILE}.${FUNCNAME}" 2>&1
   git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
   for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n');
   do
@@ -290,13 +291,15 @@ EOF
   done
   #make everything EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   make bin/ipxe.eiso EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-  #make bin/ipxe.eiso EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  make bin/ipxe.usb EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   # Change this to USB-only...
-  make all EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  #make all EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.usb  ${ISODIR}/${USBFILENAME}
   mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
   make clean > /dev/null 2>&1
-  git reset --hard HEAD > /dev/null 2>&1
+  git checkout . > /dev/null 2>&1
+  git reset > /dev/null 2>&1
+  #git reset --hard HEAD > /dev/null 2>&1
   echo
 
   #isohybrid ${ISOFILENAME}
