@@ -57,6 +57,10 @@ TFTPGRP="root"
 # (and thus doesn't fit on a normal CD. Still fits on DVDs and USBs though!)
 MULTIARCH="yes"
 
+# If you would like to build an iPXE-enabled *mini* ISO *in addition to* the ful ISO,
+# set this to "yes". Otherwise, just build the full ISO.
+BUILDMINI="no"
+
 # set to "yes" to enable pushing new changes to a git repo/committing to a local repo
 GIT="no"
 
@@ -151,7 +155,6 @@ if [ -z "${MULTIARCH}" ];
 then
  MULTIARCH="y"
 fi
-
 MULTIARCH=${MULTIARCH:0:1}
 MULTIARCH=$(echo ${MULTIARCH} | tr [[:upper:]] [[:lower:]])
 
@@ -160,6 +163,13 @@ if [ -z "${I_AM_A_RACECAR}" ];
 then
  I_AM_A_RACECAR="n"
 fi
-
 I_AM_A_RACECAR=${I_AM_A_RACECAR:0:1}
 I_AM_A_RACECAR=$(echo ${I_AM_A_RACECAR} | tr [[:upper:]] [[:lower:]])
+
+# BUILD MINI?
+if [ -z "${BUILDMINI}" ];
+then
+ BUILDMINI="n"
+fi
+BUILDMINI=${BUILDMINI:0:1}
+BUILDMINI=$(echo ${BUILDMINI} | tr [[:upper:]] [[:lower:]])
