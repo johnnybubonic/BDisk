@@ -43,11 +43,11 @@ function will_it_blend () {
   local BUILDDIR="${BUILDDIR}${ARCHSUFFIX}"
 
   # now let's build the squashed image... and generate some checksums as well to verify download integrity.
-  # are we building split-arch ISOs?
-  if [[ "${MULTIARCH}" == "n" ]];
-  then
-   rm -rf ${ARCHBOOT}
-  fi
+  # are we building split-arch ISOs? do we need the below?
+  #if [[ "${MULTIARCH}" == "n" ]];
+  #then
+  # rm -rf ${ARCHBOOT}
+  #fi
   mkdir -p ${ARCHBOOT}/${AIROOT}
   
   if [ ! -f "${ARCHBOOT}/${AIROOT}/airootfs.sfs" ] || [ "${CHROOTDIR}/root/.bash_history" -nt "${ARCHBOOT}/${AIROOT}/airootfs.sfs" ];

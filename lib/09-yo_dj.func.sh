@@ -300,10 +300,10 @@ EOF
     #make all EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.usb  ${ISODIR}/${USBFILENAME}
     mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
-    make clean > /dev/null 2>&1
-    git reset --hard > /dev/null 2>&1
+    make clean >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    git reset --hard >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git clean -xdf > /dev/null 2>&1
-    git checkout -- HEAD > /dev/null 2>&1
+    git checkout master > /dev/null 2>&1
     #git reset --hard HEAD > /dev/null 2>&1
     echo
   fi
@@ -330,7 +330,7 @@ EOF
     echo "=Mini USB="
     echo "Size: $(ls -lh ${ISODIR}/${USBFILENAME} | awk '{print $5}')"
     echo "SHA256: $(awk '{print $1}' ${ISODIR}/${USBFILENAME}.sha256)"
-    echo "Location: ${ISODIR}/${MINIFILENAME}"
+    echo "Location: ${ISODIR}/${USBFILENAME}"
   fi
   #rm -rf ${TEMPDIR}/*
 

@@ -18,12 +18,14 @@ _curl_get() {
     local _url="${1}"
     local _dst="${2}"
 
-    msg ":: Downloading '${_url}'"
-    if ! curl -L -fs -o "/run/archiso/httpspace/${archisobasedir}${_dst}/${_url##*/}" --create-dirs "${_url}"; then
+    msg ":: Downloading image"
+    if ! curl -L -f -o "/run/archiso/httpspace/${archisobasedir}${_dst}/${_url##*/}" --create-dirs "${_url}"; then
         echo "ERROR: Downloading failed."
         #echo "   Falling back to interactive prompt"
         #echo "   You can try to fix the problem manually, log out when you are finished"
         #launch_interactive_shell
+	sleep 4
+	reboot -f
     fi
 }
 
