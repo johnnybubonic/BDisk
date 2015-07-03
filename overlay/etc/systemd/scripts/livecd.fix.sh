@@ -39,6 +39,8 @@ do
   ifconfig ${i} down
  fi
  netctl restart ${i} > /dev/null 2>&1
+ cat /etc/resolvconf.conf.failover > /etc/resolvconf.conf
+ resolvconf -u
 done
 }
 
