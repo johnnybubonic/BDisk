@@ -39,8 +39,8 @@ do
   ifconfig ${i} down
  fi
  netctl restart ${i} > /dev/null 2>&1
- cat /etc/resolvconf.conf.failover > /etc/resolvconf.conf
- resolvconf -u
+ #cat /etc/resolvconf.conf.failover > /etc/resolvconf.conf
+ #resolvconf -u
 done
 }
 
@@ -49,4 +49,11 @@ if [[ "${?}" != "0" ]];
 then
  fuck_you_gimme_net
  systemctl restart openvpn@*
+fi
+
+# And lastly, do we need to set custom DNS servers?
+host -s -W1 bdisk.square-r00t.net | egrep -q '^bdisk\.square-r00t\.net\ has\ address'
+if [[ "${?}" != "0" ]];
+then
+ resolvconf -u
 fi
