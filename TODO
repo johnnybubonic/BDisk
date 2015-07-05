@@ -1,13 +1,11 @@
 ## General ##
 
--include WinMTR, build Mac OS X MTR for dist/tools on CD
--include pre-compiled DoxBox for opening LUKS parts on Windows (https://github.com/t-d-k/doxbox)
 -include benchmarking
 -- http://sourceforge.net/projects/unixbench/
 -- https://code.google.com/p/byte-unixbench/
 -- https://github.com/akopytov/sysbench
 -- (http://blog.due.io/2014/linode-digitalocean-and-vultr-comparison/ etc.)
--write doc on required chroot packages (e.g. pv, archiso*, etc.) so those wanting to remaster know which packages to leave in
+-package in AUR
 
 
 ## NETWORKING ##
@@ -15,7 +13,6 @@
 -shorewall/some other firewall?
 -WISH: locked-down VPN?
 -autodetection/configuration of network. DHCP is currently running by default, but does it need to support IPv6? if so, how would the user configure their network?
--WISH: support iPXE? would save on ISO file size (letting us create MUCH bigger squash systems), but the downside is we lose EFI support and it requires a working network configuration- which defeats the purpose of a diagnostic disc.
 -SECURE SSH: https://stribika.github.io/2015/01/04/secure-secure-shell.html
 -DISABLE NETWORKMANAGER AND "fi.w1.wpa_supplicant1"??? keeps spawning wpa_supplicant (and thusly killing networking proper)
 
@@ -31,11 +28,23 @@
 -does gummiboot? loader? wtfever it's called support splash backgrounds? can i implement that differently somehow?
 -Host-specific chroot customizations (i.e. -J in <chroot>/etc/makepkg.conf
 -strip out/remove unnecessary and orphan packages (e.g. gcc, make, automake, etc.)
--incorporate iPXE image building for "mini-iso's/mini-img's" - this is mostly done, i just need to implement the below tweaks.
+-incorporate iPXE tweaks:
 --http://ipxe.org/crypto
 --http://ipxe.org/cmd/imgtrust
 --http://ipxe.org/cmd/imgverify
 --https://aur.archlinux.org/packages/ip/ipxe-git/PKGBUILD (NOTE the patches- banner and efi iso specifically)
+--add conf option to specify EMBED uri
+-X-platform
+--what distros are supported?
+--automatically install what we need for buildtime
+--hardcode list of runtime dependencies (e.g. openssh, vim, etc.)
+
+## Split into Separate Tools CD ##
+
+-include WinMTR, build Mac OS X MTR for dist/tools on CD
+-include pre-compiled LibreCrypt for opening LUKS parts on Windows (https://github.com/t-d-k/LibreCrypt)
+--curl -s https://raw.githubusercontent.com/t-d-k/LibreCrypt/master/README.md | egrep 'InstallLibreCrypt_v[A-Za-z0-9\.]*.exe' | cut -f2 -d'"'
+
 
 __________________________________________________________
 FOOTNOTES:
