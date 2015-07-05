@@ -45,7 +45,10 @@ All commands below should be issued in the root working directory of this git re
 	the inclusion of arbitrary files in the finished filesystem.
 -TFP/HTTP/PXE support
 	It will automatically copy over some files to tftpboot/ and http/, greatly saving some time in PXE booting. It also
-	supports, by default, booting PXE with HTTP fetching for the squashed filesystems. Say goodbye to NFS.
+	supports, by default, booting PXE with HTTP fetching for the squashed filesystems. Say goodbye to NFS. You can even
+	automatically rsync over after the build, if you wish, to your webserver (see sub-point)
+	-Additionally, it supports iPXE if enabled in the configuration file. Please see examples/HTTP for an example of how to
+	lay this out and what sort of directory hierarchy is needed.
 -Automatic versioning based on git tags
 
 ## Prerequisites ##
@@ -102,6 +105,10 @@ Also note the following files/paths:
 --/mirror.lst.sh:
 	Builds a fresh mirror list. Note that it is US based.
 
+-examples:
+	Included recommendation for how to lay things out, etc.
+--/HTTP:
+	Recommended layout for webserver layout if using iPXE.
 -extra:
 	Supporting files for the base building system (mirrorlist, etc.).
 --/${UXNAME}.png:
@@ -138,6 +145,12 @@ Also note the following files/paths:
 	These files are applied AFTER the initial setup of the chroots. Same hierarchy rules as extra/pre-build.d.
 -README:
 	This file.
+-src:
+	Supporting source code/source code from other projects.
+--ipxe/:
+	For iPXE support.
+--ipxe_local/:
+	Various patches and supporting configs to tweak the iPXE build.
 -tftpboot:
 	Files to be served via TFTP for PXE booting. This directory is wiped out during any bin/clean.sh operation.
 -TODO:
@@ -155,13 +168,3 @@ Yeah. It's that easy. The finished product is in iso/.
 
 
 If you want more verbosity, check out the logs/ directory.
-
-As I incorporate iPXE into it, you'll want to run:
-
-$ git submodule init
-$ git submodule update
-
-to make sure you pull the submodules into your working tree.
-You'll then want to cd src/ipxe/src and do:
-
- $ make everything EMBED=../../ipxe_local/EMBED

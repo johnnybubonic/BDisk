@@ -123,27 +123,27 @@ I_AM_A_RACECAR="no"
 # about what you are doing!!!
 
 # Legacy support.
-ROOTDIR="${BASEDIR}"
+BASEDIR="${BASEDIR}"
 
-# This used to be defined statically (e.g. CHROOTDIR="${ROOTDIR}/chroot"),
+# This used to be defined statically (e.g. CHBASEDIR="${BASEDIR}/chroot"),
 # but is now dynamically appended. Please don't alter this unless you renamed the chroot directory paths.
 CHROOTDIR="${BASEDIR}/"
-CHROOTDIR32="${CHROOTDIR}root.i686"
-CHROOTDIR64="${CHROOTDIR}root.x86_64"
+CHROOTDIR32="${CHBASEDIR}root.i686"
+CHROOTDIR64="${CHBASEDIR}root.x86_64"
 
 # This is a directory we use for staging. It definitely should not be checked into git.
-# It used to be defined statically (e.g. BUILDDIR="${ROOTDIR}/build"),
+# It used to be defined statically (e.g. BUILDDIR="${BASEDIR}/build"),
 # but is now dynamically appended. Please don't alter this unless you renamed the chroot directory paths.
 BUILDDIR="${BASEDIR}/build"
 
 # More staging.
-TEMPDIR="${ROOTDIR}/temp"
+TEMPDIR="${BASEDIR}/temp"
 
 # This is where we stage the boot files.
 ARCHBOOT="${TEMPDIR}/${DISTNAME}"
 
 # Lockfile for checking for concurrent/failed builds
-LOCKFILE="${ROOTDIR}/lockfile.lck"
+LOCKFILE="${BASEDIR}/lockfile.lck"
 
 
 ## VARIABLE PROCESSING ##

@@ -63,7 +63,7 @@ echo "Checking directory structure and creating lockfile at ${LOCKFILE}..."
 touch ${LOCKFILE}
 
 # make sure the paths exist and then check for an existing chroot session
-for i in ${ROOTDIR} ${CHROOTDIR32} ${CHROOTDIR64} ${BUILDDIR}32 ${BUILDDIR}64 ${ISODIR} ${MOUNTPT} ${TEMPDIR}/{${UXNAME},${DISTNAME}} ${ARCHBOOT} ${SRCDIR} ${TFTPDIR} ${HTTPDIR}/${DISTNAME} ${BASEDIR}/logs;
+for i in ${BASEDIR} ${CHROOTDIR32} ${CHROOTDIR64} ${BUILDDIR}32 ${BUILDDIR}64 ${ISODIR} ${MOUNTPT} ${TEMPDIR}/{${UXNAME},${DISTNAME}} ${ARCHBOOT} ${SRCDIR} ${TFTPDIR} ${HTTPDIR}/${DISTNAME} ${BASEDIR}/logs;
 do
  if [ ! -d ${i} ];
  then
@@ -183,7 +183,7 @@ fi
 echo "Cleaning up some stuff leftover from the build..."
 #rm -rf ${TEMPDIR}/*
 #rm -rf ${SRCDIR}/*
-cd ${ROOTDIR}
+cd ${BASEDIR}
 
 if [[ "${GIT}" == "yes" ]];
 then
