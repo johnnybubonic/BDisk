@@ -30,3 +30,4 @@
 extra/pre-build.d/etc/openvpn/client.conf
 overlay/etc/ssh/*
 overlay/home/bdisk
+overlay/etc/systemd/system/multi-user.target.wants/openvpn@client.service
