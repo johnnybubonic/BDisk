@@ -109,17 +109,17 @@ EOF
 
 ## FUNCTIONS ##
 
-source lib/00-im_batman.func.sh
-source lib/01-holla_atcha_boi.func.sh
-source lib/02-release_me.func.sh
-source lib/03-facehugger.func.sh
-source lib/04-chroot_wrapper.func.sh
-source lib/05-jenny_craig.func.sh
-source lib/06-centos_is_stupid.func.sh
-source lib/07-will_it_blend.func.sh
-source lib/08-stuffy.func.sh
-source lib/09-yo_dj.func.sh
-source lib/10-mentos.func.sh
+source lib/02-im_batman.func.sh
+source lib/03-holla_atcha_boi.func.sh
+source lib/04-release_me.func.sh
+source lib/05-facehugger.func.sh
+source lib/06-chroot_wrapper.func.sh
+source lib/07-jenny_craig.func.sh
+source lib/08-centos_is_stupid.func.sh
+source lib/09-will_it_blend.func.sh
+source lib/10-stuffy.func.sh
+source lib/11-yo_dj.func.sh
+source lib/12-mentos.func.sh
 
 ## The Business-End(TM) ##
 
