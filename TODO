@@ -15,6 +15,9 @@
 -autodetection/configuration of network. DHCP is currently running by default, but does it need to support IPv6? if so, how would the user configure their network?
 -SECURE SSH: https://stribika.github.io/2015/01/04/secure-secure-shell.html
 -DISABLE NETWORKMANAGER AND "fi.w1.wpa_supplicant1"??? keeps spawning wpa_supplicant (and thusly killing networking proper)
+-for netboot, custom user agent (should be defined by build.conf)
+--iPXE's curl
+--initrd's curl
 
 
 ## Building ##
