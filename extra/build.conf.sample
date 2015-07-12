@@ -61,7 +61,17 @@ MULTIARCH="yes"
 # set this to "yes". Otherwise, just build the full ISO.
 BUILDMINI="no"
 
-# set to "yes" to enable pushing new changes to a git repo/committing to a local repo
+# What URI should iPXE's EMBED script use?
+# Only used if BUILDMINI is set to yes.
+# DO NOT USE A ',' (comma); instead, replace it with:
+# %%COMMA%%
+# If you require HTTP BASIC Authentication or HTTP Digest Authentication (untested), you can
+# format it via the following:
+# https://user:password@domain.tld/page.php
+# This currently does not work for HTTPS with self-signed certificates.
+IPXE_URI="https://bdisk.square-r00t.net"
+
+# Set to "yes" to enable pushing new changes to a git repo/committing to a local repo
 GIT="no"
 
 # If this is set, use rsync to copy the http and iso files. This is the rsync destination host.
@@ -119,17 +129,14 @@ I_AM_A_RACECAR="no"
 
 # ________________________________________________________________________________________________
 ## RECOMMENDED DEFALTS ##
-# The following shoult not be changed unless you are ABSOLUTELY, 100% SURE and COMPLETELY POSITIVE
+# The following should not be changed unless you are ABSOLUTELY, 100% SURE and COMPLETELY POSITIVE
 # about what you are doing!!!
 
-# Legacy support.
-BASEDIR="${BASEDIR}"
-
-# This used to be defined statically (e.g. CHBASEDIR="${BASEDIR}/chroot"),
-# but is now dynamically appended. Please don't alter this unless you renamed the chroot directory paths.
+# This used to be defined statically, but is now dynamically appended. Please don't alter this
+# unless you renamed the chroot directory paths.
 CHROOTDIR="${BASEDIR}/"
-CHROOTDIR32="${CHBASEDIR}root.i686"
-CHROOTDIR64="${CHBASEDIR}root.x86_64"
+CHROOTDIR32="${CHROOTDIR}root.i686"
+CHROOTDIR64="${CHROOTDIR}root.x86_64"
 
 # This is a directory we use for staging. It definitely should not be checked into git.
 # It used to be defined statically (e.g. BUILDDIR="${BASEDIR}/build"),

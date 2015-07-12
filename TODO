@@ -34,8 +34,7 @@
 --http://ipxe.org/crypto
 --http://ipxe.org/cmd/imgtrust
 --http://ipxe.org/cmd/imgverify
---https://aur.archlinux.org/packages/ip/ipxe-git/PKGBUILD (NOTE the patches- banner and efi iso specifically)
---add conf option to specify EMBED uri
+--enable use of custom CA/self-signed certs for HTTPS etc.
 -X-platform
 --what distros are supported?
 --automatically install what we need for buildtime

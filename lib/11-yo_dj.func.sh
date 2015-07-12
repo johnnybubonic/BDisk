@@ -293,9 +293,12 @@ EOF
     do
       patch -Np2 < ${BASEDIR}/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     done
-    #make everything EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    make bin-i386-efi/ipxe.efi bin-x86_64-efi/ipxe.efi EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    make bin/ipxe.eiso bin/ipxe.usb EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    # Generate the iPXE EMBED script...
+    sed -re "s,^(chain\ ).*$,\1${IPXE_URI},g" \
+	-e 's/%%COMMA%%/,/g' ${BASEDIR}/src/ipxe_local/EMBED > ${SRCDIR}/EMBED
+    #make everything EMBED="${SRCDIR}/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    make bin-i386-efi/ipxe.efi bin-x86_64-efi/ipxe.efi EMBED="${SRCDIR}/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    make bin/ipxe.eiso bin/ipxe.usb EMBED="${SRCDIR}/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     # Change this to USB-only...
     #make all EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.usb  ${ISODIR}/${USBFILENAME}
