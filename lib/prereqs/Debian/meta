@@ -1,0 +1,6 @@
+NAME='Debian'
+SUPPORTED='yes'
+CHECK_METHOD='cat /etc/debian_version'
+PKG_MGR='apt-get -y install'
+PRE_RUN='apt-get update'
+PKG_CHK='dpkg-query -l'

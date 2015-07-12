@@ -1,0 +1,18 @@
+This directory is used to enable cross-distro support. A list of packages is needed for the *host* to build the ISO. Adding distro support is easy; there simply needs to be the following added:
+
+<basedir>/lib/prereqs/<Distro>/{meta,pkgs}
+
+"pkgs" should contain a list of the specific package names needed to install for that specific distro (as this isn't always standardized).
+
+"meta" is a file consisting of the following variables (enclosed in single or double quotes, please:
+
+NAME=<Distro - this should match the name of the directory this file is in!>
+SUPPORTED=<yes or no- yes by default>
+CHECK_METHOD=<a command that will be run that should return '0' (success) on *only* this specific distro
+		(or fully compatible derivatives, i.e. CentOS/RHEL)>
+PKG_MGR=<a command used to prefix installation of packages e.g. for RHEL, "yum -y install">
+PRE_RUN=<a command to be run before PKG_MGR (e.g. on Ubuntu, "apt-get update"). commonly used to update package caches/metadata.
+		if your distro does not require this, set PRE_RUN=none >
+PKG_CHK=<a command that will be run that should return '0' (success) *only* if any given package in the pkgs file is installed. e.g. for RHEL, "rpm -q">
+
+Oh- and your distro *must be able to install the package*. That means if you need to enable/add additional repositories, be sure to do so ahead of time.

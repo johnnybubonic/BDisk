@@ -1,0 +1,6 @@
+NAME='Arch'
+SUPPORTED='yes'
+CHECK_METHOD='egrep "^NAME=\"Arch Linux\"" /etc/os-release'
+PKG_MGR='pacman -S'
+PRE_RUN='pacman -Syyy'
+PKG_CHK='pacman -Q'

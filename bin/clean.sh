@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Started at $(date)..."
+
 ## Import settings
 if [ -f "build.conf" ];
 then
@@ -82,3 +84,5 @@ do
 done
 
 rm -f ${LOCKFILE}
+
+echo "Finished successfully at $(date)!"

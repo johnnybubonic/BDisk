@@ -7,6 +7,7 @@ function holla_atcha_boi {
    RACECAR_CHK=""
  fi
 
+ so_check_me_out
 
   # Do we have an existing chroot set up yet? If not, create.
   if [[ ! -d "root.x86_64/root" || ! -d "root.i686/root" ]];

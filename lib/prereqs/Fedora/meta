@@ -1,0 +1,6 @@
+NAME='Fedora'
+SUPPORTED='yes'
+CHECK_METHOD='egrep '^Fedora' /etc/redhat-release'
+PKG_MGR='yum -y install'
+PRE_RUN='none'
+PKG_CHK='rpm -q'

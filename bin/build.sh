@@ -7,6 +7,8 @@
 #DEBUG
 #set -x
 
+echo "Starting at $(date)..."
+
 ## Import settings
 if [ -f "build.conf" ];
 then
@@ -109,6 +111,7 @@ EOF
 
 ## FUNCTIONS ##
 
+source lib/00-depcheck.func.sh
 source lib/02-im_batman.func.sh
 source lib/03-holla_atcha_boi.func.sh
 source lib/04-release_me.func.sh
@@ -194,4 +197,4 @@ fi
 
 # yay! we're done!
 rm -f ${LOCKFILE}
-echo "Finished successfully!"
+echo "Finished successfully at $(date)!"
