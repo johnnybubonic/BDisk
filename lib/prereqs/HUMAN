@@ -14,5 +14,6 @@ PKG_MGR=<a command used to prefix installation of packages e.g. for RHEL, "yum -
 PRE_RUN=<a command to be run before PKG_MGR (e.g. on Ubuntu, "apt-get update"). commonly used to update package caches/metadata.
 		if your distro does not require this, set PRE_RUN=none >
 PKG_CHK=<a command that will be run that should return '0' (success) *only* if any given package in the pkgs file is installed. e.g. for RHEL, "rpm -q">
+URL=<the URL for the distro. optional, as it isn't really used as any active part of the scripts- at least not presently.>
 
 Oh- and your distro *must be able to install the package*. That means if you need to enable/add additional repositories, be sure to do so ahead of time.

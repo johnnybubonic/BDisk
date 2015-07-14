@@ -1,7 +1,7 @@
 function yo_dj () {
   ARCH="${1}"
   echo "Building the actual .iso image. This may take a while."
-  im_batman
+  #im_batman ## WHYTF IS THIS HERE?!
   ISOFILENAME="${UXNAME}-${VERSION}.iso"
   #MINIFILENAME="${UXNAME}-${VERSION}-mini.iso"
   MINIFILENAME="${UXNAME}-mini.iso"

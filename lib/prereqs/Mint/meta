@@ -1,6 +1,7 @@
-NAME=
-SUPPORTED=
-CHECK_METHOD=
-PKG_MGR=
-PRE_RUN=
-PKG_CHK=
+NAME='Mint'
+SUPPORTED='yes'
+CHECK_METHOD='egrep "^DESCRIPTION=\"Linux\ Mint\"" /etc/linuxmint/info'
+PKG_MGR='apt-get -y install ${pkgname}'
+PRE_RUN='apt-get -y update'
+PKG_CHK='dpkg-query -l ${pkgname}'
+URL='http://www.linuxmint.com/'

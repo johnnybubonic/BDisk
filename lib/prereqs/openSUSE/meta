@@ -1,6 +1,7 @@
-NAME=
-SUPPORTED=
-CHECK_METHOD=
-PKG_MGR=
-PRE_RUN=
-PKG_CHK=
+NAME='openSUSE'
+SUPPORTED='yes'
+CHECK_METHOD=''
+PKG_MGR=''
+PRE_RUN=''
+PKG_CHK=''
+URL='https://www.opensuse.org/'

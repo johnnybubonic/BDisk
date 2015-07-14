@@ -74,6 +74,8 @@ do
  fi
 done
 
+source ${BASEDOR/}lib/00-depcheck.func.sh
+
 if [ ! -f "./BUILDNO" ];
 then
  echo '0' > ./BUILDNO
@@ -88,7 +90,7 @@ BUILD="$(cat BUILDNO)"
 BUILD="$(expr ${BUILD} + 1)"
 echo ${BUILD} > ./BUILDNO
 BUILDTIME="$(date)"
-BUILD_MACHINE="$(hostname -f)"
+BUILD_MACHINE="$(hostname -f) (${HOST_DIST})"
 #BUILD_USERNAME="${SUDO_USER}"
 #BUILD_USERNAME="$(who am i | awk '{print $1}')"
 set +e ; logname > /dev/null 2>&1
@@ -111,18 +113,18 @@ EOF
 
 ## FUNCTIONS ##
 
-source lib/00-depcheck.func.sh
-source lib/02-im_batman.func.sh
-source lib/03-holla_atcha_boi.func.sh
-source lib/04-release_me.func.sh
-source lib/05-facehugger.func.sh
-source lib/06-chroot_wrapper.func.sh
-source lib/07-jenny_craig.func.sh
-source lib/08-centos_is_stupid.func.sh
-source lib/09-will_it_blend.func.sh
-source lib/10-stuffy.func.sh
-source lib/11-yo_dj.func.sh
-source lib/12-mentos.func.sh
+#source ${BASEDIR}/lib/00-depcheck.func.sh ## this should be called like, VERYYYY first thing, right after sanity/safety checks and such.
+#source ${BASEDIR}/lib/01-mk.chroot.func.sh ## this is called automatically and only if no chroot exists
+source ${BASEDIR}/lib/02-holla_atcha_boi.func.sh
+source ${BASEDIR}/lib/03-release_me.func.sh
+source ${BASEDIR}/lib/04-facehugger.func.sh
+source ${BASEDIR}/lib/05-chroot_wrapper.func.sh
+source ${BASEDIR}/lib/06-jenny_craig.func.sh
+source ${BASEDIR}/lib/07-centos_is_stupid.func.sh
+source ${BASEDIR}/lib/08-will_it_blend.func.sh
+source ${BASEDIR}/lib/09-stuffy.func.sh
+source ${BASEDIR}/lib/10-yo_dj.func.sh
+source ${BASEDIR}/lib/11-mentos.func.sh
 
 ## The Business-End(TM) ##
 

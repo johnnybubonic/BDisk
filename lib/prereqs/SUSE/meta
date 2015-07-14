@@ -1,6 +1,8 @@
-NAME=
+NAME='SUSE'
 SUPPORTED=
-CHECK_METHOD=
-PKG_MGR=
-PRE_RUN=
-PKG_CHK=
+# Both SLED and SLES. We can probably safely combine them.
+CHECK_METHOD='egrep "^NAME=\"SLE(D|S)\"" /etc/os-release'
+PKG_MGR='zypper install -l ${pkgname}'
+PRE_RUN='none'
+PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
+URL='https://www.suse.com/'

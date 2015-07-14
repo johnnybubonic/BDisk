@@ -1,6 +1,8 @@
-NAME=
-SUPPORTED=
-CHECK_METHOD=
-PKG_MGR=
-PRE_RUN=
-PKG_CHK=
+NAME=RHEL
+SUPPORTED=yes
+# Red Hat Enterprise Linux Server release 6.5 (Santiago)
+CHECK_METHOD='egrep "^Red\ Hat\ Enterprise\ Linux" /etc/redhat-release'
+PKG_MGR='yum -y install'
+PRE_RUN='none'
+PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
+URL='http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux'

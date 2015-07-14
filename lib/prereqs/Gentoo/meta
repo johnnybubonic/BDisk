@@ -1,6 +1,7 @@
-NAME=
-SUPPORTED=
-CHECK_METHOD=
-PKG_MGR=
-PRE_RUN=
-PKG_CHK=
+NAME='Gentoo'
+SUPPORTED='yes'
+CHECK_METHOD='egrep "^Gentoo\ Base\ System" /etc/gentoo-release'
+PKG_MGR='emerge -qD ${pkgname}'
+PRE_RUN='emerge -q --sync'
+PKG_CHK='emerge -qp @installed 2>/dev/null | egrep -E "/${pkgname}-[0-9.]+"'
+URL='https://www.gentoo.org/'

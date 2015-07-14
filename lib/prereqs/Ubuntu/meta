@@ -1,6 +1,7 @@
-NAME=
-SUPPORTED=
-CHECK_METHOD=
-PKG_MGR=
-PRE_RUN=
-PKG_CHK=
+NAME='Ubuntu'
+SUPPORTED='yes'
+CHECK_METHOD='egrep "^DISTRIB_ID=Ubuntu$" /etc/lsb-release'
+PKG_MGR='apt-get -y install ${pkgname}'
+PRE_RUN='apt-get -y update'
+PKG_CHK='dpkg-query -l ${pkgname} | egrep "^ii[[:space:]]*${pkgname}"'
+URL='http://www.ubuntu.com/'

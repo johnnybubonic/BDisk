@@ -1,6 +1,7 @@
-NAME=
-SUPPORTED=
-CHECK_METHOD=
-PKG_MGR=
-PRE_RUN=
-PKG_CHK=
+NAME='Mageia'
+SUPPORTED='yes'
+CHECK_METHOD='egrep "^Mageia\ release\ " /etc/mageia-release'
+PKG_MGR='urpmi ${pkgname}'
+PRE_RUN='urpmi.update -a'
+PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
+URL='https://www.mageia.org/'
