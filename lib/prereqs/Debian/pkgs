@@ -1,0 +1,10 @@
+git
+curl
+dosfstools
+libisoburn1
+lynx
+rsync
+sed
+squashfs-tools
+xorriso
+xz-utils

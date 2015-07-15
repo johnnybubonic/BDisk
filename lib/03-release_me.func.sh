@@ -1,4 +1,7 @@
 function release_me () {
+
+  FUNCNAME="release_me"
+
   ## check for mountpoints from a manual chroot and umount them if they're still mounted.
   ## NOTE: you can use findmnt(8) to view a tree of mountpoints, including bindmounts etc.
   # Is there an active chroot?

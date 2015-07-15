@@ -1,4 +1,7 @@
 function yo_dj () {
+
+  FUNCNAME="yo_dj"
+
   ARCH="${1}"
   echo "Building the actual .iso image. This may take a while."
   #im_batman ## WHYTF IS THIS HERE?!

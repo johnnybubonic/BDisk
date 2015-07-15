@@ -1,0 +1,17 @@
+binutils
+curl
+gcc-libs-multilib
+gcc-multilib
+git
+libisoburn
+lynx
+make
+patch
+perl
+rsync
+sed
+squashfs-tools
+syslinux
+xorriso
+xz
+zlib

@@ -1,4 +1,7 @@
 function chroot_wrapper () {
+
+  FUNCNAME="chroot_wrapper"
+
   local ARCHSUFFIX="${1}"
   if [[ "${1}" == "64" ]]; 
   then

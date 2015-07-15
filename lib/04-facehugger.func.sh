@@ -1,4 +1,7 @@
 function facehugger () {
+
+  FUNCNAME="facehugger"
+
   local ARCHSUFFIX="${1}"
   if [[ "${1}" == "64" ]]; 
   then

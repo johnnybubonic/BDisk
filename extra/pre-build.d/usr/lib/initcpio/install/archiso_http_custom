@@ -4,6 +4,9 @@ build() {
     add_runscript
 
     add_binary curl
+
+    add_full_dir /etc/ssl
+    add_full_dir /etc/ca-certificates
 }
 
 help() {

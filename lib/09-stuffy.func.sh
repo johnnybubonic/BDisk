@@ -1,5 +1,7 @@
 function stuffy {
 
+  FUNCNAME="stuffy"
+
   cp -f ${BASEDIR}/VERSION_INFO.txt ${TEMPDIR}/.
 
   if [[ "${I_AM_A_RACECAR}" == "y" ]]; 

@@ -1,5 +1,7 @@
 function holla_atcha_boi {
 
+ FUNCNAME="holla_atcha_boi"
+
  if [[ "${I_AM_A_RACECAR}" == "y" ]]; 
  then
    RACECAR_CHK='nice -n -19 '

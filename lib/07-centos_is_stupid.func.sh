@@ -1,4 +1,7 @@
 function centos_is_stupid {
+
+  FUNCNAME="centos_is_stupid"
+
   echo "Checking for appropriate kernel version and mksquashfs version..."
   SQFS_VER=$(mksquashfs -version 2>&1 | head -n1 | awk '{print $3}' | sed -re 's/(^[0-9]*\.[0-9]*).*$/\1/g')
   KERN_VER=$(uname -r | cut -f1 -d"-")

@@ -1,4 +1,7 @@
 function mentos {
+
+ FUNCNAME="mentos"
+
  # Freshen up the chroots to git's HEAD. Package lists, overlay, etc.
  sed -i -e '/base-devel/d ; /multilib-devel/d' ${BASEDIR}/extra/packages.*
  # both

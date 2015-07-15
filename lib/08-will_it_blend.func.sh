@@ -1,4 +1,7 @@
 function will_it_blend () {
+
+  FUNCNAME="will_it_blend"
+
   local ARCHSUFFIX="${1}"
   if [[ "${1}" == "64" ]]; 
   then

@@ -38,7 +38,9 @@
 -X-platform
 --what distros are supported?
 --automatically install what we need for buildtime
---hardcode list of runtime dependencies (e.g. openssh, vim, etc.)
+---need to finish pkg lists and then test, but meta files should be done as well as lib script
+--hardcode list of runtime (e.g. live media) dependencies (e.g. openssh, vim, etc.)
+--...and create separate list for after-the-fact e.g. goodies
 
 ## Split into Separate Tools CD ##
 

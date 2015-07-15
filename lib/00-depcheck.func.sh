@@ -2,6 +2,8 @@
 
 function so_check_me_out {
 
+ FUNCNAME="depcheck"
+
  if [[ -n ${HOST_DIST} ]]; 
  then
    if [[ ! -f ${BASEDIR}/lib/prereqs/${HOST_DIST}/meta || ! -f ${BASEDIR}/lib/prereqs/${HOST_DIST}/pkgs ]]; 
@@ -42,6 +44,9 @@ function so_check_me_out {
  DISTRO_DIR="${BASEDIR}/lib/prereqs/${HOST_DIST}"
  META="${DISTRO_DIR}/meta"
  PKGLIST="${DISTRO_DIR}/pkgs"
+
+ # And once more, just to be safe.
+ source ${META}
 
  if [[ "${PRE_RUN}" != 'none' ]];
  then

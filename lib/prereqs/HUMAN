@@ -1,4 +1,4 @@
-This directory is used to enable cross-distro support. A list of packages is needed for the *host* to build the ISO. Adding distro support is easy; there simply needs to be the following added:
+This directory is used to enable cross-distro support and set baseline ISO packages needed for it to boot. A list of packages is needed for the *host* to build the ISO as well, which you'll find detailed below. Adding distro support is easy; there simply needs to be the following added:
 
 <basedir>/lib/prereqs/<Distro>/{meta,pkgs}
 

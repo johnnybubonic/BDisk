@@ -1,4 +1,7 @@
 function jenny_craig () {
+
+  FUNCNAME="jenny_craig"
+
   BUILDDIR="${BUILDDIR_GLOB}"
   if [[ "${1}" == "64" ]]; 
   then

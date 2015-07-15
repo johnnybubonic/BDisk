@@ -1,7 +1,8 @@
 NAME='openSUSE'
 SUPPORTED='yes'
-CHECK_METHOD=''
-PKG_MGR=''
-PRE_RUN=''
-PKG_CHK=''
+# Default doesn't have the quotes around the value, but I have a feeling that's a bug that will get "fixed" soon.
+CHECK_METHOD='egrep "^NAME=\"?openSUSE\"?$" /etc/os-release'
+PKG_MGR='zypper install --no-confirm -l ${pkgname}'
+PRE_RUN='zypper refresh'
+PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
 URL='https://www.opensuse.org/'
