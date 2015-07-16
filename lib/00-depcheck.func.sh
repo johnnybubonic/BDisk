@@ -39,6 +39,17 @@ function so_check_me_out {
    exit 1
  fi
 
+ ## TWEAKS GO HERE. ##
+ # stupid gentoo. good riddance.
+ if [[ "${HOST_DIST}" == "Gentoo" ]];
+ then
+   grep -q 'app-arch/lzma' /etc/portage/package.accept_keywords
+   if [[ "${?}" != "0" ]];
+   then
+     echo 'app-arch/lzma' >> /etc/portage/package.accept_keywords
+   fi
+ fi
+
  # So we've validated the distro. Here, check for packages and install if necessary. maybe use an array, but it'd be better to soft-fail if one of the packages is missing.
 
  DISTRO_DIR="${BASEDIR}/lib/prereqs/${HOST_DIST}"

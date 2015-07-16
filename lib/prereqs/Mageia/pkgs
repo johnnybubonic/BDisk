@@ -3,7 +3,14 @@ binutils-devel
 curl
 gcc
 git
-libisofs
+lib64isofs6
+lib64apr1_0
+lib64apr-util1_0
+lib64lzma5
+lib64lzma-devel
+lib64lzmalib1
+lib64lzmalib-devel
+libstdc++-devel
 lynx
 make
 mtools
@@ -16,6 +23,5 @@ syslinux
 syslinux-devel
 xorriso
 xz
-xz-devel
 zlib
 zlib-devel
