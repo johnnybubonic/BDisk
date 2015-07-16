@@ -6,6 +6,7 @@ git
 libisofs
 lynx
 make
+mtools
 patch
 perl
 rsync
