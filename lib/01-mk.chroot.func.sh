@@ -212,10 +212,42 @@ EOF
   sed -i -e "/^[[:space:]]*#*MAKEFLAGS=.*$/aMAKEFLAGS=\"-j${CPUCNT}\"" ${CHROOTDIR32}/etc/makepkg.conf
  fi
  
+ # Baseline packages
+ echo "Installing baseline packages..."
+ PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/lib/prereqs/iso.pkgs.lst | tr '\n' ' ')
+ for i in ${CHROOTDIR32} ${CHROOTDIR64};
+ do
+  set +e
+  for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+  set -e
+  ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  set +e
+  for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
+  set -e
+ done
+ # 32-bit
+ PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/lib/prereqs/iso.pkgs.lst.32 | tr '\n' ' ')
+ if [ -n "${PKGLIST}" ];
+ then
+   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+ fi
+ set +e
+ for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
+ set -e
+ # 64-bit
+ PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/lib/prereqs/iso.pkgs.lst.64 | tr '\n' ' ')
+ if [ -n "${PKGLIST}" ];
+ then
+   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+ fi
+ set +e
+ for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
+ set -e
+
  # preprocessing
  sed -i -e '/base-devel/d ; /multilib-devel/d' ${BASEDIR}/extra/packages.*
  # both
- echo "Installing common packages..."
+ echo "Installing extra common packages..."
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.both | tr '\n' ' ')
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
@@ -278,7 +310,7 @@ EOF
  done
  
  # 32-bit
- echo "Installing packages for 32-bit..."
+ echo "Installing extra packages for 32-bit..."
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
@@ -290,7 +322,7 @@ EOF
  echo "Done."
  
  # 64-bit
- echo "Installing packages for 64-bit..."
+ echo "Installing estra packages for 64-bit..."
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then

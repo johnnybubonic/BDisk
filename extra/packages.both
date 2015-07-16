@@ -7,8 +7,6 @@ afflib
 aircrack-ng
 apr
 apr-util
-arch-install-scripts
-archiso
 arj
 asciidoc
 atop
@@ -23,7 +21,6 @@ bonnie++
 bozocrack-git
 bridge-utils
 btrfs-progs
-bzip2
 cabextract
 cdrtools
 cdw
@@ -35,13 +32,11 @@ ckermit
 clamav
 cmospwd
 colordiff
-coreutils
 cowpatty
 cpio
 cpuburn
 cpupower
 crackpkcs12
-cronie
 #cryptcat
 cryptsetup
 customizepkg-scripting
@@ -52,9 +47,6 @@ dd_rescue
 dd_rhelp
 debianutils
 debootstrap
-dhclient
-dhcp
-dhcpcd
 dialog
 diffutils
 djohn
@@ -63,7 +55,6 @@ dnssec-anchors
 dnstracer
 #dnsutils #replaced by bind-tools, https://www.archlinux.org/packages/extra/x86_64/bind-tools/
 dos2unix
-dosfstools
 dropbear
 dstat
 dump
@@ -73,8 +64,6 @@ dvd+rw-tools
 e2fsprogs
 ecryptfs-utils
 ed
-efibootmgr
-efivar
 elfutils
 #elilo-efi
 elinks
@@ -110,7 +99,6 @@ gpm
 gptfdisk
 gst-libav
 gst-plugins-ugly
-gummiboot
 hashcat
 hddtemp
 hdparm
@@ -132,10 +120,8 @@ iozone
 ipcalc
 iperf
 iperf3
-iproute2
 ipsec-tools
 iptraf-ng
-iputils
 irssi
 iso-codes
 isomaster
@@ -145,10 +131,8 @@ jfsutils
 john
 keyutils
 kismet-allplugins
-libisoburn
 lftp
 links
-localepurge
 #logkeys
 logkeys-keymaps
 lm_sensors
@@ -159,10 +143,7 @@ lsof
 lsscsi
 lxde
 lynx
-lz4
 #lzip
-lzo
-lzop
 macchanger
 magicrescue
 mbr
@@ -175,10 +156,7 @@ megaraid-cli
 memtester
 mfoc
 minicom
-mkinitcpio-nfs-utils
-ms-sys
 mtd-utils
-mtools
 mtr
 mtree
 #mtx
@@ -189,11 +167,8 @@ ncftp
 ncompress
 ncrack
 net-snmp
-net-tools
-netctl
 netselect
 nettle
-networkmanager
 networkmanager-pptp
 nginx-devel
 ngrep
@@ -204,8 +179,6 @@ ntfsfixboot
 nwipe
 open-iscsi
 openipmi
-openssh
-openvpn
 ophcrack
 os-prober
 p7zip
@@ -233,7 +206,6 @@ procinfo-ng
 procps-ng
 progsreiserfs
 psmisc
-pv
 pwgen
 pxz
 pyrit-svn
@@ -251,7 +223,6 @@ rpcbind
 rpmextract
 rp-pppoe
 rsnapshot
-rsync
 rygel
 safecopy
 samba
@@ -261,27 +232,20 @@ scrounge-ntfs
 scrub
 scsiadd
 sdparm
-sed
 setserial
 sg3_utils
 sharutils
-shorewall
 sipcalc
 sipcrack
 smartmontools
 smbclient
 s-nail
 socat
-squashfs3-tools
-squashfs-tools
 #star
 strace
 stress
 sucrack
-sudo
 symlinks
-sysfsutils
-syslinux
 sysstat
 tcpdump
 tcpslice
@@ -292,7 +256,6 @@ thin-provisioning-tools
 thttpd
 tmon
 tmux
-traceroute
 tre
 truecrack-svn
 truecrypt
