@@ -74,7 +74,7 @@ do
  fi
 done
 
-source ${BASEDOR/}lib/00-depcheck.func.sh
+source ${BASEDIR}/lib/00-depcheck.func.sh
 
 if [ ! -f "./BUILDNO" ];
 then
@@ -114,13 +114,15 @@ EOF
 ## FUNCTIONS ##
 
 #source ${BASEDIR}/lib/00-depcheck.func.sh ## this should be called like, VERYYYY first thing, right after sanity/safety checks and such.
-#source ${BASEDIR}/lib/01-mk.chroot.func.sh ## this is called automatically and only if no chroot exists
+source ${BASEDIR}/lib/01-mk.chroot.func.sh ## this is called automatically and only if no chroot exists
 source ${BASEDIR}/lib/02-holla_atcha_boi.func.sh
 source ${BASEDIR}/lib/03-release_me.func.sh
 source ${BASEDIR}/lib/04-facehugger.func.sh
 source ${BASEDIR}/lib/05-chroot_wrapper.func.sh
 source ${BASEDIR}/lib/06-jenny_craig.func.sh
-source ${BASEDIR}/lib/07-centos_is_stupid.func.sh
+if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" ]];
+  source ${BASEDIR}/lib/07-centos_is_stupid.func.sh
+fi
 source ${BASEDIR}/lib/08-will_it_blend.func.sh
 source ${BASEDIR}/lib/09-stuffy.func.sh
 source ${BASEDIR}/lib/10-yo_dj.func.sh
@@ -141,7 +143,9 @@ if [[ -f "${CHROOTDIR}root.x86_64/root/chroot" || -f "${CHROOTDIR}root.i686/root
 then
   chroot_wrapper 64
   chroot_wrapper 32
-  centos_is_stupid
+  if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" ]];
+    centos_is_stupid
+  fi
   will_it_blend 64
   will_it_blend 32
   yo_dj
@@ -150,7 +154,9 @@ fi
 if [[ ${1} == "update" ]];
 then
   mentos
-  centos_is_stupid
+  if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" ]];
+    centos_is_stupid
+  fi
   will_it_blend 32
   will_it_blend 64
   yo_dj
@@ -166,7 +172,7 @@ then
 fi
 
 # or are we just building?
-if [[ ${1} == "build" ]] || [ -z ${1} ] || [[ ${1} == "all" ]];
+if [[ ${1} == "build" || -z ${1} || ${1} == "all" ]];
 then
   if [[ "${MULTIARCH}" == "y" ]];
   then

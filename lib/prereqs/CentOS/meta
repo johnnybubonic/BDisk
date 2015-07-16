@@ -5,3 +5,5 @@ PKG_MGR='yum -y install ${pkgname}'
 PRE_RUN='none'
 PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
 URL='http://centos.org/'
+# NOTE: we handle installing of squashfs-tools (maybe) and xorriso in centos_is_stupid function.
+# because they *suck*. Seriously. I need to install tk just to install xorriso. I mean, what?

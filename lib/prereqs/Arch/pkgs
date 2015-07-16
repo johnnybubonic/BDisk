@@ -6,6 +6,7 @@ git
 libisoburn
 lynx
 make
+mtools
 patch
 perl
 rsync
