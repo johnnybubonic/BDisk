@@ -6,3 +6,4 @@ PKG_MGR='zypper install --no-confirm -l ${pkgname}'
 PRE_RUN='zypper refresh'
 PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
 URL='https://www.suse.com/'
+# See the centos_is_stupid function. we do some tweaks there since -devel pkgs require the SDK on SLES/SLED.

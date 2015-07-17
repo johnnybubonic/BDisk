@@ -120,7 +120,7 @@ source ${BASEDIR}/lib/03-release_me.func.sh
 source ${BASEDIR}/lib/04-facehugger.func.sh
 source ${BASEDIR}/lib/05-chroot_wrapper.func.sh
 source ${BASEDIR}/lib/06-jenny_craig.func.sh
-if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" ]];
+if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" || "${HOST_DIST}" == "SUSE" ]];
   source ${BASEDIR}/lib/07-centos_is_stupid.func.sh
 fi
 source ${BASEDIR}/lib/08-will_it_blend.func.sh
@@ -154,7 +154,7 @@ fi
 if [[ ${1} == "update" ]];
 then
   mentos
-  if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" ]];
+  if [[ -f "${CHROOTDIR}root.x86_64/root/chroot" || -f "${CHROOTDIR}root.i686/root/chroot" ]];
     centos_is_stupid
   fi
   will_it_blend 32
@@ -176,15 +176,21 @@ if [[ ${1} == "build" || -z ${1} || ${1} == "all" ]];
 then
   if [[ "${MULTIARCH}" == "y" ]];
   then
-    centos_is_stupid
+    if [[ -f "${CHROOTDIR}root.x86_64/root/chroot" || -f "${CHROOTDIR}root.i686/root/chroot" ]];
+      centos_is_stupid
+    fi
     will_it_blend 64
     will_it_blend 32
     yo_dj any
   else
-    centos_is_stupid
+    if [[ -f "${CHROOTDIR}root.x86_64/root/chroot" || -f "${CHROOTDIR}root.i686/root/chroot" ]];
+      centos_is_stupid
+    fi
     will_it_blend 64
     yo_dj 64
-    centos_is_stupid
+    if [[ -f "${CHROOTDIR}root.x86_64/root/chroot" || -f "${CHROOTDIR}root.i686/root/chroot" ]];
+      centos_is_stupid
+    fi
     will_it_blend 32
     yo_dj 32
   fi

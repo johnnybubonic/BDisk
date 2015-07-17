@@ -22,6 +22,7 @@ function centos_is_stupid {
       echo
     fi
     # We used to fetch and compile mksquashfs from source here, but no longer- because a new enough version is *finally* in CentOS repos as of CentOS 7.
+    # This also lets us cut out the crufty version check and replace it with the one above.
   fi
 
   # UGH. And you know what? Fuck SUSE too.
@@ -38,7 +39,60 @@ function centos_is_stupid {
       curl -sLo /tmp/${XORRISO_RPM} "http://download.opensuse.org/repositories/home:/Knolleblau/openSUSE_${SUSE_VER}/x86_64/${XORRISO_RPM}"
       zypper install --no-confirm -l /tmp/${XORRISO_RPM} >> "${LOGFILE}.${FUNCNAME}" 2>&1
       echo "Done."
+ 
       echo
     fi
   fi
+ 
+  # And a double fuck-you to SLED/SLES.
+  if [[ "${HOST_DIST}" == "SUSE" ]];
+  then
+    source /etc/os-release
+    source ${BASEDIR}/lib/prereqs/SUSE/meta
+    SUSE_VER="${VERSION_ID}"
+    SUSE_REL="${ID}"
+    SDK_PKGS=(binutils-devel git xz-devel xz-devel-32bit zlib-devel zlib-devel-32bit)
+    
+    if [[ "${PRE_RUN}" != 'none' ]];
+    then
+      echo "Now updating your local package cache..."
+      set +e
+      eval "${PRE_RUN}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      if [[ "${?}" != "0" ]];
+      then
+        echo "ERROR: Syncing your local package cache via ${PRE_RUN} command failed."
+        echo "Please ensure you are connected to the Internet/have repositories configured correctly."
+        exit 1
+      fi
+    fi
+
+    zypper search binutils-devel | egrep -q '^[[:space:]]*|[[:space:]]*binutils-devel[[:space:]]*'
+    if [[ "${?}" != "0" ]];
+    then
+      echo
+      echo "In order to install some of the necessary packages on the host, you will need to add the SLE SDK repository."
+      echo "It can be downloaded by visiting http://download.suse.com/ and search for 'SUSE Linux Enterprise Software Development Kit'"
+      echo "(or add it to your subscriptions)."
+      echo "See https://www.suse.com/documentation/${SUSE_REL}-${SUSE_VER}/book_sle_deployment/data/sec_add-ons_sdk.html for more information."
+      exit 1
+    else
+      for pkgname in "${SDK_PKGS[@]}";
+      do
+        eval "${PKG_CHK}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+        if [[ "${?}" != "0" ]];
+        then
+          echo "Installing ${pkgname}..."
+          eval "${PKG_MGR}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+          if [[ "${?}" != "0" ]];
+          then
+            echo "ERROR: ${pkgname} was not found to be installed and we can't install it."
+            echo "This usually means you aren't connected to the Internet or your package repositories"
+            echo "are not configured correctly. Review the list of packages in ${PKGLIST} and ensure"
+            echo "they are all available to be installed."
+          fi
+        fi
+      done
+   fi
+ fi
+
 }

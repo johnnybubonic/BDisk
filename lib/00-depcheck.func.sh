@@ -13,6 +13,7 @@ function so_check_me_out {
    fi  
  fi
 
+ set +e
  if [[ -z "${HOST_DIST}" ]]; 
  then
    for dist_profile in $(find "${BASEDIR}"/lib/prereqs -type f -name 'meta');
@@ -20,7 +21,7 @@ function so_check_me_out {
      source ${dist_profile}
      if [[ "${SUPPORTED}" != "yes" ]];
      then
-       continue 
+       continue
      fi
      eval "${CHECK_METHOD}" > /dev/null 2>&1
      if [[ "${?}" == "0" ]]; 
@@ -30,6 +31,7 @@ function so_check_me_out {
        break 2
      fi
    done
+   set -e
  fi
 
  # Sanity is important.
@@ -40,7 +42,8 @@ function so_check_me_out {
  fi
 
  ## TWEAKS GO HERE. ##
- # stupid gentoo. good riddance.
+ #  stupid gentoo. good riddance.
+ set +e
  if [[ "${HOST_DIST}" == "Gentoo" ]];
  then
    grep -q 'app-arch/lzma' /etc/portage/package.accept_keywords
@@ -48,6 +51,21 @@ function so_check_me_out {
    then
      echo 'app-arch/lzma' >> /etc/portage/package.accept_keywords
    fi
+ fi
+ set -e
+
+ # For some reason, I can't get "yes y | " to parse correctly with eval. And Arch isn't smart enough
+ # to figuure out that if I enable the multilib repos, *I wat multilib gcc*. Fuck it. We'll just remove it first.
+ if [[ "${HOST_DIST}" == "Arch" || "${HOST_DIST}" == "Antergos" || "${HOST_DIST}" == "Manjaro" ]];
+ then
+   for pkg_override in gcc gcc-libs;
+   do
+     pacman -Q ${pkg_override} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+     if [[ "${?}" == "0" ]];
+     then
+       pacman -R --noconfirm ${pkg_override} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+     fi
+   done
  fi
 
  # So we've validated the distro. Here, check for packages and install if necessary. maybe use an array, but it'd be better to soft-fail if one of the packages is missing.
@@ -85,11 +103,13 @@ function so_check_me_out {
        echo "This usually means you aren't connected to the Internet or your package repositories"
        echo "are not configured correctly. Review the list of packages in ${PKGLIST} and ensure"
        echo "they are all available to be installed."
+       exit 1
      fi
    fi
  done < ${PKGLIST}
 
  set -e
+ rm -f "${LOCKFILE}"
 }
 
 so_check_me_out

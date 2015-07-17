@@ -1,5 +1,4 @@
 binutils
-binutils-devel
 curl
 gcc
 gcc-32bit
@@ -16,7 +15,3 @@ sed
 squashfs
 syslinux
 xz
-xz-devel
-xz-devel-32bit
-zlib-devel
-zlib-devel-32bit
