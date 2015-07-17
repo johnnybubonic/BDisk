@@ -41,33 +41,6 @@ function so_check_me_out {
    exit 1
  fi
 
- ## TWEAKS GO HERE. ##
- #  stupid gentoo. good riddance.
- set +e
- if [[ "${HOST_DIST}" == "Gentoo" ]];
- then
-   grep -q 'app-arch/lzma' /etc/portage/package.accept_keywords
-   if [[ "${?}" != "0" ]];
-   then
-     echo 'app-arch/lzma' >> /etc/portage/package.accept_keywords
-   fi
- fi
- set -e
-
- # For some reason, I can't get "yes y | " to parse correctly with eval. And Arch isn't smart enough
- # to figuure out that if I enable the multilib repos, *I wat multilib gcc*. Fuck it. We'll just remove it first.
- if [[ "${HOST_DIST}" == "Arch" || "${HOST_DIST}" == "Antergos" || "${HOST_DIST}" == "Manjaro" ]];
- then
-   for pkg_override in gcc gcc-libs;
-   do
-     pacman -Q ${pkg_override} >> "${LOGFILE}.${FUNCNAME}" 2>&1
-     if [[ "${?}" == "0" ]];
-     then
-       pacman -R --noconfirm ${pkg_override} >> "${LOGFILE}.${FUNCNAME}" 2>&1
-     fi
-   done
- fi
-
  # So we've validated the distro. Here, check for packages and install if necessary. maybe use an array, but it'd be better to soft-fail if one of the packages is missing.
 
  DISTRO_DIR="${BASEDIR}/lib/prereqs/${HOST_DIST}"
@@ -76,6 +49,9 @@ function so_check_me_out {
 
  # And once more, just to be safe.
  source ${META}
+
+ ## TWEAKS GET RUN HERE.
+ distro_specific_tweaks
 
  if [[ "${PRE_RUN}" != 'none' ]];
  then

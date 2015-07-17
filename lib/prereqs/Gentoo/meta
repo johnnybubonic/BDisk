@@ -5,3 +5,16 @@ PKG_MGR='emerge -q1Dn ${pkgname}'
 PRE_RUN='emerge -q --sync'
 PKG_CHK='emerge -qp @installed 2>/dev/null | egrep -E "/${pkgname}-[0-9.]+"'
 URL='https://www.gentoo.org/'
+
+function distro_specific_tweaks {
+ # WHY IS THIS EVEN MASKED?!
+
+ set +e
+ grep -q 'app-arch/lzma' /etc/portage/package.accept_keywords
+ if [[ "${?}" != "0" ]];
+ then
+   echo 'app-arch/lzma' >> /etc/portage/package.accept_keywords
+ fi
+ set -e
+
+}

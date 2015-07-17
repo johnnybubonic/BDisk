@@ -6,3 +6,10 @@ PKG_MGR='zypper install --no-confirm -l ${pkgname}'
 PRE_RUN='zypper refresh'
 PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
 URL='https://www.opensuse.org/'
+
+function distro_specific_tweaks {
+
+ echo "No tweaks found."
+
+}
+

@@ -5,3 +5,10 @@ PKG_MGR='apt-get -y install ${pkgname}'
 PRE_RUN='apt-get -y update'
 PKG_CHK='dpkg-query -l ${pkgname} | egrep "^ii[[:space:]]*${pkgname}"'
 URL='http://www.ubuntu.com/'
+
+function distro_specific_tweaks {
+
+ echo "No tweaks found."
+
+}
+

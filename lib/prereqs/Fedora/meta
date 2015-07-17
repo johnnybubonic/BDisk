@@ -5,3 +5,10 @@ PKG_MGR='dnf -y install ${pkgname}'
 PRE_RUN='none'
 PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
 URL='https://getfedora.org/'
+
+function distro_specific_tweaks {
+
+ echo "No tweaks found."
+
+}
+

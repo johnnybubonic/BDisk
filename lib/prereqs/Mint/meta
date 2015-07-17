@@ -5,3 +5,9 @@ PKG_MGR='apt-get -y install ${pkgname}'
 PRE_RUN='apt-get -y update'
 PKG_CHK='dpkg-query -l ${pkgname}'
 URL='http://www.linuxmint.com/'
+
+function distro_specific_tweaks {
+
+ echo "No tweaks found."
+
+}

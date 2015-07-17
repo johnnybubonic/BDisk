@@ -6,3 +6,10 @@ PKG_MGR='yum -y install'
 PRE_RUN='none'
 PKG_CHK='rpm -q ${pkgname} | egrep "^${pkgname}-[0-9]"'
 URL='http://www.redhat.com/en/technologies/linux-platforms/enterprise-linux'
+
+function distro_specific_tweaks {
+
+ echo "No tweaks found."
+
+}
+
