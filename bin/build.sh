@@ -103,7 +103,7 @@ fi
 set -e
 USERNAME_REAL="$(grep ${BUILD_USERNAME} /etc/passwd | cut -f5 -d':')"
 
-cat > VERSION_INFO.txt << EOF
+cat > ${BASEDIR}/VERSION_INFO.txt << EOF
 Version:	${VERSION}
 Build:		${BUILD}
 Time:		${BUILDTIME}
@@ -137,18 +137,6 @@ release_me 64 > /dev/null 2>&1
 release_me 32 > /dev/null 2>&1
 
 # do we need to perform any updates?
-if [[ -f "${CHROOTDIR}root.x86_64/root/chroot" || -f "${CHROOTDIR}root.i686/root/chroot" ]];
-then
-  chroot_wrapper 64
-  chroot_wrapper 32
-  if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" ]];
-    centos_is_stupid
-  fi
-  will_it_blend 64
-  will_it_blend 32
-  yo_dj
-fi
-
 if [[ ${1} == "update" ]];
 then
   mentos

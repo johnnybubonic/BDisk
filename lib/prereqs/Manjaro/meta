@@ -10,6 +10,9 @@ function distro_specific_tweaks {
  # For some reason, I can't get "yes y | " to parse correctly with eval. And Arch isn't smart enough
  # to figure out that if I enable the multilib repos, *I want multilib gcc*. Fuck it. We'll just remove it first.
 
+ pacman -S --needed haveged >> "${LOGFILE}.${FUNCNAME}" 2>&1
+ haveged
+
  set +e
  for pkg_override in gcc gcc-libs;
  do

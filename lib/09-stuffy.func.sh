@@ -23,12 +23,12 @@ function stuffy {
   if [ ! -f "${TEMPDIR}/EFI/shellx64_v2.efi" ];
   then
     # EFI Shell 2.0 for UEFI 2.3+ ( http://sourceforge.net/apps/mediawiki/tianocore/index.php?title=UEFI_Shell )
-    curl -o ${TEMPDIR}/EFI/shellx64_v2.efi https://svn.code.sf.net/p/edk2/code/trunk/edk2/ShellBinPkg/UefiShell/X64/Shell.efi >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    curl -o ${TEMPDIR}/EFI/shellx64_v2.efi "https://github.com/tianocore/edk2/blob/master/ShellBinPkg/UefiShell/X64/Shell.efi?raw=true" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   fi
   if [ ! -f "${TEMPDIR}/EFI/shellx64_v1.efi" ];
   then
     # EFI Shell 1.0 for non UEFI 2.3+ ( http://sourceforge.net/apps/mediawiki/tianocore/index.php?title=Efi-shell )
-    curl -o ${TEMPDIR}/EFI/shellx64_v1.efi https://svn.code.sf.net/p/edk2/code/trunk/edk2/EdkShellBinPkg/FullShell/X64/Shell_Full.efi >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    curl -o ${TEMPDIR}/EFI/shellx64_v1.efi "https://github.com/tianocore/edk2/blob/master/EdkShellBinPkg/FullShell/X64/Shell_Full.efi?raw=true" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   fi
 
   # now for setting up loader config/entries. maybe add memtest or something in the future? i dunno.

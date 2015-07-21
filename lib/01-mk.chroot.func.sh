@@ -109,10 +109,10 @@ function mkchroot {
     echo "Local: ${LOCSUM32}"
     echo "Remote: ${CKSUM32}"
     echo "Fetching fresh copy."
-    curl -o latest.32.tar.gz "${RLSDIR}/${CURRLS32}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    curl -o latest.32.tar.gz "${RLSDIR}/${CURRLS32}"
   fi
  else
-   curl -o latest.32.tar.gz "${RLSDIR}/${CURRLS32}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   curl -o latest.32.tar.gz "${RLSDIR}/${CURRLS32}"
  fi
  
  if [ ! -f "${CHROOTDIR32}/etc/pacman.d/gnupg/trustdb.gpg" ] || [ ! -f "${CHROOTDIR64}/etc/pacman.d/gnupg/trustdb.gpg" ];
@@ -147,6 +147,7 @@ HOME_URL="https://www.archlinux.org/"
 SUPPORT_URL="https://bbs.archlinux.org/"
 BUG_REPORT_URL="https://bugs.archlinux.org/"
 EOF
+     cp ${BASEDIR}/VERSION_INFO.txt ${BASEDIR}/root.${i}/.
    done   
 
    # And make it usable.
@@ -364,4 +365,7 @@ EOF
 
 }
 
-mkchroot
+if [[ ! -f "${BASEDIR}/root.x86_64/VERSION_INFO.txt" && ! -f "${BASEDIR}/root.x86_64/VERSION_INFO.txt" ]];
+then
+  mkchroot
+fi

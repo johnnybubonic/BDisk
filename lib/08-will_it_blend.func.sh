@@ -2,6 +2,9 @@ function will_it_blend () {
 
   FUNCNAME="will_it_blend"
 
+  SQUASH_CMD="mksquashfs"
+  SQUASH_OPTS="-noappend -comp xz"
+
   local ARCHSUFFIX="${1}"
   if [[ "${1}" == "64" ]]; 
   then
