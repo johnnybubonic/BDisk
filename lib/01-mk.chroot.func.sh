@@ -359,7 +359,7 @@ EOF
  echo "Done."
 
  
- rm -f ${LOCKFILE}
+ #rm -f ${LOCKFILE}
  
  echo "Chroot setup complete."
 

@@ -1,5 +1,6 @@
 binutils
 curl
+dosfstools
 findutils
 gcc-libs-multilib
 gcc-multilib

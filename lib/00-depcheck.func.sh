@@ -31,8 +31,8 @@ function so_check_me_out {
        break 2
      fi
    done
-   set -e
  fi
+ set -e
 
  # Sanity is important.
  if [[ -z "${HOST_DIST}" ]];
@@ -64,8 +64,10 @@ function so_check_me_out {
      echo "Please ensure you are connected to the Internet/have repositories configured correctly."
      exit 1
    fi
+   set -e
  fi
 
+ set +e
  while read pkgname;
  do
    eval "${PKG_CHK}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -83,8 +85,8 @@ function so_check_me_out {
      fi
    fi
  done < ${PKGLIST}
-
  set -e
+
  rm -f "${LOCKFILE}"
 }
 
