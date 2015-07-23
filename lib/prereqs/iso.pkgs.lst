@@ -32,7 +32,6 @@ pv
 rsync
 sed
 shorewall
-squashfs3-tools
 squashfs-tools
 sudo
 sysfsutils
