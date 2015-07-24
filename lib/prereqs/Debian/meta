@@ -1,5 +1,5 @@
 NAME='Debian'
-SUPPORTED='yes'
+SUPPORTED='untested'
 CHECK_METHOD='egrep "^NAME=\"Debian\ GNU/Linux\"$" /etc/os-release'
 PKG_MGR='apt-get -y install ${pkgname}'
 PRE_RUN='apt-get update'

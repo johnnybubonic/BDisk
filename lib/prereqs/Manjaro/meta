@@ -1,5 +1,5 @@
 NAME='Manjaro'
-SUPPORTED='yes'
+SUPPORTED='untested'
 CHECK_METHOD='egrep "^NAME=\"Manjaro Linux\"$" /etc/os-release'
 PKG_MGR='pacman -S --needed --noconfirm ${pkgname}'
 PRE_RUN='pacman -Syyyu'
