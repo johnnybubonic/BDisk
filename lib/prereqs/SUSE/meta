@@ -1,5 +1,5 @@
 NAME='SUSE'
-SUPPORTED='yes'
+SUPPORTED='untested'
 # Both SLED and SLES. We can probably safely combine them.
 CHECK_METHOD='egrep "^NAME=\"SLE(D|S)\"$" /etc/os-release'
 PKG_MGR='zypper install --no-confirm -l ${pkgname}'

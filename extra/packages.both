@@ -12,14 +12,19 @@ asciidoc
 atop
 autopsy
 autossh
+backuppc
+#bacula ## TODO: grab all the bacula packages in here
 beep
 bin86
 bind-tools
 binutils
 bluez-utils
 bonnie++
+boxbackup-client
+boxbackup-server
 bozocrack-git
 bridge-utils
+burp-backup-git
 btrfs-progs
 cabextract
 cdrtools
@@ -30,6 +35,7 @@ chntpw
 cifs-utils
 ckermit
 clamav
+clonezilla
 cmospwd
 colordiff
 cowpatty
@@ -39,6 +45,7 @@ cpupower
 crackpkcs12
 #cryptcat
 cryptsetup
+csync2
 customizepkg-scripting
 dar
 dcfldd
@@ -156,6 +163,7 @@ megaraid-cli
 memtester
 mfoc
 minicom
+mondo
 mtd-utils
 mtr
 mtree
@@ -177,6 +185,7 @@ nmon
 ntfs-3g
 ntfsfixboot
 nwipe
+obnam
 open-iscsi
 openipmi
 ophcrack
@@ -184,6 +193,8 @@ os-prober
 p7zip
 pack
 par2cmdline
+partclone
+partclone-utils
 parted
 partimage
 pax-utils
@@ -207,7 +218,7 @@ procps-ng
 progsreiserfs
 psmisc
 pwgen
-pxz
+pixz
 pyrit-svn
 python2-gnuplot
 python2-pyx
@@ -241,7 +252,7 @@ smartmontools
 smbclient
 s-nail
 socat
-#star
+#star ## do people even USE tape packups anymore?
 strace
 stress
 sucrack
@@ -263,6 +274,7 @@ tor
 udftools
 #udpcast
 unace
+unison
 unrar
 unshield
 unzip
@@ -295,6 +307,7 @@ xfsprogs
 xmlto
 xorg
 xorg-drivers
+xorg-xinit
 zerofree
 zip
 zsh

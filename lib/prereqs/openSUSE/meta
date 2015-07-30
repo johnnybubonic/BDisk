@@ -1,5 +1,5 @@
 NAME='openSUSE'
-SUPPORTED='yes'
+SUPPORTED='untested'
 # Default doesn't have the quotes around the value, but I have a feeling that's a bug that will get "fixed" soon.
 CHECK_METHOD='egrep "^NAME=\"?openSUSE\"?$" /etc/os-release'
 PKG_MGR='zypper install --no-confirm -l ${pkgname}'

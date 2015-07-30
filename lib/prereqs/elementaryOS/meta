@@ -1,5 +1,5 @@
 NAME='elementaryOS'
-SUPPORTED='yes'
+SUPPORTED='untested'
 CHECK_METHOD='egrep "^DISTRIB_ID=\"elementary OS\"$" /etc/lsb-release'
 PKG_MGR='apt-get -y install ${pkgname}'
 PRE_RUN='apt-get -y update'

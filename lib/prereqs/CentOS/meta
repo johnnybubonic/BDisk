@@ -1,4 +1,5 @@
 NAME='CentOS'
+# Currently fails on installing software *inside* the chroot. Will troubleshoot and restore when figured out.
 SUPPORTED='yes'
 CHECK_METHOD='egrep "^CentOS" /etc/redhat-release'
 PKG_MGR='yum -y install ${pkgname}'
@@ -9,6 +10,7 @@ URL='http://centos.org/'
 function distro_specific_tweaks {
  # NOTE: we handle installing of squashfs-tools (maybe) and xorriso in centos_is_stupid function.
  # because they *suck*. Seriously. I need to install tk just to install xorriso. I mean, what?
+ # You need EPEL enabled, by the way.
 
  echo "No tweaks found."
 
