@@ -1,0 +1,33 @@
+BDisk Frequently Asked(/Unasked) Questions
+
+
+
+0.) Why does it take so long to build?
+1.) Why is the generated ISO file so big?
+2.) How do I find the version/release/etc. number of an ISO?
+
+
+=========================================================
+
+
+
+0.) WHY DOES IT TAKE SO LONG TO BUILD?
+A: This typically occurs when you're building from within a LiveCD/LiveUSB situation, in a VM/container/etc., or on a headless server.
+If this is the case, you may run into what appears to be "stalling", especially while keys are generating for the chroots.
+Thankfully, there is an easy fix. You can install the "haveged"(http://www.issihosts.com/haveged/) software and run it. This will
+show an immediate and non-negligible improvement for the above contexts. If you have extra power to throw at it (or are using a dedicated build box)
+as well, I recommend enabling I_AM_A_RACECAR in your build.conf. BDisk will then be more aggressive with its resource consumption.
+
+
+1.) WHY IS THE GENERATED ISO FILE SO BIG?
+A: You may have enabled a LOT of packages in extra/packages.(32|64|both). Or you're using the default set of packages, which tries to include a LOT
+of different (and in some cases, redundant) packages for widespread utilization and usage. In addition, keep in mind that BDisk builds a single ISO
+that can be used on both i686 architectures AND full x86_64 architectures ("AMD64" as you may sometimes see it referenced). Because it doesn't cheat
+and just use a 64-bit kernel with a 32-bit userland, it needs two different squash images on each ISO- one for 32-bit userland and one for 64-bit
+userland.
+
+2.) HOW DO I FIND THE VERSION/RELEASE/ETC. NUMBER OF AN ISO?
+A: This can be found in a multitude of places. The full-size ISO file (iso/<distname>-<git tag>-<git rev number>-(32|64|any).iso) should have the
+version right in the file name. If you want more detailed information (or perhaps you renamed the file), you can mount the ISO as loopback in GNU/Linux,
+*BSD, or Mac OS X and check /path/to/mounted/iso/VERSION_INTO.txt. Lastly, within the runtime itself (especially handy if booting via iPXE), you can
+check /root/VERSION_INFO.txt within the running live environment.

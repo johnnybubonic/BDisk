@@ -4,8 +4,7 @@ function centos_is_stupid {
 
   if [[ "${HOST_DIST}" == "CentOS" || "${HOST_DIST}" == "RHEL" ]];
   then
-    rpm -qa | egrep -q "^xorriso-[0-9]"
-    if [[ "${?}" != "0" ]];
+    if [[ "$(rpm -qa | egrep -q '^xorriso-[0-9]')" != "0" ]];
     then
       # Download/install the proper xorriso
       EL_VER="$(rpm -qa coreutils | sed -re 's/^coreutils-[0-9.-]*el([0-9])*.*$/\1/g')"
@@ -17,7 +16,9 @@ function centos_is_stupid {
       XORRISO_RPM=$(curl -s http://pkgs.repoforge.org/xorriso/ | egrep "\"xorriso-[0-9.-]*el${EL_VER}.rf.x86_64.rpm\"" | sed -re "s/^.*\"(xorriso[0-9.-]*el${EL_VER}.rf.x86_64.rpm).*$/\1/g")
       echo "Since you're using either CentOS or RHEL, we need to install xorriso directly from an RPM. Please wait while we do this..."
       curl -sLo /tmp/${XORRISO_RPM} http://pkgs.repoforge.org/xorriso/${XORRISO_RPM}
+      set +e
       yum -y install /tmp/${XORRISO_RPM} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      set -e
       echo "Done."
       echo
     fi
@@ -28,8 +29,7 @@ function centos_is_stupid {
   # UGH. And you know what? Fuck SUSE too.
   if [[ "${HOST_DIST}" == "openSUSE" || "${HOST_DIST}" == "SUSE" ]];
   then
-    rpm -qa | egrep -q "^xorriso-[0-9]"
-    if [[ "${?}" != "0" ]];
+    if [[ "$(rpm -qa | egrep -q '^xorriso-[0-9]')" != "0" ]];
     then
       # Download/install the proper xorriso
       source /etc/os-release
@@ -64,6 +64,7 @@ function centos_is_stupid {
         echo "Please ensure you are connected to the Internet/have repositories configured correctly."
         exit 1
       fi
+      set -e
     fi
 
     zypper search binutils-devel | egrep -q '^[[:space:]]*|[[:space:]]*binutils-devel[[:space:]]*'

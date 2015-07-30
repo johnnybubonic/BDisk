@@ -28,6 +28,7 @@ netctl
 networkmanager
 openssh
 openvpn
+prebootloader
 pv
 rsync
 sed
