@@ -1,5 +1,5 @@
 NAME='Devuan'
-SUPPORTED='yes'
+SUPPORTED='no'
 CHECK_METHOD='egrep "^NAME=\"Devuan\ GNU/Linux\"$" /etc/os-release'
 PKG_MGR='apt-get -y install ${pkgname}'
 PRE_RUN='apt-get update'
