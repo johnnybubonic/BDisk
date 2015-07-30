@@ -245,8 +245,8 @@ EOF
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
  set -e
 
- # preprocessing
- sed -i -e '/base-devel/d ; /multilib-devel/d' ${BASEDIR}/extra/packages.*
+ # extra packages
+ sed -i -e '/base-devel/d ; /multilib-devel/d' ${BASEDIR}/extra/packages.{both,64}
  # both
  echo "Installing extra common packages..."
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.both | tr '\n' ' ')
@@ -265,11 +265,11 @@ EOF
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed debian-whois-mkpasswd" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
+    ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --legacy --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     set +e
-    ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
-    # User creation
     set -e
+    # User creation
     echo -n "...Creating ${REGUSR} user..."
     ${CHROOTCMD} ${i}/ useradd -m -s /bin/bash -c "Default user" ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     ${CHROOTCMD} ${i}/ usermod -aG users,games,video,audio ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -315,7 +315,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.32 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "apacman --legacy --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
@@ -327,7 +327,7 @@ EOF
  PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' ${BASEDIR}/extra/packages.64 | tr '\n' ' ')
  if [ -n "${PKGLIST}" ];
  then
-   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "apacman --legacy --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done

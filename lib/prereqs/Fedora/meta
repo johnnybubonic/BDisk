@@ -1,5 +1,5 @@
 NAME='Fedora'
-SUPPORTED='untested'
+SUPPORTED='yes'
 CHECK_METHOD='egrep '^Fedora' /etc/redhat-release'
 PKG_MGR='dnf -y install ${pkgname}'
 PRE_RUN='none'

@@ -1,6 +1,7 @@
 binutils
 binutils-devel
 curl
+dosfstools
 gcc
 git
 libisofs
