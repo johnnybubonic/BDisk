@@ -22,7 +22,7 @@ function mentos {
    RACECAR_CHK=""
  fi
 
- if [[ -n $(find ${BASEDIR}/extra/pre-build.d/ -type f -newer ${BASEDIR}/root.x86_64/boot/vmlinuz-linux-${PNAME}) ]];
+ if [[ -n $(find ${BASEDIR}/extra/pre-build.d/ -type f -newer ${BASEDIR}/root.x86_64/boot/vmlinuz-linux-${DISTNAME}) ]];
  then
   touch ${LOCKFILE}
   sleep 2
@@ -36,7 +36,7 @@ function mentos {
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
     echo -n "...Packages installing/upgrading to ${i}..."
-    local INSTKERN=$(file ${i}/boot/vmlinuz-linux-${PNAME} | awk '{print $9}' | cut -f1 -d"-")
+    local INSTKERN=$(file ${i}/boot/vmlinuz-linux-${DISTNAME} | awk '{print $9}' | cut -f1 -d"-")
     local MIRROR=$(egrep '^Server' ${i}/etc/pacman.d/mirrorlist | head -n1 | sed -e 's/^Server\ =\ //g  ; s#$repo.*#core/os/x86_64/#g')
     local NEWKERN=$(curl -s "${MIRROR}" | grep linux | awk '{print $3}' | cut -f2 -d\" | egrep '^linux-[0-9].*pkg.tar.xz$' | cut -f2 -d"-")
 
@@ -45,8 +45,8 @@ function mentos {
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
     ${CHROOTCMD} ${i}/ /usr/bin/bash -c "mkinitcpio -p linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #${CHROOTCMD} ${i}/ bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}"
-    cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz-linux-${PNAME}
-    cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${PNAME}.img
+    cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz-linux-${DISTNAME}
+    cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${DISTNAME}.img
     echo "Done."
  done
  

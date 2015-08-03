@@ -75,13 +75,14 @@ function will_it_blend () {
   # and now we copy stuff into the live directories
   echo "[${ARCHSUFFIX}-bit] Copying files for PXE, and ISO building, please be patient."
   #rm -rf ${TEMPDIR}/*
+  cat ${BASEDIR}/extra/bdisk.png > ${BASEDIR}/extra/${UXNAME}.png
   cp -af ${BASEDIR}/extra/${UXNAME}.png ${TEMPDIR}/.
   cp -af ${BASEDIR}/extra/${UXNAME}.png ${TFTPDIR}/.
   mkdir -p ${TEMPDIR}/boot
-  cp -af ${CHROOTDIR}/boot/initramfs-linux-${PNAME}.img ${TEMPDIR}/boot/${UXNAME}.${ARCHSUFFIX}.img
-  cp -af ${CHROOTDIR}/boot/vmlinuz-linux-${PNAME} ${TEMPDIR}/boot/${UXNAME}.${ARCHSUFFIX}.kern
-  cp -af ${CHROOTDIR}/boot/initramfs-linux-${PNAME}.img ${TFTPDIR}/${UXNAME}.${ARCHSUFFIX}.img
-  cp -af ${CHROOTDIR}/boot/vmlinuz-linux-${PNAME} ${TFTPDIR}/${UXNAME}.${ARCHSUFFIX}.kern
+  cp -af ${CHROOTDIR}/boot/initramfs-linux-${DISTNAME}.img ${TEMPDIR}/boot/${UXNAME}.${ARCHSUFFIX}.img
+  cp -af ${CHROOTDIR}/boot/vmlinuz-linux-${DISTNAME} ${TEMPDIR}/boot/${UXNAME}.${ARCHSUFFIX}.kern
+  cp -af ${CHROOTDIR}/boot/initramfs-linux-${DISTNAME}.img ${TFTPDIR}/${UXNAME}.${ARCHSUFFIX}.img
+  cp -af ${CHROOTDIR}/boot/vmlinuz-linux-${DISTNAME} ${TFTPDIR}/${UXNAME}.${ARCHSUFFIX}.kern
   cp -af ${ARCHBOOT}/* ${HTTPDIR}/${DISTNAME}/.
   chown -R ${HTTPUSR}:${HTTPGRP} ${HTTPDIR}
   chown ${TFTPUSR}:${TFTPGRP} ${TFTPDIR}/${UXNAME}.*
