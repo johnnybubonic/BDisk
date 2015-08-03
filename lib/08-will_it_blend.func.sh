@@ -75,6 +75,7 @@ function will_it_blend () {
   # and now we copy stuff into the live directories
   echo "[${ARCHSUFFIX}-bit] Copying files for PXE, and ISO building, please be patient."
   #rm -rf ${TEMPDIR}/*
+  cat ${BASEDIR}/extra/bdisk.png > ${BASEDIR}/extra/${UXNAME}.png
   cp -af ${BASEDIR}/extra/${UXNAME}.png ${TEMPDIR}/.
   cp -af ${BASEDIR}/extra/${UXNAME}.png ${TFTPDIR}/.
   mkdir -p ${TEMPDIR}/boot
