@@ -3,7 +3,7 @@
 abs
 acpi
 #acpidump
-#afflib
+afflib
 aircrack-ng
 apr
 apr-util
