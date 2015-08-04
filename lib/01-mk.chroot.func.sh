@@ -276,7 +276,7 @@ EOF
     ${CHROOTCMD} ${i}/ passwd -d ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     mkdir -p ${i}/etc/sudoers.d ; chmod 750 ${i}/etc/sudoers.d
     echo "${REGUSR} ALL=(ALL) ALL" >> ${i}/etc/sudoers.d/${REGUSR}
-    if [ -n "${REGUSR_PASS}" ];
+    if [[ -n "${REGUSR_PASS}" && "${REGUSER_PASS}" != '{[BLANK]}' ]];
     then
       #${CHROOTCMD} ${i}/ "/usr/bin/echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
       sed -i -e "s|^${REGUSR}::|${REGUSR}:${REGUSR_PASS}:|g" ${i}/etc/shadow
@@ -286,7 +286,7 @@ EOF
     else
       ${CHROOTCMD} ${i}/ usermod -L ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     fi
-    if [ -n "${ROOT_PASS}" ];
+    if [[ -n "${ROOT_PASS}" && "${ROOT_PASS}" != '{[BLANK]}' ]];
     then
       #${CHROOTCMD} ${i}/ "/usr/bin/echo root:${ROOT_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
       sed -i -e "s|^root::|root:${ROOT_PASS}:|g" ${i}/etc/shadow
