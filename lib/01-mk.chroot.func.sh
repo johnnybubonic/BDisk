@@ -275,8 +275,8 @@ EOF
     ${CHROOTCMD} ${i}/ usermod -aG users,games,video,audio ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     ${CHROOTCMD} ${i}/ passwd -d ${REGUSR} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     mkdir -p ${i}/etc/sudoers.d ; chmod 750 ${i}/etc/sudoers.d
-    echo "${REGUSR} ALL=(ALL) ALL" >> ${i}/etc/sudoers.d/${REGUSR}
-    if [[ -n "${REGUSR_PASS}" && "${REGUSER_PASS}" != '{[BLANK]}' ]];
+    printf "Defaults:${REGUSR} \041lecture\n${REGUSR} ALL=(ALL) ALL\n" >> ${i}/etc/sudoers.d/${REGUSR}
+    if [[ -n "${REGUSR_PASS}" && "${REGUSR_PASS}" != '{[BLANK]}' ]];
     then
       #${CHROOTCMD} ${i}/ "/usr/bin/echo ${REGUSR}:${REGUSR_PASS} | chpasswd -e" >> "${LOGFILE}.${FUNCNAME}" 2>&1
       sed -i -e "s|^${REGUSR}::|${REGUSR}:${REGUSR_PASS}:|g" ${i}/etc/shadow

@@ -50,9 +50,10 @@ echo "==================================="
 date
 if [ -n "${DEFROUTEIF}" ];
 then
+ IPADDR=$(ip a s dev ${DEFROUTEIF} | egrep '^[[:space:]]*inet\ ' | awk '{print $2}' | cut -f1 -d"/")
+ HWADDR=$(ip l show dev ${DEFROUTEIF} | egrep '^[[:space:]]*link\ ' | awk '{print $2}')
  echo
- echo -n "${DEFROUTEIF} is: "
- ifconfig "${DEFROUTEIF}" | egrep 'inet|ether' | grep -v "inet6" | awk '{print $2}'
+ echo -n "${DEFROUTEIF} (${HWADDR}) is: ${IPADDR}"
 fi
 echo
 echo  -n "tun0 is:"

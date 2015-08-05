@@ -84,6 +84,7 @@ function will_it_blend () {
   cp -af ${CHROOTDIR}/boot/initramfs-linux-${DISTNAME}.img ${TFTPDIR}/${UXNAME}.${ARCHSUFFIX}.img
   cp -af ${CHROOTDIR}/boot/vmlinuz-linux-${DISTNAME} ${TFTPDIR}/${UXNAME}.${ARCHSUFFIX}.kern
   cp -af ${ARCHBOOT}/* ${HTTPDIR}/${DISTNAME}/.
+  cp -af ${TFTPDIR}/* ${HTTPDIR}/.
   chown -R ${HTTPUSR}:${HTTPGRP} ${HTTPDIR}
   chown ${TFTPUSR}:${TFTPGRP} ${TFTPDIR}/${UXNAME}.*
 }
