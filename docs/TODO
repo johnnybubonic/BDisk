@@ -6,6 +6,8 @@
 -- https://github.com/akopytov/sysbench
 -- (http://blog.due.io/2014/linode-digitalocean-and-vultr-comparison/ etc.)
 -package in AUR
+-DBAN?
+--better just add nwipe to pkgs instead: http://www.andybev.com/index.php/Nwipe
 
 
 ## NETWORKING ##
@@ -41,6 +43,11 @@
 ---need to finish pkg lists and then test, but meta files should be done as well as lib script
 --hardcode list of runtime (e.g. live media) dependencies (e.g. openssh, vim, etc.)
 --...and create separate list for after-the-fact e.g. goodies
+-test (and fix, if not working) UEFI secureboot via shim
+-enable mirror= kernel commandline.
+--if mirror_(NAME) is present, use that as repo name.
+--if it starts with /, treat as mirrorlist (Include); otherwise use Server = 
+--if it has mirror_SIG-X, set signature options e.g. _SIG-N would be "SigLevel = Never"
 
 ## Split into Separate Tools CD ##
 
