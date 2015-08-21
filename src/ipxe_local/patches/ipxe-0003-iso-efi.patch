@@ -1,14 +1,13 @@
-From ddf6f6ac945654b00121ab899fb0bbb63293e51e Mon Sep 17 00:00:00 2001
+From d2092664b3cf866b2ab338fe056149d3266d0acc Mon Sep 17 00:00:00 2001
 From: Christian Hesse <mail@eworm.de>
-Date: Tue, 7 Apr 2015 16:04:31 +0200
-Subject: [PATCH 1/2] [build] allow to build ISO image with EFI support
- (ipxe.eiso)
+Date: Sun, 19 Apr 2015 13:16:09 +0200
+Subject: [PATCH 1/1] allow to build ISO image with EFI support (ipxe.eiso)
 
 Signed-off-by: Christian Hesse <mail@eworm.de>
 ---
- src/arch/i386/Makefile.pcbios |  6 ++++++
- src/util/geniso               | 39 ++++++++++++++++++++++++++++++---------
- 2 files changed, 36 insertions(+), 9 deletions(-)
+ src/arch/i386/Makefile.pcbios |  6 +++++
+ src/util/geniso               | 52 +++++++++++++++++++++++++++++++++----------
+ 2 files changed, 46 insertions(+), 12 deletions(-)
 
 diff --git a/src/arch/i386/Makefile.pcbios b/src/arch/i386/Makefile.pcbios
 index ff82373..c7a58eb 100644
@@ -28,14 +27,14 @@ index ff82373..c7a58eb 100644
  NON_AUTO_MEDIA	+= liso
  %liso:	%lkrn util/geniso
 diff --git a/src/util/geniso b/src/util/geniso
-index 521c929..998370d 100755
+index 521c929..9e8588c 100755
 --- a/src/util/geniso
 +++ b/src/util/geniso
 @@ -6,16 +6,21 @@ function help() {
  	echo "usage: ${0} [OPTIONS] foo.lkrn [bar.lkrn,...]"
  	echo
  	echo "where OPTIONS are:"
-+	echo " -e	build image with EFI support"
++	echo " -e       build image with EFI support"
  	echo " -h       show this help"
  	echo " -l       build legacy image with floppy emulation"
  	echo " -o FILE  save iso image to file"
@@ -54,49 +53,47 @@ index 521c929..998370d 100755
  		h)
  			help
  			exit 0
-@@ -37,23 +42,24 @@ if [ -z "${OUT}" ]; then
+@@ -37,17 +42,25 @@ if [ -z "${OUT}" ]; then
  	exit 1
  fi
  
 -# There should either be mkisofs or the compatible genisoimage program
 -for command in genisoimage mkisofs; do
-+# We require xorriso (from libisoburn) for EFI support
-+# genisoimage and mkisofs are missing some features
-+for command in xorriso; do
- 	if ${command} --version >/dev/null 2>/dev/null; then
+-	if ${command} --version >/dev/null 2>/dev/null; then
 -		mkisofs=(${command})
-+		xorriso=(${command})
- 		break
- 	fi
- done
- 
+-		break
+-	fi
+-done
+-
 -if [ -z "${mkisofs}" ]; then
 -	echo "${0}: mkisofs or genisoimage not found, please install or set PATH" >&2
-+if [ -z "${xorriso}" ]; then
-+	echo "${0}: xorriso not found, please install or set PATH" >&2
++# We need xorriso (from libisoburn) for EFI support, so try that first.
++if xorriso --version >/dev/null 2>/dev/null; then
++	mkisofs=(xorriso -as mkisofs)
++elif [ ${EFI} -eq 1 ]; then
++	echo "${0}: xorriso not found, but required for EFI support. Please install." >&2
  	exit 1
++else
++	# fall back to mkisofs or the compatible genisoimage program
++	for command in genisoimage mkisofs; do
++		if ${command} --version >/dev/null 2>/dev/null; then
++			mkisofs=(${command})
++			break
++		fi
++	done
++
++	if [ -z "${mkisofs}" ]; then
++		echo "${0}: mkisofs or genisoimage not found, please install or set PATH" >&2
++		exit 1
++	fi
  fi
  
  dir=$(mktemp -d bin/iso.dir.XXXXXX)
- cfg=${dir}/isolinux.cfg
- 
--mkisofs+=(-quiet -l -volid "iPXE" -preparer "iPXE build system"
-+xorriso+=(-as mkisofs -quiet -l -volid "iPXE" -preparer "iPXE build system"
- 	-appid "iPXE ${VERSION} - Open Source Network Boot Firmware"
- 	-publisher "http://ipxe.org/" -c boot.cat)
- 
-@@ -116,12 +122,27 @@ case "${LEGACY}" in
- 		fi
- 
- 		# generate the iso image
--		"${mkisofs[@]}" -b boot.img -output ${OUT} ${dir}
-+		"${xorriso[@]}" -b boot.img -output ${OUT} ${dir}
- 		;;
- 	0)
+@@ -122,6 +135,21 @@ case "${LEGACY}" in
  		# copy isolinux bootloader
  		cp ${ISOLINUX_BIN} ${dir}
  
-+		xorriso+=(-b isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table)
++		mkisofs+=(-b isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table)
 +
 +		if [ "${EFI}" -eq 1 ]; then
 +			# generate EFI image
@@ -108,18 +105,18 @@ index 521c929..998370d 100755
 +			mcopy -m -i ${img} bin-x86_64-efi/ipxe.efi "::EFI/BOOT/BOOTX64.EFI"
 +			mcopy -m -i ${img} bin-i386-efi/ipxe.efi "::EFI/BOOT/BOOTIA32.EFI"
 +
-+			xorriso+=(-eltorito-alt-boot -e efiboot.img -isohybrid-gpt-basdat -no-emul-boot)
++			mkisofs+=(-eltorito-alt-boot -e efiboot.img -isohybrid-gpt-basdat -no-emul-boot)
 +		fi
 +
  		# syslinux 6.x needs a file called ldlinux.c32
  		LDLINUX_C32=$(dirname ${ISOLINUX_BIN})/ldlinux.c32
  		if [ -s ${LDLINUX_C32} ]; then
-@@ -129,7 +150,7 @@ case "${LEGACY}" in
+@@ -129,7 +157,7 @@ case "${LEGACY}" in
  		fi
  
  		# generate the iso image
 -		"${mkisofs[@]}" -b isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -output ${OUT} ${dir}
-+		"${xorriso[@]}" -output ${OUT} ${dir}
++		"${mkisofs[@]}" -output ${OUT} ${dir}
  
  		# isohybrid will be used if available
  		if isohybrid --version >/dev/null 2>/dev/null; then

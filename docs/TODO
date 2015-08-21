@@ -48,6 +48,7 @@
 --if mirror_(NAME) is present, use that as repo name.
 --if it starts with /, treat as mirrorlist (Include); otherwise use Server = 
 --if it has mirror_SIG-X, set signature options e.g. _SIG-N would be "SigLevel = Never"
+-iPXE background support. sed -rf "${BASEDIR}/src/ipxe_local/script.sed" ${SRCDIR}/ipxe/src/config/general.h ; sed -rf "${BASEDIR}/src/ipxe_local/script2.sed" ${SRCDIR}/ipxe/src/config/console.h
 
 ## Split into Separate Tools CD ##
 
