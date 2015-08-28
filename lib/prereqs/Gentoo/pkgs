@@ -1,5 +1,6 @@
 sys-devel/binutils
 net-misc/curl
+sys-fs/dosfstools
 sys-devel/gcc
 dev-vcs/git
 dev-libs/libisoburn

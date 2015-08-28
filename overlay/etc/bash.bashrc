@@ -51,7 +51,7 @@ date
 if [ -n "${DEFROUTEIF}" ];
 then
  IPADDR=$(ip a s dev ${DEFROUTEIF} | egrep '^[[:space:]]*inet\ ' | awk '{print $2}' | cut -f1 -d"/")
- HWADDR=$(ip l show dev ${DEFROUTEIF} | egrep '^[[:space:]]*link\ ' | awk '{print $2}')
+ HWADDR=$(ip l show dev ${DEFROUTEIF} | egrep '^[[:space:]]*link' | awk '{print $2}')
  echo
  echo -n "${DEFROUTEIF} (${HWADDR}) is: ${IPADDR}"
 fi

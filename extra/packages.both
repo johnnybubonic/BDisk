@@ -308,6 +308,7 @@ xmlto
 xorg
 xorg-drivers
 xorg-xinit
+xterm
 zerofree
 zip
 zsh
