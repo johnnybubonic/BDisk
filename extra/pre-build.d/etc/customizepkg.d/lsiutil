@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sed -re 's@^(source=\(").*$@\1https://github.com/kwilczynski/lsi/blob/master/lsiutil/LSIUtil_1.62.zip?raw=true")@g' ${1}

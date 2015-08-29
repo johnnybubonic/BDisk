@@ -1,8 +1,8 @@
 NAME='Manjaro'
-SUPPORTED='untested'
+SUPPORTED='yes'
 CHECK_METHOD='egrep "^NAME=\"Manjaro Linux\"$" /etc/os-release'
 PKG_MGR='pacman -S --needed --noconfirm ${pkgname}'
-PRE_RUN='pacman -Syyyu'
+PRE_RUN='pacman -Syyy --noconfirm'
 PKG_CHK='pacman -Q ${pkgname}'
 URL='https://manjaro.org/'
 
@@ -20,6 +20,7 @@ function distro_specific_tweaks {
    if [[ "${?}" == "0" ]];
    then
      pacman -Rdd --noconfirm ${pkg_override} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+     pacman -S --noconfirm ${pkg_override}-multilib >> "${LOGFILE}.${FUNCNAME}" 2>&1
    fi
  done
 set -e

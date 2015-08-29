@@ -253,6 +253,7 @@ EOF
  for i in ${CHROOTDIR32} ${CHROOTDIR64};
  do
     echo "Running post-build tasks in ${i}..."
+    chmod 700 ${i}/root/post-build.sh
     ${CHROOTCMD} ${i}/ "/root/post-build.sh" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     set +e

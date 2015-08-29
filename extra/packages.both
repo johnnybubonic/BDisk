@@ -159,7 +159,8 @@ mcelog
 md5deep
 mdadm
 mdcrack
-megaraid-cli
+# superseded by storcli
+#megaraid-cli
 memtester
 mfoc
 minicom
@@ -184,7 +185,8 @@ nmap
 nmon
 ntfs-3g
 ntfsfixboot
-nwipe
+#nwipe #broken since they moved to github(?)
+nwipe-git
 obnam
 open-iscsi
 openipmi
@@ -253,6 +255,7 @@ smbclient
 s-nail
 socat
 #star ## do people even USE tape packups anymore?
+storcli
 strace
 stress
 sucrack

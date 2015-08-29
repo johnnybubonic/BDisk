@@ -5,12 +5,11 @@ dosfstools
 gcc
 gcc-multilib
 git
-isolinux
 libiberty-dev
 libisoburn1
 lynx
 liblzma5
-liblsma-dev
+liblzma-dev
 make
 mtools
 patch
@@ -19,7 +18,6 @@ rsync
 sed
 squashfs-tools
 syslinux
-syslinux-efi
 xorriso
 xz-utils
 zlib1g

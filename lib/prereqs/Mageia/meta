@@ -1,5 +1,5 @@
 NAME='Mageia'
-SUPPORTED='untested'
+SUPPORTED='yes'
 CHECK_METHOD='egrep "^Mageia\ release\ " /etc/mageia-release'
 PKG_MGR='urpmi --force --auto ${pkgname}'
 PRE_RUN='urpmi.update -a'

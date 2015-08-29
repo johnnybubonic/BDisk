@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sed -i -e 's/any/x86_64/g' ${1}
+sed -i -re "s/'any'/'i686' 'x86_64'/g" ${1}
