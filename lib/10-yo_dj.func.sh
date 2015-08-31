@@ -5,15 +5,15 @@ function yo_dj () {
   ARCH="${1}"
   echo "Building the actual .iso image. This may take a while."
   #im_batman ## WHYTF IS THIS HERE?!
-  ISOFILENAME="${UXNAME}-${VERSION}.iso"
-  #MINIFILENAME="${UXNAME}-${VERSION}-mini.iso"
+  ISOFILENAME="${UXNAME}-${BUILDVERSION}.iso"
+  #MINIFILENAME="${UXNAME}-${BUILDVERSION}-mini.iso"
   MINIFILENAME="${UXNAME}-mini.iso"
   USBFILENAME="${UXNAME}-mini.usb.img"
   if [[ "${MULTIARCH}" == "y" ]];
   then
-    ISOFILENAME="${UXNAME}-${VERSION}-any.iso"
+    ISOFILENAME="${UXNAME}-${BUILDVERSION}-any.iso"
   else
-    ISOFILENAME="${UXNAME}-${VERSION}-${ARCH}.iso"
+    ISOFILENAME="${UXNAME}-${BUILDVERSION}-${ARCH}.iso"
   fi
 
   if [[ "${I_AM_A_RACECAR}" == "y" ]]; 

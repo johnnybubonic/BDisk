@@ -37,7 +37,10 @@ function centos_is_stupid {
       XORRISO_RPM=$(curl -s "http://software.opensuse.org/download.html?project=home%3AKnolleblau&package=xorriso" | egrep "/openSUSE_${SUSE_VER}/x86_64/xorriso-[0-9.-]" | tail -n1 | sed -re 's|^.*x86_64/(xorriso-[0-9.-]*.x86_64.rpm).*$|\1|g')
       echo "Since you're using openSUSE or SLED/SLES, we need to install xorriso directly from an RPM. Please wait while we do this..."
       curl -sLo /tmp/${XORRISO_RPM} "http://download.opensuse.org/repositories/home:/Knolleblau/openSUSE_${SUSE_VER}/x86_64/${XORRISO_RPM}"
+      cp /etc/zypp/zypp.conf /etc/zypp/zypp.conf_BAK."${$}"
+      echo 'pkg_gpgcheck = no' >> /etc/zypp/zypp.conf
       zypper install --no-confirm -l /tmp/${XORRISO_RPM} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      mv -f /etc/zypp/zypp.conf_BAK."${$}" /etc/zypp/zypp.conf
       echo "Done."
  
       echo

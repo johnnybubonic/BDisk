@@ -85,7 +85,7 @@ CHROOTDIR_GLOB="${CHROOTDIR}"
 BUILDDIR_GLOB="${BUILDDIR}"
 
 # Set the version.
-VERSION="$(git describe --abbrev=0 --tags)-$(git rev-parse --short --verify HEAD)"
+BUILDVERSION="$(git describe --abbrev=0 --tags)-$(git rev-parse --short --verify HEAD)"
 BUILD="$(cat BUILDNO)"
 BUILD="$(expr ${BUILD} + 1)"
 echo ${BUILD} > ./BUILDNO
@@ -104,7 +104,7 @@ set -e
 USERNAME_REAL="$(grep ${BUILD_USERNAME} /etc/passwd | cut -f5 -d':')"
 
 cat > ${BASEDIR}/VERSION_INFO.txt << EOF
-Version:	${VERSION}
+Version:	${BUILDVERSION}
 Build:		${BUILD}
 Time:		${BUILDTIME}
 Machine:	${BUILD_MACHINE}
