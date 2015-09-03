@@ -5,6 +5,7 @@ dosfstools
 gcc
 gcc-multilib
 git
+isolinux
 libiberty-dev
 libisoburn1
 lynx

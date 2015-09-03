@@ -1,5 +1,5 @@
 NAME='RHEL'
-SUPPORTED='untested'
+SUPPORTED='yes'
 # Red Hat Enterprise Linux Server release 6.5 (Santiago)
 CHECK_METHOD='egrep "^Red\ Hat\ Enterprise\ Linux" /etc/redhat-release'
 PKG_MGR='yum -y install'

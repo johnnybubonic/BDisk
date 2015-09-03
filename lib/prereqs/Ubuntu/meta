@@ -1,5 +1,5 @@
 NAME='Ubuntu'
-SUPPORTED='untested'
+SUPPORTED='yes'
 CHECK_METHOD='egrep "^DISTRIB_ID=Ubuntu$" /etc/lsb-release'
 PKG_MGR='apt-get -y install ${pkgname}'
 PRE_RUN='apt-get -y update'
