@@ -22,6 +22,7 @@
 
 ## Building ##
 
+-GUMMIBOOT IS GONE FROM THE REPOS. I could repackage it, but better to just see what the hell archiso's doing.
 -WISH: Better logging[0]
 -WISH: signing for secureboot releases (PreLoader and gummiboot handle this okay, but require manual intervention
 -use manual chrooting functions ONLY if distro not detected as arch. if /usr/bin/systemd-nspawn exists, use that instead
@@ -33,14 +34,10 @@
 --yes, see e.g. https://www.reddit.com/r/archlinux/comments/3bwgf0/where_put_the_splasharchbmp_to_splash_screen_boot/
 -strip out/remove unnecessary and orphan packages (e.g. gcc, make, automake, etc.)
 -incorporate iPXE tweaks:
---http://ipxe.org/crypto
+--http://ipxe.org/crypto 
 --http://ipxe.org/cmd/imgtrust
 --http://ipxe.org/cmd/imgverify
---enable use of custom CA/self-signed certs for HTTPS etc.
--X-platform
---what distros are supported?
---automatically install what we need for buildtime
----need to finish pkg lists and then test, but meta files should be done as well as lib script
+--enable use of custom CA/self-signed certs for HTTPS etc. DONE, partially. need to incorporate codesign certs/keys. routines, conf variables
 -enable mirror= kernel commandline.
 --if mirror_(NAME) is present, use that as repo name.
 --if it starts with /, treat as mirrorlist (Include); otherwise use Server = 

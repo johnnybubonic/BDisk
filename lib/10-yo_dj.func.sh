@@ -284,6 +284,7 @@ EOF
   if [[ "${BUILDMINI}" == "y" ]];
   then
     echo "Now generating the iPXE images; please wait..."
+    ## Get the latest version of ipxe from git.
     git submodule init >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git submodule update >> "${LOGFILE}.${FUNCNAME}" 2>&1
     cd ${BASEDIR}/src/ipxe/src
@@ -292,24 +293,93 @@ EOF
     git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git pull >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ## Apply our patches.
     for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n' | sort);
     do
       patch -Np2 < ${BASEDIR}/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     done
+    ## SSL
+    SSLDIR="${BASEDIR}/src/ipxe_local/ssl"
+    mkdir -p ${SSLDIR}/{keys,crts,txt}
+    chmod 000 ${SSLDIR}/keys
+    chown root:root ${SSLDIR}/keys
+    if [[ -z "${IPXE_SSL_CA}" && -z "${IPXE_SSL_KEY}" ]];
+    then
+      # Generate SSL CA
+      #rm -rf ${SSLDIR}/*
+      cd "${SSLDIR}"
+      IPXE_SSL_CA="${SSLDIR}/crts/ca.crt"
+      IPXE_SSL_CAKEY="${SSLDIR}/keys/ca.key"
+      IPXE_DOMAIN=$(echo ${IPXE_URI} | sed -re 's/^(f|ht)tps?:\/\/// ; s/\/.*//')
+      if [[ ! -f "${SSLDIR}/txt/ca.srl" ]];
+      then
+        echo 01 > ${SSLDIR}/txt/ca.srl
+      fi
+      touch ${SSLDIR}/txt/ca.idx
+      openssl req -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -x509 -newkey rsa:4096 -nodes -out ${IPXE_SSL_CA} -keyout ${IPXE_SSL_CAKEY} -sha512
+      openssl req -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -newkey rsa:4096 -keyout ${SSLDIR}/keys/server.key -nodes -out ${SSLDIR}/crts/server.csr -sha512
+      openssl ca -batch -config ${SSLDIR}/openssl.cnf -keyfile ${IPXE_SSL_CAKEY} -in ${SSLDIR}/crts/server.csr -out ${SSLDIR}/crts/server.crt
+      #cat crts/server.crt crts/ca.crt > crts/server_chained.crt
+    elif [[ -z "${IPXE_SSL_CA}" && -e "${IPXE_SSL_CAKEY}" ]];
+    then
+      echo "ERROR: You specified IPXE_SSL_CAKEY but not IPXE_SSL_CA. If one is specified, the other must be also."
+      exit 1
+    elif [[ -z "${IPXE_SSL_CAKEY}" && -e "${IPXE_SSL_CA}" ]];
+    then
+      echo "ERROR: You specified IPXE_SSL_CA but not IPXE_SSL_CAKEY. If one is specified, the other must be also."
+      exit 1
+    elif [[ ! -e "${IPXE_SSL_CA}" || ! -e "${IPXE_SSL_CAKEY}" ]];
+    then
+      echo "ERROR: You have specified both IPXE_SSL_CA and IPXE_SSL_CAKEY but one (or both) are not valid paths/files."
+      exit 1
+    fi
+    if [[ -z "${IPXE_SSL_KEY}" && -z "${IPXE_SSL_CRT}" ]];
+    then
+      IPXE_SSL_KEY="${SSLDIR}/keys/client.key"
+      IPXE_SSL_CRT="${SSLDIR}/crts/client.crt"
+      IPXE_DOMAIN=$(echo ${IPXE_URI} | sed -re 's/^(f|ht)tps?:\/\/// ; s/\/.*//')
+      # Generate SSL client key.
+      openssl req -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -newkey rsa:4096 -keyout ${IPXE_SSL_KEY} -nodes -out ${SSLDIR}/crts/client.csr -sha512
+      # Sign the crt.
+      openssl ca -batch -config ${SSLDIR}/openssl.cnf -keyfile ${IPXE_SSL_CAKEY} -in ${SSLDIR}/crts/client.csr -out ${IPXE_SSL_CRT}
+    elif [[ -z "${IPXE_SSL_CRT}" && -e "${IPXE_SSL_KEY}" ]]; 
+    then
+      echo "ERROR: You specified IPXE_SSL_KEY but not IPXE_SSL_CRT. If one is specified, the other must be also."
+      exit 1
+    elif [[ -z "${IPXE_SSL_KEY}" && -e "${IPXE_SSL_CRT}" ]]; 
+    then
+      echo "ERROR: You specified IPXE_SSL_CRT but not IPXE_SSL_KEY. If one is specified, the other must be also."
+      exit 1
+    elif [[ ! -e "${IPXE_SSL_CRT}" || ! -e "${IPXE_SSL_KEY}" ]]; 
+    then
+      echo "ERROR: You have specified both IPXE_SSL_CRT and IPXE_SSL_KEY but one (or both) are not valid paths/files."
+      exit 1
+    fi
+    cd ${BASEDIR}/src/ipxe/src
     # Generate the iPXE EMBED script...
     sed -re "s,^(chain\ ).*$,\1${IPXE_URI},g" \
 	-e 's/%%COMMA%%/,/g' ${BASEDIR}/src/ipxe_local/EMBED > ${SRCDIR}/EMBED
+    # And now we build!
     #make everything EMBED="${SRCDIR}/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    make bin-i386-efi/ipxe.efi bin-x86_64-efi/ipxe.efi EMBED="${SRCDIR}/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    make bin/ipxe.eiso bin/ipxe.usb EMBED="${SRCDIR}/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    make bin-i386-efi/ipxe.efi bin-x86_64-efi/ipxe.efi \
+         EMBED="${SRCDIR}/EMBED" \
+         TRUST="${IPXE_SSL_CA}" \
+         CERT="${IPXE_SSL_CA},${IPXE_SSL_CRT}" \
+         PRIVKEY="${IPXE_SSL_KEY}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    make bin/ipxe.eiso bin/ipxe.usb \
+         EMBED="${SRCDIR}/EMBED" \
+         TRUST="${IPXE_SSL_CA}" \
+         CERT="${IPXE_SSL_CA},${IPXE_SSL_CRT}" \
+         PRIVKEY="${IPXE_SSL_KEY}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     # Change this to USB-only...
     #make all EMBED="${BASEDIR}/src/ipxe_local/EMBED" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.usb  ${ISODIR}/${USBFILENAME}
     mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
     make clean >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    cd ${BASEDIR}/src/ipxe
     git reset --hard >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git clean -xdf > /dev/null 2>&1
-    git checkout master > /dev/null 2>&1
+    git checkout master . > /dev/null 2>&1
     #git reset --hard HEAD > /dev/null 2>&1
     echo
   fi

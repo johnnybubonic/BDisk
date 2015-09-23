@@ -71,6 +71,35 @@ BUILDMINI="no"
 # This currently does not work for HTTPS with self-signed certificates.
 IPXE_URI="https://bdisk.square-r00t.net"
 
+# Path to the (root) CA certificate file (in PEM/X509 format) iPXE should use.
+# If one is not specified, one will be generated.
+# Only used if BUILDMINI is set to yes.
+# Please properly escape any spaces or other funky characters.
+# Note that you can use your own CA to sign existing certs. See http://ipxe.org/crypto for
+# more info. This is handy if you run a third-party/"Trusted" root-CA-signed certificate
+# for the HTTPS target.
+# Requires IPXE_SSL_CAKEY if specified.
+IPXE_SSL_CA=""
+
+# Path to the (root) CA key file (in PEM/X509 format) iPXE should use.
+# If one is not specified, one will be generated.
+# Only used if BUILDMINI is set to yes.
+# Please properly escape any spaces or other funky characters.
+# Requires IPXE_SSL_CA if specified.
+IPXE_SSL_CAKEY=""
+
+# Path to the CLIENT certificate (in PEM/X509). If one is not specified, one will be generated.
+# Only used if BUILDMINI is set to yes.
+# Please properly escape any spaces or other funky characters.
+# Requires IPXE_SSL_KEY if specified.
+IPXE_SSL_CRT=""
+
+# Path to the CLIENT key (in PEM/X509). If one is not specified, one will be generated.
+# Only used if BUILDMINI is set to yes.
+# Please properly escape any spaces or other funky characters.
+# Requires IPXE_SSL_CRT if specified.
+IPXE_SSL_KEY=""
+
 # Set to "yes" to enable pushing new changes to a git repo/committing to a local repo
 GIT="no"
 

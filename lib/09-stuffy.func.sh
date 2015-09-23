@@ -14,10 +14,10 @@ function stuffy {
   echo "Setting up EFI stuff..."
 
   mkdir -p ${TEMPDIR}/{EFI/{${DISTNAME},boot},loader/entries}
-  # this stuff comes from the prebootloader pkg and gummiboot pkg. lets us boot on UEFI machines with secureboot still enabled.
+  # this stuff comes from the prebootloader pkg and systemd-boot. lets us boot on UEFI machines with secureboot still enabled.
   cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ${TEMPDIR}/EFI/boot/bootx64.efi
   cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi ${TEMPDIR}/EFI/boot/.
-  cp ${BASEDIR}/root.x86_64/usr/lib/gummiboot/gummibootx64.efi ${TEMPDIR}/EFI/boot/loader.efi # TODO: can i use syslinux.efi instead?
+  cp ${BASEDIR}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi ${TEMPDIR}/EFI/boot/loader.efi # TODO: can i use syslinux.efi instead?
 
   echo "Checking/fetching UEFI shells..."
   if [ ! -f "${TEMPDIR}/EFI/shellx64_v2.efi" ];
@@ -71,7 +71,7 @@ EOF
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/boot/${UXNAME}.64.img))) # EFI/BDISK/bdisk.img
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi))) # EFI/boot/bootx64.efi
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi))) # EFI/boot/HashTool.efi
-  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/gummiboot/gummibootx64.efi))) # EFI/boot/loader.efi
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi))) # EFI/boot/loader.efi
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v1.efi)))
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v2.efi)))
   FATSIZE=$((${FATSIZE} + $(du -sb ${TEMPDIR}/loader | tail -n1 | awk '{print $1}'))) # loader/* (okay so i cheated a little here.)
@@ -112,7 +112,7 @@ EOF
 
   cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ${SRCDIR}/efiboot/EFI/boot/bootx64.efi
   cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi ${SRCDIR}/efiboot/EFI/boot/.
-  cp ${BASEDIR}/root.x86_64/usr/lib/gummiboot/gummibootx64.efi ${SRCDIR}/efiboot/EFI/boot/loader.efi # TODO: can i use syslinux.efi instead?
+  cp ${BASEDIR}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi ${SRCDIR}/efiboot/EFI/boot/loader.efi # TODO: can i use syslinux.efi instead?
   cp ${TEMPDIR}/EFI/shellx64_v{1,2}.efi ${SRCDIR}/efiboot/EFI/.
   umount ${SRCDIR}/efiboot
   echo "EFI configuration complete..."

@@ -12,7 +12,6 @@ efivar
 ethtool
 file
 findutils
-gummiboot
 iproute2
 iputils
 libisoburn

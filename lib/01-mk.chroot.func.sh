@@ -180,6 +180,7 @@ EOF
     echo "Done."
     echo -n "...Upgrading any outdated packages..."
     ${CHROOTCMD} ${i}/ pacman -Syyu --noconfirm >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ pacman-key --refresh-keys >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo "Done. Finishing/cleaning up..."
     ${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed base-devel >> "${LOGFILE}.${FUNCNAME}" 2>&1
