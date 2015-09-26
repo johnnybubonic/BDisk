@@ -6,6 +6,7 @@
 -- https://github.com/akopytov/sysbench
 -- (http://blog.due.io/2014/linode-digitalocean-and-vultr-comparison/ etc.)
 -package in AUR
+-base rewrite in python. pyalpm may come in handy here.
 
 
 ## NETWORKING ##
