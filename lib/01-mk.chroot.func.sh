@@ -260,7 +260,7 @@ EOF
     set +e
     ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz-linux-${DISTNAME}
-    cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${DISTNAME}.img
+    #cp -a ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${DISTNAME}.img
     set -e
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     # Uncomment if you wish to use the mkpasswd binary from within the chroot...

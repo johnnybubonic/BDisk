@@ -293,6 +293,8 @@ EOF
     git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git pull >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    # It will not build if we don't do this. Apparently we *need* libiberty.
+    git revert -n 40a9a0f0
     ## Apply our patches.
     for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n' | sort);
     do
@@ -316,9 +318,9 @@ EOF
         echo 01 > ${SSLDIR}/txt/ca.srl
       fi
       touch ${SSLDIR}/txt/ca.idx
-      openssl req -days 3650 -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -x509 -newkey rsa:4096 -nodes -out ${IPXE_SSL_CA} -keyout ${IPXE_SSL_CAKEY} -sha512
-      openssl req -days 3650 -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -newkey rsa:4096 -keyout ${SSLDIR}/keys/server.key -nodes -out ${SSLDIR}/crts/server.csr -sha512
-      openssl ca -days 3650 -batch -config ${SSLDIR}/openssl.cnf -keyfile ${IPXE_SSL_CAKEY} -in ${SSLDIR}/crts/server.csr -out ${SSLDIR}/crts/server.crt
+      openssl req -days 3650 -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -x509 -newkey rsa:4096 -nodes -out ${IPXE_SSL_CA} -keyout ${IPXE_SSL_CAKEY} -sha512 >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      openssl req -days 3650 -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -newkey rsa:4096 -keyout ${SSLDIR}/keys/server.key -nodes -out ${SSLDIR}/crts/server.csr -sha512 >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      openssl ca -days 3650 -batch -config ${SSLDIR}/openssl.cnf -keyfile ${IPXE_SSL_CAKEY} -in ${SSLDIR}/crts/server.csr -out ${SSLDIR}/crts/server.crt >> "${LOGFILE}.${FUNCNAME}" 2>&1
       #cat crts/server.crt crts/ca.crt > crts/server_chained.crt
     elif [[ -z "${IPXE_SSL_CA}" && -e "${IPXE_SSL_CAKEY}" ]];
     then
@@ -339,9 +341,9 @@ EOF
       IPXE_SSL_CRT="${SSLDIR}/crts/client.crt"
       IPXE_DOMAIN=$(echo ${IPXE_URI} | sed -re 's/^(f|ht)tps?:\/\/// ; s/\/.*//')
       # Generate SSL client key.
-      openssl req -days 3650 -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -newkey rsa:4096 -keyout ${IPXE_SSL_KEY} -nodes -out ${SSLDIR}/crts/client.csr -sha512
+      openssl req -days 3650 -subj "/CN=${IPXE_DOMAIN}/O=${PNAME}/C=NA" -newkey rsa:4096 -keyout ${IPXE_SSL_KEY} -nodes -out ${SSLDIR}/crts/client.csr -sha512 >> "${LOGFILE}.${FUNCNAME}" 2>&1
       # Sign the crt.
-      openssl ca -days 3650 -batch -config ${SSLDIR}/openssl.cnf -keyfile ${IPXE_SSL_CAKEY} -in ${SSLDIR}/crts/client.csr -out ${IPXE_SSL_CRT}
+      openssl ca -days 3650 -batch -config ${SSLDIR}/openssl.cnf -keyfile ${IPXE_SSL_CAKEY} -in ${SSLDIR}/crts/client.csr -out ${IPXE_SSL_CRT} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     elif [[ -z "${IPXE_SSL_CRT}" && -e "${IPXE_SSL_KEY}" ]]; 
     then
       echo "ERROR: You specified IPXE_SSL_KEY but not IPXE_SSL_CRT. If one is specified, the other must be also."
