@@ -107,6 +107,7 @@ gptfdisk
 gst-libav
 gst-plugins-ugly
 hashcat
+hashdeep
 hddtemp
 hdparm
 hexcurse
@@ -156,7 +157,6 @@ magicrescue
 mbr
 mbuffer
 mcelog
-md5deep
 mdadm
 mdcrack
 # superseded by storcli
