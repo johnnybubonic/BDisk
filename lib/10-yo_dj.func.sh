@@ -379,8 +379,8 @@ EOF
     mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
     make clean >> "${LOGFILE}.${FUNCNAME}" 2>&1
     cd ${BASEDIR}/src/ipxe
-    git reset --hard >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git clean -xdf > /dev/null 2>&1
+    git reset --hard >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git checkout master . > /dev/null 2>&1
     #git reset --hard HEAD > /dev/null 2>&1
     echo

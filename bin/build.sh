@@ -155,6 +155,22 @@ then
   exit 0
 fi
 
+# implement for future, needs tweaking- JUST rebuild the ISO.
+#if [[ ${1} == "respin" ]];
+#then
+#  if [[ "${MULTIARCH}" == "y" ]]; 
+#  then
+#    centos_is_stupid
+#    yo_dj any 
+#  else
+#    centos_is_stupid
+#    yo_dj 64
+#    centos_is_stupid
+#    yo_dj 32
+#  fi  
+#fi
+# 
+
 # or are we just building?
 if [[ ${1} == "build" || -z ${1} || ${1} == "all" ]];
 then

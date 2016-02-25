@@ -1,5 +1,5 @@
---- a/src/usr/autoboot.c	2015-06-29 04:18:17.055394598 -0400
-+++ b/src/usr/autoboot.c	2015-06-29 22:04:28.692916217 -0400
+--- a/src/usr/autoboot.c
++++ b/src/usr/autoboot.c
 @@ -71,6 +71,7 @@
  #define NORMAL	"\033[0m"
  #define BOLD	"\033[1m"
@@ -8,16 +8,16 @@
  
  /** The "scriptlet" setting */
  const struct setting scriptlet_setting __setting ( SETTING_MISC, scriptlet ) = {
-@@ -560,9 +561,9 @@
+@@ -538,11 +539,10 @@
  	 * do so.
  	 *
  	 */
 -	printf ( NORMAL "\n\n" PRODUCT_NAME "\n" BOLD PRODUCT_SHORT_NAME " %s"
--		 NORMAL " -- " PRODUCT_TAG_LINE " -- "
--		 CYAN PRODUCT_URI NORMAL "\nFeatures:", product_version );
 +	printf ( NORMAL "\n\n" PRODUCT_NAME "\n" BOLD PRODUCT_SHORT_NAME
+ 		 NORMAL " -- " PRODUCT_TAG_LINE " -- "
+-		 CYAN PRODUCT_URI NORMAL "\nFeatures:", product_version );
 +		 CYAN PRODUCT_URI NORMAL "\n"
-+		 BOLD BLUE "http://bdisk.square-r00t.net/" NORMAL "\n" );
- 	for_each_table_entry ( feature, FEATURES )
- 		printf ( " %s", feature->name );
++		 BOLD BLUE "https://bdisk.square-r00t.net/" NORMAL "\n" );
  	printf ( "\n" );
+ 
+ 	/* Boot system */

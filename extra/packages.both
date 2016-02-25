@@ -54,7 +54,7 @@ dd_rescue
 dd_rhelp
 debianutils
 debootstrap
-dialog
+#dialog #giving a weird dependency issue
 diffutils
 djohn
 dmidecode
@@ -141,8 +141,7 @@ keyutils
 kismet-allplugins
 lftp
 links
-#logkeys
-logkeys-keymaps
+logkeys-git
 lm_sensors
 lrzsz
 lshw
@@ -254,7 +253,7 @@ smartmontools
 smbclient
 s-nail
 socat
-#star ## do people even USE tape packups anymore?
+#star ## do people even USE tape backups anymore?
 storcli
 strace
 stress
@@ -271,7 +270,7 @@ thttpd
 tmon
 tmux
 tre
-truecrack-svn
+truecrack-git
 truecrypt
 tor
 udftools
@@ -296,7 +295,7 @@ vncrack
 vnstat
 vpnc
 weplab
-whdd
+#whdd #currently depends on dialog, which is broke as shit
 whois
 wifite-mod-pixiewps-git
 wipe
