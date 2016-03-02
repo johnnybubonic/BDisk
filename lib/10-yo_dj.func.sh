@@ -298,7 +298,7 @@ EOF
     ## Apply our patches.
     for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n' | sort);
     do
-      patch -Np2 < ${BASEDIR}/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
+      patch --verbose -Np2 < ${BASEDIR}/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
     done
     ## SSL
     SSLDIR="${BASEDIR}/src/ipxe_local/ssl"
