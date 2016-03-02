@@ -141,11 +141,11 @@ keyutils
 kismet-allplugins
 lftp
 links
-logkeys-git
+#logkeys-git # requires a /dev/input, which apparently isn't included in the chroots
 lm_sensors
 lrzsz
 lshw
-lsiutil
+#lsiutil # 404'ing on source url at the moment
 lsof
 lsscsi
 lxde
