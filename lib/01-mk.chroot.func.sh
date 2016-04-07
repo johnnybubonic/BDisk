@@ -168,6 +168,7 @@ EOF
     echo "Done."
     echo -n "...Importing keys..."
     ${CHROOTCMD} ${i}/ pacman-key --populate archlinux >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ pacman-key -r 93481F6B >> "${LOGFILE}.${FUNCNAME}" 2>&1  # add developer's keys
     echo "Done."
     # Prep base building system
     echo -n "...Installing base packages..."
