@@ -16,6 +16,9 @@ It should be fine over ethernet, since hardware switches are much faster and eff
 Future versions, once this project has a dumping ground, will fetch highly compressed snapshotted chroot filesystems instead
 of dynamically building the entire install chroots (both x86_64 and i686) instead (with the option of building fresh locally,
 disabled by default).
+
+Maybe.
+
 Till then, sorry for the inconvenience.
 !!!!!!!!!!!!!!!!!!!!!!
 
@@ -56,11 +59,6 @@ All commands below should be issued in the root working directory of this git re
 but also disk space for working, the finished ISO(s), etc.)
 
 -The following packages installed on the build host:
-(NOTE: future versions will have dependencies checked automatically and installed if necessary,
-depending on distro your host build machine is. the OS detection and package installation component of that isn't
-done yet though. 2014.10.31)
-(NOTE2: Make sure all the packages you specify are valid package names. A mistyped package name will cause the chroot creation to
-break and everything else will break as a result.)
 
 curl
 dosfstools
@@ -72,9 +70,24 @@ squashfs-tools
 xorriso (in RPMForge repo for CentOS 7)
 xz
 
-and *probably* a few others. The scripts run with set -e for the most part, so if something's missed, you'll know.
+and maybe a few others. The scripts run with set -e for the most part, so if something's missed, you'll know.
 Oh, you will know.
 
+If these packages are missing, they will be automatically installed. Currently, the following distros as host build systems
+are supported (assumes most recent release):
+
+Antergos
+Arch
+CentOS
+Debian
+Fedora
+Gentoo
+Mageia
+Manjaro
+openSUSE
+RHEL
+SUSE
+Ubuntu
 
 ## Configuration ##
 See extra/build.conf.sample. Copy to <PROJECT ROOT>/build.conf if you wish to modify any of the values, otherwise the defaults
@@ -105,6 +118,18 @@ Also note the following files/paths:
 --/mirror.lst.sh:
 	Builds a fresh mirror list. Note that it is US based.
 
+-docs:
+	Documentation for BDisk.
+--/COPYING:
+	See LICENSE.
+--/README:
+	This file.
+--/LICENSE:
+	The license file.
+--/FAQ:
+	Several quick questions you might have.
+--/TODO:
+	Some features, bug fixes, etc. I have planned.
 -examples:
 	Included recommendation for how to lay things out, etc.
 --/HTTP:
@@ -112,7 +137,7 @@ Also note the following files/paths:
 -extra:
 	Supporting files for the base building system (mirrorlist, etc.).
 --/${UXNAME}.png:
-	A 640x480 8-bit RGBA colour PNG which will be used as the background for the bootsplash (if booting via BIOS and not UEFI)
+L	A 640x480 8-bit RGBA colour PNG which will be used as the background for the bootsplash (if booting via BIOS and not UEFI)
 --/bootstrap/apacman-*.tar.xz:
 	An AUR-enabled package manager. Necessary for AUR support.
 --/build.conf.sample:
@@ -130,6 +155,8 @@ Also note the following files/paths:
 --/pre-build.d:
 	Contains files injected into the system. Both 64-bit and 32-bit environments. Note: be sure to place them in hierarchical order
 	(e.g. if you wish to have a file at /usr/foo/bar, you will need to place it in <PROJECT ROOT>/extra/pre-build.d/usr/foo/bar)
+        (NOTE: Make sure all the packages you specify are valid package names. A mistyped or nonexistent package name will cause the chroot
+        creation to break and everything else will break as a result.)
 --/pre-build.d/32:
 	Same as above, but only for 32-bit environments.
 --/pre-build.d/64:
@@ -143,8 +170,6 @@ Also note the following files/paths:
 	Here you can find full output of the runs. They are prefixed with run's PID number, and named after the function they occur in.
 -overlay:
 	These files are applied AFTER the initial setup of the chroots. Same hierarchy rules as extra/pre-build.d.
--README:
-	This file.
 -src:
 	Supporting source code/source code from other projects.
 --ipxe/:
@@ -153,14 +178,12 @@ Also note the following files/paths:
 	Various patches and supporting configs to tweak the iPXE build.
 -tftpboot:
 	Files to be served via TFTP for PXE booting. This directory is wiped out during any bin/clean.sh operation.
--TODO:
-	This is just what I'm using to track stuff I want to add.
 
 
 You may notice other files come and go; they're mostly there for extra goodies/used to determine other things.
 
 ## (Re)Building ##
-Building must be done as root, and on an Arch x86_64 system (future versions will allow for non-Arch distros).
+Building must be done as root, and on a supported distro (see Prerequisites for a list).
 
 # bin/build.sh
 
