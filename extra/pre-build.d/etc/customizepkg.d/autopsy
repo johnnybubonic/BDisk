@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# original URL at sourceforge chokes out
+sed -re 's@^(source=\(").*$@\1ftp://ftp.gnome.org/mirror/temp/sf2015/a/au/autopsy/autopsy/2.24/autopsy-2.24.tar.gz")@g' ${1}
