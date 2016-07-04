@@ -8,6 +8,7 @@ dhcp
 dhcpcd
 dosfstools
 efibootmgr
+efitools
 efivar
 ethtool
 file
@@ -27,7 +28,6 @@ netctl
 networkmanager
 openssh
 openvpn
-prebootloader
 pv
 rsync
 sed

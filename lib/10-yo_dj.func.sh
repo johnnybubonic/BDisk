@@ -288,14 +288,19 @@ EOF
     git submodule init >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git submodule update >> "${LOGFILE}.${FUNCNAME}" 2>&1
     cd ${BASEDIR}/src/ipxe/src
+    git checkout master .
     git clean -xdf > /dev/null 2>&1
     git reset --hard HEAD >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git pull >> "${LOGFILE}.${FUNCNAME}" 2>&1
     git checkout master >> "${LOGFILE}.${FUNCNAME}" 2>&1
     # It will not build if we don't do this. Apparently we *need* libiberty.
-    git revert -n 40a9a0f0
+    # ...or do we?
+    #git revert -n 40a9a0f0
     ## Apply our patches.
+    # This replaces the 0003 and 0004 patches.
+    # curl -s https://patch-diff.githubusercontent.com/raw/ipxe/ipxe/pull/49.patch > ${BASEDIR}/src/ipxe_local/patches/ipxe-0003-no-PIE.patch 2>/dev/null  # this isn't really necessary, I think? If you're dying right around this step, uncomment.
+    curl -s https://patch-diff.githubusercontent.com/raw/ipxe/ipxe/pull/50.patch > ${BASEDIR}/src/ipxe_local/patches/ipxe-0004-eiso.patch 2>/dev/null
     for i in $(find ${BASEDIR}/src/ipxe_local/patches/ -type f -iname "*.patch" -printf '%P\n' | sort);
     do
       patch --verbose -Np2 < ${BASEDIR}/src/ipxe_local/patches/${i} >> "${LOGFILE}.${FUNCNAME}" 2>&1
@@ -379,9 +384,9 @@ EOF
     mv -f ${BASEDIR}/src/ipxe/src/bin/ipxe.eiso  ${ISODIR}/${MINIFILENAME}
     make clean >> "${LOGFILE}.${FUNCNAME}" 2>&1
     cd ${BASEDIR}/src/ipxe
+    git checkout master . > /dev/null 2>&1
     git clean -xdf > /dev/null 2>&1
     git reset --hard >> "${LOGFILE}.${FUNCNAME}" 2>&1
-    git checkout master . > /dev/null 2>&1
     #git reset --hard HEAD > /dev/null 2>&1
     echo
   fi

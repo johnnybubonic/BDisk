@@ -43,7 +43,7 @@ cpio
 cpuburn
 cpupower
 crackpkcs12
-#cryptcat
+cryptcat
 cryptsetup
 csync2
 customizepkg-scripting
@@ -148,12 +148,29 @@ lshw
 #lsiutil # 404'ing on source url at the moment
 lsof
 lsscsi
-lxde
+#lxde # apacman currently doesn't like package groups, so...
+gpicview
+lxappearance
+lxappearance-obconf
+lxde-common
+lxde-icon-theme
+lxdm
+lxinput
+lxlauncher
+lxmusic
+lxpanel
+lxrandr
+lxsession
+lxtask
+lxterminal
+openbox
+pcmanfm
+# end lxde
 lynx
 #lzip
 macchanger
 magicrescue
-mbr
+#mbr # doesn't seem to build anymore
 mbuffer
 mcelog
 mdadm
@@ -163,7 +180,7 @@ mdcrack
 memtester
 mfoc
 minicom
-mondo
+#mondo
 mtd-utils
 mtr
 mtree
@@ -213,14 +230,13 @@ pkgfile
 pkgtools
 ppp
 pptpclient
-prebootloader
 procinfo-ng
 procps-ng
 progsreiserfs
 psmisc
 pwgen
 pixz
-pyrit-svn
+pyrit
 python2-gnuplot
 python2-pyx
 rarcrack

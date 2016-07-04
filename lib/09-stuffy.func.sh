@@ -15,8 +15,12 @@ function stuffy {
 
   mkdir -p ${TEMPDIR}/{EFI/{${DISTNAME},boot},loader/entries}
   # this stuff comes from the prebootloader pkg and systemd-boot. lets us boot on UEFI machines with secureboot still enabled.
-  cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ${TEMPDIR}/EFI/boot/bootx64.efi
-  cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi ${TEMPDIR}/EFI/boot/.
+  # the signed prebootloader binaries, however, have been replaced by non-signed ones. so we need to fetch them.
+  # fetched from http://blog.hansenpartnership.com/linux-foundation-secure-boot-system-released/
+  curl -so ${TEMPDIR}/EFI/boot/bootx64.efi "http://blog.hansenpartnership.com/wp-uploads/2013/PreLoader.efi" # MD5: 4f7a4f566781869d252a09dc84923a82 TODO: implement checksumming check
+  curl -so ${TEMPDIR}/EFI/boot/HashTool.efi http://blog.hansenpartnership.com/wp-uploads/2013/HashTool.efi
+  #cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ${TEMPDIR}/EFI/boot/bootx64.efi
+  #cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi ${TEMPDIR}/EFI/boot/.
   cp ${BASEDIR}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi ${TEMPDIR}/EFI/boot/loader.efi # TODO: can i use syslinux.efi instead?
 
   echo "Checking/fetching UEFI shells..."
@@ -69,8 +73,9 @@ EOF
   # now we need to calculate the space for various files we're going to include...
   FATSIZE=$(stat --format="%s" ${TEMPDIR}/boot/${UXNAME}.64.kern) # EFI/BDISK/bdisk.efi
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/boot/${UXNAME}.64.img))) # EFI/BDISK/bdisk.img
-  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi))) # EFI/boot/bootx64.efi
-  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi))) # EFI/boot/HashTool.efi
+  #FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi))) # EFI/boot/bootx64.efi
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/boot/bootx64.efi))) # EFI/boot/bootx64.efi
+  FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/boot/HashTool.efi))) # EFI/boot/HashTool.efi
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${BASEDIR}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi))) # EFI/boot/loader.efi
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v1.efi)))
   FATSIZE=$((${FATSIZE} + $(stat --format="%s" ${TEMPDIR}/EFI/shellx64_v2.efi)))
@@ -110,8 +115,8 @@ title   UEFI Shell (v1)
 efi    /EFI/shellx64_v1.efi
 EOF
 
-  cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/PreLoader.efi ${SRCDIR}/efiboot/EFI/boot/bootx64.efi
-  cp ${BASEDIR}/root.x86_64/usr/lib/prebootloader/HashTool.efi ${SRCDIR}/efiboot/EFI/boot/.
+  cp ${TEMPDIR}/EFI/boot/bootx64.efi ${SRCDIR}/efiboot/EFI/boot/bootx64.efi
+  cp ${TEMPDIR}/EFI/boot/HashTool.efi ${SRCDIR}/efiboot/EFI/boot/.
   cp ${BASEDIR}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi ${SRCDIR}/efiboot/EFI/boot/loader.efi # TODO: can i use syslinux.efi instead?
   cp ${TEMPDIR}/EFI/shellx64_v{1,2}.efi ${SRCDIR}/efiboot/EFI/.
   umount ${SRCDIR}/efiboot
