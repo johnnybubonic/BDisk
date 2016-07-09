@@ -191,3 +191,10 @@ Yeah. It's that easy. The finished product is in iso/.
 
 
 If you want more verbosity, check out the logs/ directory.
+
+
+## Submitting Patches ##
+If you have a fix or feature you'd like added, please follow the same pull request process for the kernel
+(https://www.kernel.org/doc/Documentation/SubmittingPatches) and email to bts@square-r00t.net
+
+Alternatively, file a bug at https://bugs.square-r00t.net/index.php?project=2 with a patch attached.
