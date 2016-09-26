@@ -145,7 +145,7 @@ links
 lm_sensors
 lrzsz
 lshw
-#lsiutil # 404'ing on source url at the moment
+#lsiutil # giving intermittent errors when trying to fetch source
 lsof
 lsscsi
 #lxde # apacman currently doesn't like package groups, so...
@@ -169,8 +169,8 @@ pcmanfm
 lynx
 #lzip
 macchanger
-magicrescue
-#mbr # doesn't seem to build anymore
+#magicrescue # no longer maintained, upstream down
+mbr
 mbuffer
 mcelog
 mdadm
@@ -180,11 +180,10 @@ mdcrack
 memtester
 mfoc
 minicom
-#mondo
+#mondo # mindi-busybox fails to build 09.23.2016
 mtd-utils
 mtr
 mtree
-#mtx
 multipath-tools
 myrescue
 nbd
@@ -224,7 +223,7 @@ php
 php-fpm
 php-gd
 php-mcrypt
-#phrasendrescher
+phrasendrescher
 pigz
 pkgfile
 pkgtools
@@ -254,6 +253,7 @@ rsnapshot
 rygel
 safecopy
 samba
+scalpel-git
 scapy
 screen
 scrounge-ntfs
