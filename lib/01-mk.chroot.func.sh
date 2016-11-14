@@ -198,6 +198,7 @@ EOF
     ${CHROOTCMD} ${i} bash -c "pacman --noconfirm -U /var/tmp/pkg/apacman.tar.xz && mkdir /var/tmp/apacman && chmod 0750 /var/tmp/apacman && chown root:aurbuild /var/tmp/apacman " >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     ${CHROOTCMD} ${i} bash -c "apacman -S --noconfirm --noedit --skipinteg -S  apacman apacman-deps expac" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i} bash -c "apacman --gendb" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     #rm -rf ${i}/var/tmp/pkg
     #${CHROOTCMD} ${i}/ pacman -S --noconfirm --needed yaourt >> "${LOGFILE}.${FUNCNAME}" 2>&1
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
@@ -224,6 +225,7 @@ EOF
   for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
   set -e
   ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+  ${CHROOTCMD} ${i}/ "apacman --gendb" >> "${LOGFILE}.${FUNCNAME}" 2>&1
   set +e
   for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
   set -e
@@ -233,6 +235,7 @@ EOF
  if [ -n "${PKGLIST}" ];
  then
    ${CHROOTCMD} ${CHROOTDIR32}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR32}/ "apacman --gendb" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR32}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
@@ -242,6 +245,7 @@ EOF
  if [ -n "${PKGLIST}" ];
  then
    ${CHROOTCMD} ${CHROOTDIR64}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+   ${CHROOTCMD} ${CHROOTDIR64}/ "apacman --gendb" >> "${LOGFILE}.${FUNCNAME}" 2>&1
  fi
  set +e
  for x in $(find ${CHROOTDIR64}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%.pacorig} ; done
@@ -260,6 +264,7 @@ EOF
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     set +e
     ${CHROOTCMD} ${i}/ /usr/bin/bash -c "apacman --noconfirm --noedit --skipinteg -S --needed linux" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ "apacman --gendb" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     cp -a ${i}/boot/vmlinuz-linux ${i}/boot/vmlinuz-linux-${DISTNAME}
     cp -af ${i}/boot/initramfs-linux.img ${i}/boot/initramfs-linux-${DISTNAME}.img
     set -e
@@ -269,6 +274,7 @@ EOF
     #for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     echo -n "Regular packages..."
     ${CHROOTCMD} ${i}/ bash -c "yes '' | apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}" >> "${LOGFILE}.${FUNCNAME}" 2>&1
+    ${CHROOTCMD} ${i}/ "apacman --gendb" >> "${LOGFILE}.${FUNCNAME}" 2>&1
     set +e
     for x in $(find ${i}/etc/ -type f -iname "*.pacorig");do mv -f ${x} ${x%%.pacorig} ; done
     set -e
