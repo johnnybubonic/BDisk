@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import re
 import hashlib
 import gnupg
 import tarfile
+import subprocess
+import re
 from urllib.request import urlopen
 
 def arch_chk(arch):
@@ -73,10 +76,10 @@ def download_tarball(arch, dlpath):
 
     return(tarball_path)
 
-def unpack_tarball(tarball_path, destdir):
+def unpack_tarball(tarball_path, chrootdir):
     # Make the dir if it doesn't exist
     try:
-        os.makedirs(destdir)
+        os.makedirs(chrootdir)
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
@@ -86,10 +89,50 @@ def unpack_tarball(tarball_path, destdir):
     tar.close()
     return(True)
 
-def build_chroot(arch, destdir, dlpath):
-    unpack_me = unpack_tarball(download_tarball(arch_chk(arch), dlpath), destdir)
+def build_chroot(arch, chrootdir, dlpath, extradir):
+    unpack_me = unpack_tarball(download_tarball(arch_chk(arch), dlpath), chrootdir)
     if unpack_me:
         pass
     else:
         exit("Something went wrong when trying to unpack the tarball.")
+
+    print("The download and extraction has completed. Now prepping the chroot environment with some additional changes.")
+    # build dict of lists of files and dirs from pre-build.d dir, do the same with arch-specific changes.
+    prebuild_overlay = {}
+    prebuild_arch_overlay = {}
+    for x in ['i686', 'x86_64']:
+        prebuild_arch_overlay[x] = {}
+        for y in ['files', 'dirs']:
+            prebuild_overlay[y] = []
+            prebuild_arch_overlay[x][y] = []
+    for path, dirs, files in os.walk(extradir + '/pre-build.d/'):
+        prebuild_overlay['dirs'].append(path + '/')
+        for file in files:
+            prebuild_overlay['files'].append(os.path.join(path, file))
+    for x in prebuild_overlay.keys():
+        prebuild_overlay[x][:] = [re.sub('^' + extradir + '/pre-build.d/', '', s) for s in prebuild_overlay[x]]
+        prebuild_overlay[x] = list(filter(None, prebuild_overlay[x]))
+        for y in prebuild_arch_overlay.keys():
+            prebuild_arch_overlay[y][x][:] = [i for i in prebuild_overlay[x] if i.startswith(y)]
+            prebuild_arch_overlay[y][x][:] = [re.sub('^' + y + '/', '', s) for s in prebuild_arch_overlay[y][x]]
+            prebuild_arch_overlay[y][x] = list(filter(None, prebuild_arch_overlay[y][x]))
+        prebuild_overlay[x][:] = [y for y in prebuild_overlay[x] if not y.startswith(('x86_64','i686'))]
+    prebuild_overlay['dirs'].remove('/')
+    # create the dir structure. these should almost definitely be owned by root.
+    for dir in prebuild_overlay['dirs']:
+        os.makedirs(chrootdir + '/' + dir, exist_ok = True)
+        os.chown(chrootdir + '/' + dir, 0, 0)
+    # and copy over the files. again, chown to root.
+    for file in prebuild_overlay['files']:
+        shutil.copy2(extradir + '/pre-build.d/' + file, chrootdir + '/' + file)
+        os.chown(chrootdir + '/' + file, 0, 0)
+    # do the same for arch-specific stuff.
+    for dir in prebuild_arch_overlay[arch]['dirs']:
+        os.makedirs(chrootdir + '/' + dir, exist_ok = True)
+        os.chown(chrootdir + '/' + dir, 0, 0)
+    for file in prebuild_arch_overlay[arch]['files']:
+        shutil.copy2(extradir + '/pre-build.d/' + arch + '/' + file, chrootdir + '/' + file)
+        os.chown(chrootdir + '/' + file, 0, 0)
+        
+
     return(destdir)
