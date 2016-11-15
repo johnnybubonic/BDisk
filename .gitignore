@@ -34,3 +34,7 @@ overlay/etc/systemd/system/multi-user.target.wants/openvpn@client.service
 src/ipxe_local/ssl/keys
 src/ipxe_local/ssl/crts
 src/ipxe_local/ssl/txt
+
+# and we DEFINITELY don't need these.
+__pycache__/
+*.pyc
