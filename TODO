@@ -1,1 +1,4 @@
 - maybe use ZConfig? https://pypi.python.org/pypi/ZConfig
+- templating via jinja2:
+-- for VERSION_INFO.txt
+-- for syslinux/isolinux configs
