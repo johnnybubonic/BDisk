@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# original URL at sourceforge chokes out
+sed -re 's@^(source=\(").*$@\1http://fossies.org/linux/privat/${pkgname}-${pkgver}.tar.gz")@g' ${1}

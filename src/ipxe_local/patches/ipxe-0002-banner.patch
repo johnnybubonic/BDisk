@@ -1,6 +1,8 @@
---- a/src/usr/autoboot.c	2015-06-29 04:18:17.055394598 -0400
-+++ b/src/usr/autoboot.c	2015-06-29 22:04:28.692916217 -0400
-@@ -71,6 +71,7 @@
+diff --git a/src/usr/autoboot.c b/src/usr/autoboot.c
+index e93b015..758e187 100644
+--- a/src/usr/autoboot.c
++++ b/src/usr/autoboot.c
+@@ -71,6 +71,7 @@ static int ( * is_autoboot_device ) ( struct net_device *netdev );
  #define NORMAL	"\033[0m"
  #define BOLD	"\033[1m"
  #define CYAN	"\033[36m"
@@ -8,16 +10,27 @@
  
  /** The "scriptlet" setting */
  const struct setting scriptlet_setting __setting ( SETTING_MISC, scriptlet ) = {
-@@ -560,9 +561,9 @@
+@@ -521,7 +522,6 @@ static int shell_banner ( void ) {
+  * @ret rc		Return status code
+  */
+ int ipxe ( struct net_device *netdev ) {
+-	struct feature *feature;
+ 	struct image *image;
+ 	char *scriptlet;
+ 	int rc;
+@@ -538,11 +538,11 @@ int ipxe ( struct net_device *netdev ) {
  	 * do so.
  	 *
  	 */
 -	printf ( NORMAL "\n\n" PRODUCT_NAME "\n" BOLD PRODUCT_SHORT_NAME " %s"
--		 NORMAL " -- " PRODUCT_TAG_LINE " -- "
++       printf ( NORMAL "\n\n" PRODUCT_NAME "\n" BOLD PRODUCT_SHORT_NAME 
+ 		 NORMAL " -- " PRODUCT_TAG_LINE " -- "
 -		 CYAN PRODUCT_URI NORMAL "\nFeatures:", product_version );
-+	printf ( NORMAL "\n\n" PRODUCT_NAME "\n" BOLD PRODUCT_SHORT_NAME
-+		 CYAN PRODUCT_URI NORMAL "\n"
-+		 BOLD BLUE "http://bdisk.square-r00t.net/" NORMAL "\n" );
- 	for_each_table_entry ( feature, FEATURES )
- 		printf ( " %s", feature->name );
+-	for_each_table_entry ( feature, FEATURES )
+-		printf ( " %s", feature->name );
++                CYAN PRODUCT_URI NORMAL "\n"
++                BOLD "BDisk" BLUE "LiveDistro" NORMAL " -- Welp, Yer Boned!(TM) -- "
++                BOLD BLUE "https://bdisk.square-r00t.net/" NORMAL "\n" );
  	printf ( "\n" );
+ 
+ 	/* Boot system */
