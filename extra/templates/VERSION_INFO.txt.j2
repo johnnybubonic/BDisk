@@ -2,4 +2,4 @@ Version:        {{ build['ver'] }}
 Build:          {{ build['name'] }}
 Time:           {{ build['time'] }}
 Machine:        {{ build['host'] }}
-User:           {{ build['user'] }} ({{ build['realuser'] }})
+User:           {{ build['user'] }}{% if build['realuser'] is defined and build['realuser'] > 0 %} ({{ build['realuser'] }}){% endif %}

@@ -8,6 +8,9 @@ import gnupg
 import tarfile
 import subprocess
 import re
+import git
+import jinja2
+import datetime
 from urllib.request import urlopen
 
 def arch_chk(arch):
@@ -133,6 +136,45 @@ def build_chroot(arch, chrootdir, dlpath, extradir):
     for file in prebuild_arch_overlay[arch]['files']:
         shutil.copy2(extradir + '/pre-build.d/' + arch + '/' + file, chrootdir + '/' + file)
         os.chown(chrootdir + '/' + file, 0, 0)
-        
+    return(chrootdir)
 
-    return(destdir)
+def prep_chroot(templates_dir, chrootdir, bdisk, arch):
+    build = {}
+    # let's prep some variables to write out the version info.txt
+    # get the git tag and short commit hash
+    repo = git.Repo(bdisk['dir'])
+    refs = repo.git.describe(repo.head.commit).split('-')
+    build['ver'] = refs[0] + '-' + refs[2]
+    # and these should be passed in from the args, from the most part.
+    build['name'] = bdisk['name']
+    build['time'] = datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y")
+    build['host'] = bdisk['hostname']
+    build['user'] = os.environ['USER']
+    if os.environ['SUDO_USER']:
+        build['realuser'] = os.environ['SUDO_USER']
+    # and now that we have that dict, let's write out the VERSION_INFO.txt file.
+    env = jinja2.Environment(loader=FileSystemLoader(templates_dir))
+    tpl = env.get_template('VERSION_INFO.txt.j2')
+    tpl_out = template.render(build = build)
+    with open(chrootdir + '/root/VERSION_INFO.txt', "wb+") as f:
+        fh.write(tpl_out)
+    return(build)
+
+def mount(srcdir, destdir, fstype, options = ''):
+    if os.geteuid() != 0:
+        exit("HEY, you need to run this with root privileges because we do mounting and stuff for chroots.")
+    # thank you https://stackoverflow.com/a/29156997
+    # it'd be greate to use systemd-nspawn for this, but:
+    # 1.) not all systems even HAVE systemd, and
+    # 2.) there's no python interface- i'm trying to keep the shell calls to a minimum.
+    os.makedirs(destdir, exist_ok = True)
+    ret = ctypes.CDLL('libc.so.6', use_errno = True).mount(srcdir, destdir, fstype, 0, options)
+    if ret < 0:
+        errno = ctypes.get_errno()
+        raise RuntimeError("Error mounting {0} ({1}) on {2} with options '{3}': {4}".format(srcdir, fstype, destdir, options, os.strerror(errno)))
+    else:
+        return(True)
+
+def mount_chroot(chrootdir, destdir):
+    # here's where we actually set up the mountpoints for a chroot.
+    mount('', chrootdir + '/proc', 'proc', 'nosuid,noexec,nodev')
