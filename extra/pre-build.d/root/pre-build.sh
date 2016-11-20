@@ -71,7 +71,7 @@ else
 	TGT_ARCH='i686'
 fi
 # Install some stuff we need for the ISO.
-PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/prereqs/iso.pkgs.both | tr '\n' ' ')
+PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/iso.pkgs.both | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
@@ -79,15 +79,63 @@ then
 	cleanPacorigs
 fi
 # And install arch-specific packages for the ISO, if there are any.
-PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/prereqs/iso.pkgs.${TGT_ARCH} | tr '\n' ' ')
+PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/iso.pkgs.arch | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
 	apacman --gendb
 	cleanPacorigs
 fi
+# Do some post tasks before continuing
+apacman --noconfirm --noedit -S --needed customizepkg-scripting
+ln -s /usr/lib/libdialog.so.1.2 /usr/lib/libdialog.so
+cleanPacorigs
+apacman --noconfirm --noedit --skipinteg -S --needed linux
+apacman --gendb
+cp -a /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
+cp -af /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
+cleanPacorigs
+
 # And install EXTRA functionality packages, if there are any.
 PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/packages.both | tr '\n' ' ')
+if [[ -n "${PKGLIST}" ]];
+then
+	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	apacman --gendb
+	cleanPacorigs
+fi
+# Add the regular user
+useradd -m -s /bin/bash -c "Default user" ${REGUSR}
+usermod -aG users,games,video,audio ${REGUSR}
+passwd -d ${REGUSR}
+# Add them to sudoers
+mkdir -p /etc/sudoers.d
+chmod 750 /etc/sudoers.d
+printf "Defaults:${REGUSR} \041lecture\n${REGUSR} ALL=(ALL) ALL\n" >> /etc/sudoers.d/${REGUSR}
+# Set the password, if we need to.
+if [[ -n "${REGUSR_PASS}" && "${REGUSR_PASS}" != 'BLANK' ]];
+    then
+      sed -i -e "s|^${REGUSR}::|${REGUSR}:${REGUSR_PASS}:|g" /etc/shadow
+elif [[ "${REGUSR_PASS}" == '{[BLANK]}' ]];
+then
+	passwd -d ${REGUSR}
+else
+	usermod -L ${REGUSR}
+fi
+# Set the root password, if we need to.
+if [[ -n "${ROOT_PASS}" && "${ROOT_PASS}" != 'BLANK' ]];
+then
+	sed -i -e "s|^root::|root:${ROOT_PASS}:|g" /etc/shadow
+elif [[ "${ROOT_PASS}" == 'BLANK' ]];
+then
+	passwd -d root
+else
+	usermod -L root
+fi
+cleanPacorigs
+cp -af /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
+# And install arch-specific extra packages, if there are any.
+PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/packages.arch | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
