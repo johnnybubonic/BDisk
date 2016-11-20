@@ -38,3 +38,4 @@ src/ipxe_local/ssl/txt
 # and we DEFINITELY don't need these.
 __pycache__/
 *.pyc
+bdisk/test.py
