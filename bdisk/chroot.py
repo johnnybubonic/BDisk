@@ -18,7 +18,7 @@ import pychroot
 #            namespace.mountpoints = {}
 #        namespace.mountpoints.update(values)
 
-def chroot(chrootdir, chroot_hostname, cmd):
+def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     # MOUNT the chroot
     mountpoints = psutil.disk_partitions(all = True)
     mounts = []
