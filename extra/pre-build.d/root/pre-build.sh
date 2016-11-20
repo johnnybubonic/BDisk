@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# Import settings.
+if [[ -f /root/VARS.txt ]];
+then
+	source /root/VARS.txt
+else
+	# TODO: do these defaults via the config stuff in python instead.
+	export DISTNAME='BDISK'
+	export UXNAME='bdisk'
+	export PNAME='BDisk'
+	export DISTPUB='r00t^2'
+	export DISTDESC='j00 got 0wnz0r3d lulz.'
+	export REGUSR="${UXNAME}"
+	export REGUSR_PASS=''
+	export ROOT_PASS=''
+fi
+
 # Logging!
 exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
@@ -41,7 +57,7 @@ pacman --noconfirm -U /root/apacman*.tar.xz &&\
 	 mkdir /var/tmp/apacman && chmod 0750 /var/tmp/apacman &&\
 	 chown root:aurbuild /var/tmp/apacman
 cleanPacorigs
-apacman -S --noconfirm --noedit --skipinteg -S  apacman apacman-deps apacman-utils expac
+apacman -S --noconfirm --noedit --skipinteg --needed -S apacman apacman-deps apacman-utils expac
 apacman --gendb
 cleanPacorigs
 # Install multilib-devel if we're in an x86_64 chroot.
@@ -49,15 +65,32 @@ if $(egrep -q '^\[multilib' /etc/pacman.conf);
 then
 	pacman --noconfirm -R gcc-libs libtool
 	pacman --noconfirm -S --needed multilib-devel
+	cleanPacorigs
 	TGT_ARCH='x86_64'
 else
 	TGT_ARCH='i686'
 fi
 # Install some stuff we need for the ISO.
 PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/prereqs/iso.pkgs.both | tr '\n' ' ')
-cleanPacorigs
-apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
-apacman --gendb
-cleanPacorigs
+if [[ -n "${PKGLIST}" ]];
+then
+	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	apacman --gendb
+	cleanPacorigs
+fi
+# And install arch-specific packages for the ISO, if there are any.
 PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/prereqs/iso.pkgs.${TGT_ARCH} | tr '\n' ' ')
-
+if [[ -n "${PKGLIST}" ]];
+then
+	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	apacman --gendb
+	cleanPacorigs
+fi
+# And install EXTRA functionality packages, if there are any.
+PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/packages.both | tr '\n' ' ')
+if [[ -n "${PKGLIST}" ]];
+then
+	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	apacman --gendb
+	cleanPacorigs
+fi

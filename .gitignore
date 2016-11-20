@@ -6,6 +6,7 @@
 /root.i686
 
 # We don't want the copied/stripped/compressed chroots
+# might not be relevant anymore in the python rewrite
 /build64
 /build32
 
@@ -15,8 +16,8 @@
 /temp
 /TMPBOOT
 /tftpboot
-/latest.64.tar.gz
-/latest.32.tar.gz
+/.latest.x86_64.tar.gz
+/.latest.i686.tar.gz
 /lockfile.lck
 /VERSION_INFO.txt
 /BUILDNO
