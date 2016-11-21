@@ -1,3 +1,2 @@
-- maybe use ZConfig? https://pypi.python.org/pypi/ZConfig
 - templating via jinja2:
 -- for syslinux/isolinux configs
