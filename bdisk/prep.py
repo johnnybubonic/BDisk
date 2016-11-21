@@ -17,6 +17,15 @@ def archChk(arch):
     else:
         exit("{0} is not a valid architecture. Must be one of i686 or x86_64.".format(arch))
 
+def dirChk(config_dict):
+    # Make dirs if they don't exist
+    for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'tempdir'):
+        os.makedirs(config_dict['build'][d], exists_ok = True)
+    # Make dirs for sync staging if we need to
+    for x in ('http', 'tftp'):
+        if config_dict['sync'][x]:
+            os.makedirs(config_dict[x]['path'], exist_ok = True)
+
 def downloadTarball(arch, dlpath):
     # arch - should be i686 or x86_64
     # returns path/filename e.g. /some/path/to/file.tar.gz

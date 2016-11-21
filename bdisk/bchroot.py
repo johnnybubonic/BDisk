@@ -10,6 +10,7 @@ import sys
 import psutil
 #from pychroot.base import Chroot
 import pychroot
+import subprocess
 
 #class mountpoints(argparse.Action):
 #
@@ -59,3 +60,9 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
         import os
         os.system(cmd)
     chroot.cleanup()
+    return(chrootdir, cmnts)
+
+#def chrootUnmount(chrootdir, cmnts):
+def chrootUnmount(chrootdir):
+    # TODO: https://github.com/pkgcore/pychroot/issues/22 try to do this more pythonically. then we can remove subprocess
+    subprocess.call(['umount', '-lR', chrootdir])

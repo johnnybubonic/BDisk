@@ -37,7 +37,8 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
     else:
         conf = conf_file
     if not conf:
-        # okay, so let's check for distributed/"blank" ini's then since we can't seem to find one.
+        # okay, so let's check for distributed/"blank" ini's
+        # since we can't seem to find one.
         dist_conf_paths = [re.sub('(build\.ini)','dist.\\1', s) for s in default_conf_paths]
         for q in dist_conf_paths:
             if os.path.isfile(q):
@@ -53,8 +54,8 @@ def parseConfig(conf):
     config_dict = {s:dict(config.items(s)) for s in config.sections()}
     # Convert the booleans to pythonic booleans in the dict...
     config_dict['bdisk']['user'] = config['bdisk'].getboolean('user')
-    conifg_dict['build']['i_am_a_racecar'] = config['build'].getboolean('i_am_a_racecar')
-    conifg_dict['build']['multiarch'] = config['build'].getboolean('multiarch')
+    config_dict['build']['i_am_a_racecar'] = config['build'].getboolean('i_am_a_racecar')
+    config_dict['build']['multiarch'] = config['build'].getboolean('multiarch')
     for i in ('http', 'tftp', 'rsync', 'git'):
         config_dict['sync'][i] = config['sync'].getboolean(i)
     config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')
@@ -76,7 +77,7 @@ def parseConfig(conf):
             exit(('ERROR: {0} is not a valid host and cannot be used for rsyncing.' +
                     'Check your configuration.').format(config_dict['rsync']['host']))
     # Validate the URI.
-    if config_dict['sync']['ipxe']:
+    if config_dict['build']['ipxe']:
         # so this won't validate e.g. custom LAN domains (https://pxeserver/bdisk.php). TODO.
         if not validators.url(config_dict['ipxe']['uri']):
             if not re.match('^https?://localhost(/.*)?$'):
@@ -105,6 +106,4 @@ def parseConfig(conf):
                     if not os.path.isfile(config_dict['ipxe']['ssl_ca']):
                         exit(('ERROR: {0} is not an existing file. Check your' +
                                 'configuration.').format(config_dict['ipxe']['ssl_ca']))
-
-
     return(config, config_dict)
