@@ -20,9 +20,9 @@ There are many ways in which you can generate a salted hash.
 
 	python -c "import crypt, getpass, pwd; print crypt.crypt('PASSWORD','\$6\$aBcDeFgHiJ\$')"
 
-3.) php:
+3.) php (extras/bin/hashgen.php) (UNTESTED):
 
-	php -r "\$password = readline('Password: '); \$saltRaw = random_bytes(8); \$salt = base64_encode(\$saltRaw); \$result = crypt(\$password,'\$6' . '\$' . \$salt .'\$'); print \$result . \"\n\";"
+	php -r "\$password = 'PASSWORD'; \$saltRaw = 'aBcDeFgHiJ'; \$salt = base64_encode(\$saltRaw); \$result = crypt(\$password,'\$6' . '\$' . \$salt .'\$'); print \$result . \"\n\";"
 
 4.) even grub-crypt (if using legacy grub):
 
