@@ -11,13 +11,15 @@ import psutil
 #from pychroot.base import Chroot
 import pychroot
 import subprocess
+import ctypes
 
-#class mountpoints(argparse.Action):
-#
-#    def __call__(self, parser, namespace, values, option_string=None):
-#        if not getattr(namespace, 'mountpoints', False):
-#            namespace.mountpoints = {}
-#        namespace.mountpoints.update(values)
+
+def chrootMount(source, target, fs, options=''):
+    ret = ctypes.CDLL('libc.so.6', use_errno=True).mount(source, target, fs, 0, options)
+    if ret < 0:
+        errno = ctypes.get_errno()
+        raise RuntimeError("Error mounting {} ({}) on {} with options '{}': {}".
+                        format(source, fs, target, options, os.strerror(errno)))
 
 def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     # MOUNT the chroot
@@ -25,44 +27,48 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     mounts = []
     for m in mountpoints:
         mounts.append(m.mountpoint)
-    cmnts = {}
     # mount the chrootdir... onto itself. as a bind mount. it's so stupid, i know. see https://bugs.archlinux.org/task/46169
     if chrootdir not in mounts:
-        #cmnts[chrootdir + ':' + chrootdir] = {'recursive': False, 'readonly': False, 'create': False}
-        cmnts[chrootdir + ':/'] = {'recursive': False, 'readonly': False, 'create': False}
-
+        subprocess.call(['mount', '--bind', chrootdir, chrootdir])
+### The following mountpoints don't seem to mount properly with pychroot. save it for v3.n+1. TODO. ###
+    # bind-mount so we can resolve things inside
+    if (chrootdir + '/etc/resolv.conf') not in mounts:
+        subprocess.call(['mount', '--bind', '-o', 'ro', '/etc/resolv.conf', chrootdir + '/etc/resolv.conf'])
     # mount -t proc to chrootdir + '/proc' here
     if (chrootdir + '/proc') not in mounts:
-        cmnts['proc:/proc'] = {'recursive': True, 'create': True}
-
+        subprocess.call(['mount', '-t', 'proc', '-o', 'nosuid,noexec,nodev', 'proc', chrootdir + '/proc'])
     # rbind mount /sys to chrootdir + '/sys' here
     if (chrootdir + '/sys') not in mounts:
-        #cmnts['/sys:/sys'] = {'recursive': True, 'create': True}  # if the below doesn't work, try me. can also try ['sysfs:/sys']
-        cmnts['/sys'] = {'recursive': True, 'create': True}
-
-    # rbind mount /dev to chrootdir + '/dev' here
-    if (chrootdir + '/dev') not in mounts:
-        cmnts['/dev'] = {'recursive': True, 'create': True}
-
+        subprocess.call(['mount', '-t', 'sysfs', '-o', 'nosuid,noexec,nodev,ro', 'sys', chrootdir + '/sys'])
     # mount the efivars in the chroot if it exists on the host. i mean, why not?
     if '/sys/firmware/efi/efivars' in mounts:
         if (chrootdir + '/sys/firmware/efi/efivars') not in mounts:
-            cmnts['/sys/firmware/efi/efivars'] = {'recursive': True}
-
+            subprocess.call(['mount', '-t', 'efivarfs', '-o', 'nosuid,noexec,nodev', 'efivarfs', chrootdir + '/sys/firmware/efi/efivars'])
+    # rbind mount /dev to chrootdir + '/dev' here
+    if (chrootdir + '/dev') not in mounts:
+        subprocess.call(['mount', '-t', 'devtmpfs', '-o', 'mode=0755,nosuid', 'udev', chrootdir + '/dev'])
+    if (chrootdir + '/dev/pts') not in mounts:
+        subprocess.call(['mount', '-t', 'devpts', '-o', 'mode=0620,gid=5,nosuid,noexec', 'devpts', chrootdir + '/dev/pts'])
+    if '/dev/shm' in mounts:
+        if (chrootdir + '/dev/shm') not in mounts:
+            subprocess.call(['mount', '-t', 'tmpfs', '-o', 'mode=1777,nosuid,nodev', 'shm', chrootdir + '/dev/shm'])
     if '/run' in mounts:
         if (chrootdir + '/run') not in mounts:
-            cmnts['/run'] = {'recursive': True}
+            subprocess.call(['mount', '-t', 'tmpfs', '-o', 'nosuid,nodev,mode=0755', 'run', chrootdir + '/run'])
+    if '/tmp' in mounts:
+        if (chrootdir + '/tmp') not in mounts:
+            subprocess.call(['mount', '-t', 'tmpfs', '-o', 'mode=1777,strictatime,nodev,nosuid', 'tmp', chrootdir + '/tmp'])
 
-    pychroot.base.Chroot.default_mounts = {}
-    chroot = pychroot.base.Chroot(chrootdir, mountpoints = cmnts, hostname = chroot_hostname)
-    chroot.mount()
-    with chroot:
-        import os
-        os.system(cmd)
-    chroot.cleanup()
-    return(chrootdir, cmnts)
+    print("Now performing '{0}' in chroot for {1}...".format(cmd, chrootdir))
+    print("You can view the progress via:\n\n\ttail -f {0}/var/log/chroot_install.log\n".format(chrootdir))
+    real_root = os.open("/", os.O_RDONLY)
+    os.chroot(chrootdir)
+    os.system('/root/pre-build.sh')
+    os.fchdir(real_root)
+    os.chroot('.')
+    os.close(real_root)
+    return(chrootdir)
 
-#def chrootUnmount(chrootdir, cmnts):
 def chrootUnmount(chrootdir):
     # TODO: https://github.com/pkgcore/pychroot/issues/22 try to do this more pythonically. then we can remove subprocess
     subprocess.call(['umount', '-lR', chrootdir])

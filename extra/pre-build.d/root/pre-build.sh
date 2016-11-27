@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# we need this fix before anything.
+dirmngr </dev/null > /dev/null 2>&1
+
 # Import settings.
 if [[ -f /root/VARS.txt ]];
 then

@@ -17,6 +17,10 @@ def getBits():
     bits = list(platform.architecture())[0]
     return(bits)
 
+def getHostname():
+    hostname = platform.node()
+    return(hostname)
+
 def getConfig(conf_file='/etc/bdisk/build.ini'):
     conf = False
     # define some defailt conf paths in case we're installed by
@@ -55,12 +59,32 @@ def parseConfig(conf):
     # Convert the booleans to pythonic booleans in the dict...
     config_dict['bdisk']['user'] = config['bdisk'].getboolean('user')
     config_dict['build']['i_am_a_racecar'] = config['build'].getboolean('i_am_a_racecar')
-    config_dict['build']['multiarch'] = config['build'].getboolean('multiarch')
+    config_dict['build']['multiarch'] = (config_dict['build']['multiarch']).lower()
     for i in ('http', 'tftp', 'rsync', 'git'):
         config_dict['sync'][i] = config['sync'].getboolean(i)
     config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')
     config_dict['ipxe']['usb'] = config['ipxe'].getboolean('usb')
+    # and build a list of arch(es) we want to build
+    if config_dict['build']['multiarch'] in ('','yes','true','1'):
+        config_dict['build']['arch'] = ['x86_64','i686']
+    elif config_dict['build']['multiarch'] == 'x86_64':
+        config_dict['build']['arch'] = ['x86_64']
+    elif config_dict['build']['multiarch'] == 'i686':
+        config_dict['build']['arch'] = ['i686']
+    else:
+        exit(('ERROR: {0} is not a valid value. Check your configuration.').format(
+                                config_dict['build']['multiarch']))
     ## VALIDATORS ##
+    # Validate bootstrap mirror
+    if (validators.domain(config_dict['build']['mirror']) or validators.ipv4(
+                                config_dict['build']['mirror']) or validatords.ipv6(
+                                config_dict['build']['mirror'])):
+        try:
+            getaddrinfo(config_dict['build']['mirror'], None)
+        except:
+            exit(('ERROR: {0} does not resolve and cannot be used as a ' + 
+                'mirror for the bootstrap tarballs. Check your configuration.').format(
+                    config_dict['build']['host']))
     # Are we rsyncing? If so, validate the rsync host.
     # Works for IP address too. It does NOT check to see if we can
     # actually *rsync* to it; that'll come later.
@@ -89,7 +113,7 @@ def parseConfig(conf):
                 "Check your configuration.").format(config_dict['build']['basedir']))
     # Make dirs if they don't exist
     for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'tempdir'):
-        os.makedirs(config_dict['build'][d], exists_ok = True)
+        os.makedirs(config_dict['build'][d], exist_ok = True)
     # Make dirs for sync staging if we need to
     for x in ('http', 'tftp'):
         if config_dict['sync'][x]:
