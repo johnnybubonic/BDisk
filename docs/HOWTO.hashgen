@@ -1,0 +1,36 @@
+Generating a salted hash compatible with shadow(5) is a rather simple task.
+
+If you haven't read the shadow(5) man page yet, I highly recommend it:
+
+	man 5 shadow
+
+There are many ways in which you can generate a salted hash.
+
+0.) Debian can do this with the mkpasswd utility (it's in Arch's AUR as debian-whois-mkpasswd):
+
+	mkpasswd --method=sha-512 --salt=aBcDeFgHiJ PASSWORD
+
+(If a salt is not provided, one will be automatically generated. That is is the suggested method.)
+
+1.) perl (PoC script welcome):
+
+	perl -e 'print crypt("PASSWORD","\$6\$aBcDeFgHiJ\$") . "\n"'
+
+2.) python (extras/bin/hashgen.py):
+
+	python -c "import crypt, getpass, pwd; print crypt.crypt('PASSWORD','\$6\$aBcDeFgHiJ\$')"
+
+3.) php:
+
+	php -r "\$password = readline('Password: '); \$saltRaw = random_bytes(8); \$salt = base64_encode(\$saltRaw); \$result = crypt(\$password,'\$6' . '\$' . \$salt .'\$'); print \$result . \"\n\";"
+
+4.) even grub-crypt (if using legacy grub):
+
+      /sbin/grub-crypt --sha-512
+
+The end-product should look something like this:
+
+	$6$aBcDeFgHiJ$Yh342vFH7MOjPNu9InFymD1Dd42i5cFsr1cTWdpKGNIkbRGR/ZKQDRPJ1ZeeGb7y894Tfh3iWZIJKu3phlsqQ1
+
+If it doesn't, you did something incorrectly.
+Note that different hashes/the PoC scripts will result in a different string, but it should be the same length.

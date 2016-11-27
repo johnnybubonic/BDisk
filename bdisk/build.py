@@ -22,32 +22,30 @@ def chrootClean(build):
             tar.add(dbdir, arcname = os.path.basename(dbdir))
         # Cut out the fat
         # The following are intended as "overrides" of the paths we'll be deleting.
-        backup = {}
-        backup['dirs'] = ['/var/lib/pacman/local']
-        backup['files'] = ['/usr/share/locale/locale.alias',
-                        '/usr/share/zoneinfo/EST5EDT',
-                        '/usr/share/zoneinfo/UTC',
-                        '/usr/share/locale/en',
-                        '/usr/share/locale/en_US',
-                        '/usr/share/locale/en_GB']
+        backup = ['/var/lib/pacman/local',
+                    '/usr/share/locale/locale.alias',
+                    '/usr/share/zoneinfo/EST5EDT',
+                    '/usr/share/zoneinfo/UTC',
+                    '/usr/share/locale/en',
+                    '/usr/share/locale/en_US',
+                    '/usr/share/locale/en_GB']
         # And these are what we remove.
-        delete = {}
-        delete['dirs'] = ['/usr/share/locale/*',
-                        '/var/cache/pacman/*',
-                        '/var/cache/pkgfile/*',
-                        '/var/cache/apacman/pkg/*',
-                        '/var/lib/pacman/*',
-                        '/var/abs/local/yaourtbuild/*',
-                        '/usr/share/zoneinfo',
-                        '/root/.gnupg',
-                        '/tmp/*',
-                        '/var/tmp/*',
-                        '/var/abs/*',
-                        '/run/*',
-                        '/boot/*',
-                        '/usr/src/*',
-                        '/var/log/*',
-                        '/.git']
+        delete = ['/usr/share/locale/',
+                    '/var/cache/pacman/',
+                    '/var/cache/pkgfile/',
+                    '/var/cache/apacman/pkg/',
+                    '/var/lib/pacman/',
+                    '/var/abs/local/yaourtbuild/',
+                    '/usr/share/zoneinfo',
+                    '/root/.gnupg',
+                    '/tmp/',
+                    '/var/tmp/',
+                    '/var/abs/',
+                    '/run/',
+                    '/boot/',
+                    '/usr/src/',
+                    '/var/log/',
+                    '/.git']
         delete['files'] = ['/root/.bash_history',
                         '/root/apacman*',
                         '/root/iso.pkgs*',

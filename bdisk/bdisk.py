@@ -22,4 +22,4 @@ if __name__ == '__main__':
     for a in arch:
         bchroot.chroot(conf['build']['chrootdir'] + '/root.' + a, 'bdisk.square-r00t.net')
         bchroot.chrootUnmount(conf['build']['chrootdir'] + '/root.' + a)
-    build.chrootClean(conf['build'])
+    #build.chrootClean(conf['build'])
