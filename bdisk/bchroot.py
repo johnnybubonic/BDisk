@@ -29,35 +29,35 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
         mounts.append(m.mountpoint)
     # mount the chrootdir... onto itself. as a bind mount. it's so stupid, i know. see https://bugs.archlinux.org/task/46169
     if chrootdir not in mounts:
-        subprocess.call(['mount', '--bind', chrootdir, chrootdir])
+        subprocess.call(['/bin/mount', '--bind', chrootdir, chrootdir])
 ### The following mountpoints don't seem to mount properly with pychroot. save it for v3.n+1. TODO. ###
     # bind-mount so we can resolve things inside
     if (chrootdir + '/etc/resolv.conf') not in mounts:
-        subprocess.call(['mount', '--bind', '-o', 'ro', '/etc/resolv.conf', chrootdir + '/etc/resolv.conf'])
+        subprocess.call(['/bin/mount', '--bind', '-o', 'ro', '/etc/resolv.conf', chrootdir + '/etc/resolv.conf'])
     # mount -t proc to chrootdir + '/proc' here
     if (chrootdir + '/proc') not in mounts:
-        subprocess.call(['mount', '-t', 'proc', '-o', 'nosuid,noexec,nodev', 'proc', chrootdir + '/proc'])
+        subprocess.call(['/bin/mount', '-t', 'proc', '-o', 'nosuid,noexec,nodev', 'proc', chrootdir + '/proc'])
     # rbind mount /sys to chrootdir + '/sys' here
     if (chrootdir + '/sys') not in mounts:
-        subprocess.call(['mount', '-t', 'sysfs', '-o', 'nosuid,noexec,nodev,ro', 'sys', chrootdir + '/sys'])
+        subprocess.call(['/bin/mount', '-t', 'sysfs', '-o', 'nosuid,noexec,nodev,ro', 'sys', chrootdir + '/sys'])
     # mount the efivars in the chroot if it exists on the host. i mean, why not?
     if '/sys/firmware/efi/efivars' in mounts:
         if (chrootdir + '/sys/firmware/efi/efivars') not in mounts:
-            subprocess.call(['mount', '-t', 'efivarfs', '-o', 'nosuid,noexec,nodev', 'efivarfs', chrootdir + '/sys/firmware/efi/efivars'])
+            subprocess.call(['/bin/mount', '-t', 'efivarfs', '-o', 'nosuid,noexec,nodev', 'efivarfs', chrootdir + '/sys/firmware/efi/efivars'])
     # rbind mount /dev to chrootdir + '/dev' here
     if (chrootdir + '/dev') not in mounts:
-        subprocess.call(['mount', '-t', 'devtmpfs', '-o', 'mode=0755,nosuid', 'udev', chrootdir + '/dev'])
+        subprocess.call(['/bin/mount', '-t', 'devtmpfs', '-o', 'mode=0755,nosuid', 'udev', chrootdir + '/dev'])
     if (chrootdir + '/dev/pts') not in mounts:
-        subprocess.call(['mount', '-t', 'devpts', '-o', 'mode=0620,gid=5,nosuid,noexec', 'devpts', chrootdir + '/dev/pts'])
+        subprocess.call(['/bin/mount', '-t', 'devpts', '-o', 'mode=0620,gid=5,nosuid,noexec', 'devpts', chrootdir + '/dev/pts'])
     if '/dev/shm' in mounts:
         if (chrootdir + '/dev/shm') not in mounts:
-            subprocess.call(['mount', '-t', 'tmpfs', '-o', 'mode=1777,nosuid,nodev', 'shm', chrootdir + '/dev/shm'])
+            subprocess.call(['/bin/mount', '-t', 'tmpfs', '-o', 'mode=1777,nosuid,nodev', 'shm', chrootdir + '/dev/shm'])
     if '/run' in mounts:
         if (chrootdir + '/run') not in mounts:
-            subprocess.call(['mount', '-t', 'tmpfs', '-o', 'nosuid,nodev,mode=0755', 'run', chrootdir + '/run'])
+            subprocess.call(['/bin/mount', '-t', 'tmpfs', '-o', 'nosuid,nodev,mode=0755', 'run', chrootdir + '/run'])
     if '/tmp' in mounts:
         if (chrootdir + '/tmp') not in mounts:
-            subprocess.call(['mount', '-t', 'tmpfs', '-o', 'mode=1777,strictatime,nodev,nosuid', 'tmp', chrootdir + '/tmp'])
+            subprocess.call(['/bin/mount', '-t', 'tmpfs', '-o', 'mode=1777,strictatime,nodev,nosuid', 'tmp', chrootdir + '/tmp'])
 
     print("Now performing '{0}' in chroot for {1}...".format(cmd, chrootdir))
     print("You can view the progress via:\n\n\ttail -f {0}/var/log/chroot_install.log\n".format(chrootdir))
@@ -70,5 +70,4 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     return(chrootdir)
 
 def chrootUnmount(chrootdir):
-    # TODO: https://github.com/pkgcore/pychroot/issues/22 try to do this more pythonically. then we can remove subprocess
     subprocess.call(['umount', '-lR', chrootdir])

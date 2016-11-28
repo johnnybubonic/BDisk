@@ -145,3 +145,8 @@ then
 	apacman --gendb
 	cleanPacorigs
 fi
+# Cleanup
+yes | pacman -Scc
+rm -f /root/.bash_history
+rm -f /root/.viminfo
+

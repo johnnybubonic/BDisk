@@ -12,6 +12,7 @@ import datetime
 from urllib.request import urlopen
 import host  # bdisk.host
 
+
 def dirChk(config_dict):
     # Make dirs if they don't exist
     for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'tempdir'):
@@ -143,20 +144,21 @@ def buildChroot(build):
             os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0)
         # and copy over the files. again, chown to root.
         for file in prebuild_overlay['files']:
-            shutil.copy2(extradir + '/pre-build.d/' + file, chrootdir + '/root.' + a + '/' + file)
+            shutil.copy2(extradir + '/pre-build.d/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
             os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0)
         # do the same for arch-specific stuff.
         for dir in prebuild_arch_overlay[a]['dirs']:
             os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
             os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0)
         for file in prebuild_arch_overlay[a]['files']:
-            shutil.copy2(extradir + '/pre-build.d/' + a + '/' + file, chrootdir + '/root.' + a + '/' + file)
+            shutil.copy2(extradir + '/pre-build.d/' + a + '/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
             os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0)
 
-def prepChroot(templates_dir, build, bdisk):
+def prepChroot(build, bdisk):
     chrootdir = build['chrootdir']
     arch = build['arch']
     bdisk_repo_dir = build['basedir']
+    templates_dir = bdisk_repo_dir + '/extra/templates'
     build = {}
     # let's prep some variables to write out the version info.txt
     # get the git tag and short commit hash
@@ -174,8 +176,50 @@ def prepChroot(templates_dir, build, bdisk):
     loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = loader)
     tpl = env.get_template('VERSION_INFO.txt.j2')
-    tpl_out = tpl.render(build = build, hostname = hostname)
+    tpl_out = tpl.render(build = build, hostname = host.getHostname())
     for a in arch:
         with open(chrootdir + '/root.' + a + '/root/VERSION_INFO.txt', "w+") as f:
             f.write(tpl_out)
     return(build)
+
+def postChroot(build):
+    dlpath = build['dlpath']
+    chrootdir = build['chrootdir']
+    arch = build['arch']
+    overdir = build['basedir'] + '/overlay/'
+    postbuild_overlay = {}
+    postbuild_arch_overlay = {}
+    for x in arch:
+        postbuild_arch_overlay[x] = {}
+        for y in ['files', 'dirs']:
+            postbuild_overlay[y] = []
+            postbuild_arch_overlay[x][y] = []
+    for path, dirs, files in os.walk(overdir):
+        postbuild_overlay['dirs'].append(path + '/')
+        for file in files:
+            postbuild_overlay['files'].append(os.path.join(path, file))
+    for x in postbuild_overlay.keys():
+        postbuild_overlay[x][:] = [re.sub('^' + overdir, '', s) for s in postbuild_overlay[x]]
+        postbuild_overlay[x] = list(filter(None, postbuild_overlay[x]))
+        for y in postbuild_arch_overlay.keys():
+            postbuild_arch_overlay[y][x][:] = [i for i in postbuild_overlay[x] if i.startswith(y)]
+            postbuild_arch_overlay[y][x][:] = [re.sub('^' + y + '/', '', s) for s in postbuild_arch_overlay[y][x]]
+            postbuild_arch_overlay[y][x] = list(filter(None, postbuild_arch_overlay[y][x]))
+        postbuild_overlay[x][:] = [y for y in postbuild_overlay[x] if not y.startswith(('x86_64','i686'))]
+    postbuild_overlay['dirs'].remove('/')
+    # create the dir structure. these should almost definitely be owned by root.
+    for a in arch:
+        for dir in postbuild_overlay['dirs']:
+            os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
+            os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0, follow_symlinks = False)
+        # and copy over the files. again, chown to root.
+        for file in postbuild_overlay['files']:
+            shutil.copy2(overdir + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
+            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
+        # do the same for arch-specific stuff.
+        for dir in postbuild_arch_overlay[a]['dirs']:
+            os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
+            os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0, follow_symlinks = False)
+        for file in postbuild_arch_overlay[a]['files']:
+            shutil.copy2(overdir + a + '/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
+            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
