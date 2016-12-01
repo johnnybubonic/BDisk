@@ -4,20 +4,7 @@
 dirmngr </dev/null > /dev/null 2>&1
 
 # Import settings.
-if [[ -f /root/VARS.txt ]];
-then
-	source /root/VARS.txt
-else
-	# TODO: do these defaults via the config stuff in python instead.
-	export DISTNAME='BDISK'
-	export UXNAME='bdisk'
-	export PNAME='BDisk'
-	export DISTPUB='r00t^2'
-	export DISTDESC='j00 got 0wnz0r3d lulz.'
-	export REGUSR="${UXNAME}"
-	export REGUSR_PASS=''
-	export ROOT_PASS=''
-fi
+source /root/VARS.txt
 
 # Logging!
 exec 3>&1 4>&2
@@ -154,3 +141,4 @@ rm -f /root/.viminfo
 rm -f /root/apacman-*.pkg.tar.xz
 rm -f /root/pre-build.sh
 pkill -9 dirmngr
+pkill -9 gpg-agent

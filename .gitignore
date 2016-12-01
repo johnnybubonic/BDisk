@@ -25,6 +25,7 @@
 **/etc/openvpn
 **/etc/ssh
 **/home
+**/root
 etc/systemd/system/multi-user.target.wants/openvpn@client.service
 **ssl/
 !**ssl/.keepme

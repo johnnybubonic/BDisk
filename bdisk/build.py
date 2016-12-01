@@ -88,7 +88,7 @@ def genUEFI(build, bdisk):
         if not os.path.isfile(tempdir + '/EFI/shellx64_v2.efi'):
             shell2_path = tempdir + '/EFI/shellx64_v2.efi'
             print("You are missing {0}. We'll download it for you.".format(shell2_path))
-            shell2_url = 'https://github.com/tianocore/edk2/blob/master/ShellBinPkg/UefiShell/X64/Shell.efi?raw=true'
+            shell2_url = 'https://raw.githubusercontent.com/tianocore/edk2/master/ShellBinPkg/UefiShell/X64/Shell.efi'
             shell2_fetch = urlopen(shell2_url)
             with open(shell2_path, 'wb+') as dl:
                 dl.write(shell2_fetch.read())
@@ -98,7 +98,7 @@ def genUEFI(build, bdisk):
         if not os.path.isfile(tempdir + '/EFI/shellx64_v1.efi'):
             shell1_path = tempdir + '/EFI/shellx64_v1.efi'
             print("You are missing {0}. We'll download it for you.".format(shell1_path))
-            shell1_url = 'https://github.com/tianocore/edk2/blob/master/EdkShellBinPkg/FullShell/X64/Shell_Full.efi?raw=true'
+            shell1_url = 'https://raw.githubusercontent.com/tianocore/edk2/master/EdkShellBinPkg/FullShell/X64/Shell_Full.efi'
             shell1_fetch = urlopen(shell1_url)
             with open(shell1_path, 'wb+') as dl:
                 dl.write(shell1_fetch.read())

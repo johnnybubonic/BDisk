@@ -3,6 +3,7 @@ import host
 import prep
 import bchroot
 import build
+import datetime
 
 # we need to:
 # 9.) build.genImg (TODO)- build the squashed image, etc. see will_it_blend in old bdisk
@@ -11,6 +12,7 @@ import build
 # we also need to figure out how to implement "mentos" (old bdisk) like functionality, letting us reuse an existing chroot install if possible to save time for future builds.
 #   if not, though, it's no big deal.
 if __name__ == '__main__':
+    print('Starting at {0}.'.format(datetime.datetime.now()))
     conf = host.parseConfig(host.getConfig())[1]
     prep.dirChk(conf)
     prep.buildChroot(conf['build'])
@@ -23,3 +25,4 @@ if __name__ == '__main__':
     build.genImg(conf['build'], conf['bdisk'])
     build.genUEFI(conf['build'], conf['bdisk'])
     build.genISO(conf)
+    print('Finished successfully at {0}.'.format(datetime.datetime.now()))

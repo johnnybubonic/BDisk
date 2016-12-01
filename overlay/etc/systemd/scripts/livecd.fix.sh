@@ -3,6 +3,22 @@
 #chmod 4755 /opt/google/chrome-beta/chrome-sandbox
 chmod 4755 /usr/bin/sudo
 
+# Fix user perms/ownerships, etc.
+chown -R root:root /root
+for i in $(grep '/home/' /etc/passwd | cut -f1 -d":");
+do
+	chown -R ${i}:${i} /home/${i}
+done
+
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/authorized_keys
+
+for i in $(find /home -type d -name "*/.ssh");
+do
+	chmod 700 ${i}
+	chmod 600 ${i}/authorized_keys
+done
+
 function fuck_you_gimme_net() {
 IFACE=$(ifconfig -a -s | egrep -E '^((en|wl)p?|em)' | awk '{print $1}' | tr '\n' ' ' | sed -e 's/\ $//g')
 for i in ${IFACE};

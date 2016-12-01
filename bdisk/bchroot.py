@@ -54,6 +54,7 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     print("You can view the progress via:\n\n\ttail -f {0}/var/log/chroot_install.log\n".format(chrootdir))
     real_root = os.open("/", os.O_RDONLY)
     os.chroot(chrootdir)
+    os.system('locale-gen')
     os.system('/root/pre-build.sh')
     os.fchdir(real_root)
     os.chroot('.')
