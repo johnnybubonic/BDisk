@@ -1,1 +1,6 @@
-# This can be used for 32-bit only packages
+# Commented lines are supported (via a preceding # only).
+# Packages from the AUR can be specified.
+# If you require a package with a regex special character in the name
+# (i.e.: .\?+[]{} etc.)
+# and it is part of the ACTUAL package name, then you must DOUBLE-ESCAPE it:
+# e.g. 'bonnie\\+\\+' for a package named 'bonnie++'

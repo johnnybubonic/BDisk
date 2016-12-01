@@ -22,13 +22,13 @@
 /extrasrc
 
 # You should really generate local copies of these, as they're pretty private.
-extra/pre-build.d/etc/openvpn/client.conf
-overlay/etc/ssh/*
-overlay/home/*
-overlay/etc/systemd/system/multi-user.target.wants/openvpn@client.service
-ssl/
-!ssl/.keepme
-!ssl/openssl.cnf
+**/etc/openvpn
+**/etc/ssh
+**/home
+etc/systemd/system/multi-user.target.wants/openvpn@client.service
+**ssl/
+!**ssl/.keepme
+!**ssl/openssl.cnf
 
 # and we DEFINITELY don't need these.
 __pycache__/

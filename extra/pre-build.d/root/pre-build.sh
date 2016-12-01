@@ -48,7 +48,7 @@ pacman -S --noconfirm --needed base syslinux wget rsync unzip jshon sed sudo abs
 # And get rid of files it wants to replace
 cleanPacorigs
 # Force update all currently installed packages in case the tarball's out of date
-pacman -Syyu --force --noconfirm
+pacman -Su --force --noconfirm
 # And in case the keys updated...
 pacman-key --refresh-keys
 cleanPacorigs
@@ -60,6 +60,7 @@ pacman --noconfirm -U /root/apacman*.tar.xz &&\
 	 mkdir /var/tmp/apacman && chmod 0750 /var/tmp/apacman &&\
 	 chown root:aurbuild /var/tmp/apacman
 cleanPacorigs
+apacman -Syy
 apacman -S --noconfirm --noedit --skipinteg --needed -S apacman apacman-deps apacman-utils expac
 apacman --gendb
 cleanPacorigs
@@ -95,8 +96,7 @@ ln -s /usr/lib/libdialog.so.1.2 /usr/lib/libdialog.so
 cleanPacorigs
 apacman --noconfirm --noedit --skipinteg -S --needed linux
 apacman --gendb
-cp -a /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
-cp -af /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
+mv /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
 cleanPacorigs
 
 # And install EXTRA functionality packages, if there are any.
@@ -136,7 +136,7 @@ else
 	usermod -L root
 fi
 cleanPacorigs
-cp -af /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
+mv /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
 # And install arch-specific extra packages, if there are any.
 PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/packages.arch | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
@@ -146,8 +146,11 @@ then
 	cleanPacorigs
 fi
 # Cleanup
-yes | pacman -Scc
+#yes | pacman -Scc # doesn't parse yes(1) output correctly, it seems.
+# TODO: look into https://wiki.archlinux.org/index.php/Pacman/Tips_and_tricks#Removing_unused_packages_.28orphans.29
+paccache -rk0
 rm -f /root/.bash_history
 rm -f /root/.viminfo
 rm -f /root/apacman-*.pkg.tar.xz
 rm -f /root/pre-build.sh
+pkill -9 dirmngr

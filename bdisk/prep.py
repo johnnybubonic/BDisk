@@ -179,9 +179,14 @@ def prepChroot(build, bdisk):
     tpl = env.get_template('VERSION_INFO.txt.j2')
     tpl_out = tpl.render(build = build, bdisk = bdisk, hostname = host.getHostname())
     for a in arch:
-        with open('{0}/root.{1}/root/VERSION_INFO.txt'.format(chrootdir, a), "w+") as f:
+        with open('{0}/root.{1}/root/VERSION_INFO.txt'.format(chrootdir, a), 'w+') as f:
             f.write(tpl_out)
-        with open(tempdir + '/VERSION_INFO.txt', "w+") as f:
+        with open(tempdir + '/VERSION_INFO.txt', 'w+') as f:
+            f.write(tpl_out)
+    tpl = env.get_template('VARS.txt.j2')
+    tpl_out = tpl.render(bdisk = bdisk)
+    for a in arch:
+        with open('{0}/root.{1}/root/VARS.txt'.format(chrootdir, a), 'w+') as f:
             f.write(tpl_out)
     return(build)
 
