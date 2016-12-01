@@ -4,6 +4,7 @@ import platform
 import re
 import configparser
 import validators
+import git
 from socket import getaddrinfo
 
 def getOS():
@@ -54,12 +55,18 @@ def parseConfig(conf):
     config = configparser.ConfigParser()
     config._interpolation = configparser.ExtendedInterpolation()
     config.read(conf)
+    bdisk_repo_dir = config['build']['basedir']
     # a dict makes this so much easier.
     config_dict = {s:dict(config.items(s)) for s in config.sections()}
     # Convert the booleans to pythonic booleans in the dict...
     config_dict['bdisk']['user'] = config['bdisk'].getboolean('user')
     config_dict['build']['i_am_a_racecar'] = config['build'].getboolean('i_am_a_racecar')
     config_dict['build']['multiarch'] = (config_dict['build']['multiarch']).lower()
+    # Get the version...
+    if config_dict['bdisk']['ver'] == '':
+        repo = git.Repo(config_dict['build']['basedir'])
+        refs = repo.git.describe(repo.head.commit).split('-')
+        config_dict['bdisk']['ver'] = refs[0] + '-' + refs[2]
     for i in ('http', 'tftp', 'rsync', 'git'):
         config_dict['sync'][i] = config['sync'].getboolean(i)
     config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')

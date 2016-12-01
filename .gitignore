@@ -1,26 +1,19 @@
-# We don't want local build settings
-/build.conf
+# We don't want local build settings in case someone's using
+# the git dir as a place to store their build.ini
+/build.ini
 
-# The chroots should be generated locally ONLY. The perms/ownership would get futzed up anyways if checked into git.
+# The default doesn't store these in the git working dir,
+# but better safe than sorry.
 /root.x86_64
 /root.i686
-
-# We don't want the copied/stripped/compressed chroots
-# might not be relevant anymore in the python rewrite
-/build64
-/build32
-
-# We don't need these in git. They should be generated dynamically.
 /http
 /iso
 /temp
-/TMPBOOT
 /tftpboot
-/.latest.x86_64.tar.gz
-/.latest.i686.tar.gz
-/lockfile.lck
-/VERSION_INFO.txt
-/BUILDNO
+
+# We don't need these in git. They should be generated dynamically.
+.latest.*.tar
+/buildnum
 /screenlog*
 /logs
 *.swp

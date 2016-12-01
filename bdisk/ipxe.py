@@ -3,9 +3,11 @@ import shutil
 import jinja2
 import git
 import patch
+import OpenSSL
 
 
-def sslIPXE():
+def sslIPXE(conf):
+    # http://www.pyopenssl.org/en/stable/api/crypto.html#pkey-objects
     pass
 
 def buildIPXE(conf):
@@ -33,8 +35,8 @@ def buildIPXE(conf):
     #os.chdir(ipxe_src + '/src')
     for p in ('01.git-version.patch.j2', '02.banner.patch.j2'):
         try:
-            patch = fromfile(p)
-            patch.apply(strip = 2, root = ipxe_src + '/src')
+            patchfile = patch.fromfile(patches_dir + '/' + p)
+            patchfile.apply(strip = 2, root = ipxe_src + '/src')
         except:
             pass
     #os.chdir(cwd)

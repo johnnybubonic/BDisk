@@ -6,7 +6,7 @@ import gnupg
 import tarfile
 import subprocess
 import re
-import git
+#import git
 import jinja2
 import datetime
 from urllib.request import urlopen
@@ -72,8 +72,8 @@ def downloadTarball(build):
                                 tarball_path[a], sha1))
         tarball_hash = hashlib.sha1(open(tarball_path[a], 'rb').read()).hexdigest()
         if tarball_hash != sha1:
-            exit(("There was a failure fetching {0} and the wrong version exists on the filesystem.\n" +
-                                "Please try again later.").format(tarball))
+            exit(("{0} either did not download correctly or a wrong (probably old) version exists on the filesystem.\n" +
+                                "Please delete it and try again.").format(tarball))
         elif build['mirrorgpgsig'] != '':
             # okay, so the sha1 matches. let's verify the signature.
             if build['mirrorgpgsig'] == '.sig':
@@ -156,15 +156,16 @@ def buildChroot(build):
 
 def prepChroot(build, bdisk):
     chrootdir = build['chrootdir']
+    tempdir = build['tempdir']
     arch = build['arch']
     bdisk_repo_dir = build['basedir']
     templates_dir = bdisk_repo_dir + '/extra/templates'
     build = {}
-    # let's prep some variables to write out the version info.txt
-    # get the git tag and short commit hash
-    repo = git.Repo(bdisk_repo_dir)
-    refs = repo.git.describe(repo.head.commit).split('-')
-    build['ver'] = refs[0] + '-' + refs[2]
+    ## let's prep some variables to write out the version info.txt
+    ## get the git tag and short commit hash
+    #repo = git.Repo(bdisk_repo_dir)
+    #refs = repo.git.describe(repo.head.commit).split('-')
+    #build['ver'] = refs[0] + '-' + refs[2]
     # and these should be passed in from the args, from the most part.
     build['name'] = bdisk['name']
     build['time'] = datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y")
@@ -176,9 +177,11 @@ def prepChroot(build, bdisk):
     loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = loader)
     tpl = env.get_template('VERSION_INFO.txt.j2')
-    tpl_out = tpl.render(build = build, hostname = host.getHostname())
+    tpl_out = tpl.render(build = build, bdisk = bdisk, hostname = host.getHostname())
     for a in arch:
-        with open(chrootdir + '/root.' + a + '/root/VERSION_INFO.txt', "w+") as f:
+        with open('{0}/root.{1}/root/VERSION_INFO.txt'.format(chrootdir, a), "w+") as f:
+            f.write(tpl_out)
+        with open(tempdir + '/VERSION_INFO.txt', "w+") as f:
             f.write(tpl_out)
     return(build)
 

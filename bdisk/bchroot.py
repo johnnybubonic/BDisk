@@ -1,15 +1,6 @@
-# NOTE: this is almost taken verbatim from https://github.com/pkgcore/pychroot's
-# pychroot/scripts/pychroot.py because the pychroot.Chroot method isn't really
-# documented very well
-
-#from __future__ import absolute_import, unicode_literals
-
-#from functools import partial
 import os
 import sys
 import psutil
-#from pychroot.base import Chroot
-import pychroot
 import subprocess
 import ctypes
 

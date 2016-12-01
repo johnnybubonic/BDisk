@@ -149,4 +149,5 @@ fi
 yes | pacman -Scc
 rm -f /root/.bash_history
 rm -f /root/.viminfo
-
+rm -f /root/apacman-*.pkg.tar.xz
+rm -f /root/pre-build.sh

@@ -20,3 +20,6 @@ if __name__ == '__main__':
         bchroot.chroot(conf['build']['chrootdir'] + '/root.' + a, 'bdisk.square-r00t.net')
         bchroot.chrootUnmount(conf['build']['chrootdir'] + '/root.' + a)
     prep.postChroot(conf['build'])
+    build.genImg(conf['build'], conf['bdisk'])
+    build.genUEFI(conf['build'], conf['bdisk'])
+    build.genISO(conf)

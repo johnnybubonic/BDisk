@@ -1,4 +1,4 @@
 title   {{ bdisk['pname'] }} (RAM)
-linux   /{% if efi is defined %}EFI/{{ bdisk['name'] }}{% else $}boot{% endif %}/{{ bdisk['uxname'] }}.{% if efi is defined %}efi{% else %}kern{% endif %}
-initrd  /{% if efi is defined %}EFI/{{ bdisk['name'] }}{% else $}boot{% endif %}/{{ bdisk['uxname'] }}.img
+linux   /{% if efi is defined %}EFI/{{ bdisk['name'] }}{% else %}boot{% endif %}/{{ bdisk['uxname'] }}.{% if efi is defined %}efi{% else %}kern{% endif %}
+initrd  /{% if efi is defined %}EFI/{{ bdisk['name'] }}{% else %}boot{% endif %}/{{ bdisk['uxname'] }}.img
 options copytoram archisobasedir={{ bdisk['name'] }} archisolabel={{ bdisk['name'] }}
