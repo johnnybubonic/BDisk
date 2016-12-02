@@ -120,6 +120,7 @@ def buildChroot(build):
     prebuild_overlay = {}
     prebuild_arch_overlay = {}
     for x in arch:
+        os.remove('{0}/root.{1}/README'.format(chrootdir, x))
         prebuild_arch_overlay[x] = {}
         for y in ['files', 'dirs']:
             prebuild_overlay[y] = []
@@ -170,11 +171,18 @@ def prepChroot(build, bdisk, user):
     build['user'] = os.environ['USER']
     if 'SUDO_USER' in os.environ:
         build['realuser'] = os.environ['SUDO_USER']
+    # Get the build number...
+    # TODO: support tracking builds per version. i.e. in buildnum:
+    # v2.51-g7381cc3:0
+    # v2.51-gb3bb039:3
     if os.path.isfile(dlpath + '/buildnum'):
-        with open(dlpath + '/buildnum') as f:
+        with open(dlpath + '/buildnum', 'r') as f:
             build['buildnum'] = int(f.readlines())
     else:
         build['buildnum'] = 0
+    build['buildnum'] += 1
+    with open(dlpath + '/buildnum', 'w+') as f:
+        f.write(build['buildnum'])
     # and now that we have that dict, let's write out the VERSION_INFO.txt file.
     loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = loader)

@@ -2,6 +2,11 @@
 # the git dir as a place to store their build.ini
 /build.ini
 
+# These are user-controlled.
+#/overlay/*
+!/overlay/x86_64
+!/overlay/i686
+!/overlay/etc/
 # The default doesn't store these in the git working dir,
 # but better safe than sorry.
 /root.x86_64
@@ -23,10 +28,10 @@
 
 # You should really generate local copies of these, as they're pretty private.
 **/etc/openvpn
+**/etc/systemd/system/multi-user.target.wants/openvpn@*
 **/etc/ssh
 **/home
 **/root
-etc/systemd/system/multi-user.target.wants/openvpn@client.service
 **ssl/
 !**ssl/.keepme
 !**ssl/openssl.cnf
