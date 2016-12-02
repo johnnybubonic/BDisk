@@ -44,7 +44,7 @@ def downloadTarball(build):
     if build['mirrorgpgsig'] != '':
         # we don't want to futz with the user's normal gpg.
         gpg = gnupg.GPG(gnupghome = dlpath + '/.gnupg')
-        print("\nNow generating a GPG key. Please wait...")
+        print("\nGenerating a GPG key. Please wait...")
         # python-gnupg 0.3.9 spits this error in Arch. it's harmless, but ugly af.
         # TODO: remove this when the error doesn't happen anymore.
         print("If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error, it can be safely ignored.")
@@ -102,7 +102,7 @@ def unpackTarball(tarball_path, build):
     # Make the dir if it doesn't exist
     shutil.rmtree(chrootdir, ignore_errors = True)
     os.makedirs(chrootdir, exist_ok = True)
-    print("Now extracting the tarball(s). Please wait...")
+    print("Extracting the tarball(s). Please wait...")
     # Open and extract the tarball
     for a in build['arch']:
         tar = tarfile.open(tarball_path[a], 'r:gz')
@@ -154,18 +154,15 @@ def buildChroot(build):
             shutil.copy2(extradir + '/pre-build.d/' + a + '/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
             os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0)
 
-def prepChroot(build, bdisk):
+def prepChroot(build, bdisk, user):
     chrootdir = build['chrootdir']
     tempdir = build['tempdir']
     arch = build['arch']
     bdisk_repo_dir = build['basedir']
+    dlpath = build['dlpath']
     templates_dir = bdisk_repo_dir + '/extra/templates'
-    build = {}
+    #build = {}  # why was this here?
     ## let's prep some variables to write out the version info.txt
-    ## get the git tag and short commit hash
-    #repo = git.Repo(bdisk_repo_dir)
-    #refs = repo.git.describe(repo.head.commit).split('-')
-    #build['ver'] = refs[0] + '-' + refs[2]
     # and these should be passed in from the args, from the most part.
     build['name'] = bdisk['name']
     build['time'] = datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S UTC %Y")
@@ -173,18 +170,23 @@ def prepChroot(build, bdisk):
     build['user'] = os.environ['USER']
     if 'SUDO_USER' in os.environ:
         build['realuser'] = os.environ['SUDO_USER']
+    if os.path.isfile(dlpath + '/buildnum'):
+        with open(dlpath + '/buildnum') as f:
+            build['buildnum'] = int(f.readlines())
+    else:
+        build['buildnum'] = 0
     # and now that we have that dict, let's write out the VERSION_INFO.txt file.
     loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = loader)
     tpl = env.get_template('VERSION_INFO.txt.j2')
-    tpl_out = tpl.render(build = build, bdisk = bdisk, hostname = host.getHostname())
+    tpl_out = tpl.render(build = build, bdisk = bdisk, hostname = host.getHostname(), distro = host.getOS())
     for a in arch:
         with open('{0}/root.{1}/root/VERSION_INFO.txt'.format(chrootdir, a), 'w+') as f:
             f.write(tpl_out)
         with open(tempdir + '/VERSION_INFO.txt', 'w+') as f:
             f.write(tpl_out)
     tpl = env.get_template('VARS.txt.j2')
-    tpl_out = tpl.render(bdisk = bdisk)
+    tpl_out = tpl.render(bdisk = bdisk, user = user)
     for a in arch:
         with open('{0}/root.{1}/root/VARS.txt'.format(chrootdir, a), 'w+') as f:
             f.write(tpl_out)

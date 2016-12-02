@@ -16,7 +16,7 @@ if __name__ == '__main__':
     conf = host.parseConfig(host.getConfig())[1]
     prep.dirChk(conf)
     prep.buildChroot(conf['build'])
-    prep.prepChroot(conf['build'], conf['bdisk'])
+    prep.prepChroot(conf['build'], conf['bdisk'], conf['user'])
     arch = conf['build']['arch']
     for a in arch:
         bchroot.chroot(conf['build']['chrootdir'] + '/root.' + a, 'bdisk.square-r00t.net')
@@ -24,5 +24,6 @@ if __name__ == '__main__':
     prep.postChroot(conf['build'])
     build.genImg(conf['build'], conf['bdisk'])
     build.genUEFI(conf['build'], conf['bdisk'])
-    build.genISO(conf)
+    fulliso = build.geniso(conf)
+    build.displayStats(fulliso)
     print('Finished successfully at {0}.'.format(datetime.datetime.now()))

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source /etc/bashrc
+source /root/.bashrc
+
 # we need this fix before anything.
 dirmngr </dev/null > /dev/null 2>&1
 

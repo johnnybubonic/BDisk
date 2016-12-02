@@ -50,11 +50,11 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
         if (chrootdir + '/tmp') not in mounts:
             subprocess.call(['/bin/mount', '-t', 'tmpfs', '-o', 'mode=1777,strictatime,nodev,nosuid', 'tmp', chrootdir + '/tmp'])
 
-    print("Now performing '{0}' in chroot for {1}...".format(cmd, chrootdir))
+    print("Performing '{0}' in chroot for {1}...".format(cmd, chrootdir))
     print("You can view the progress via:\n\n\ttail -f {0}/var/log/chroot_install.log\n".format(chrootdir))
     real_root = os.open("/", os.O_RDONLY)
     os.chroot(chrootdir)
-    os.system('locale-gen')
+    os.system('locale-gen > /dev/null 2>&1')
     os.system('/root/pre-build.sh')
     os.fchdir(real_root)
     os.chroot('.')

@@ -5,6 +5,7 @@ import glob
 import subprocess
 import hashlib
 import jinja2
+import humanize
 from urllib.request import urlopen
 
 
@@ -38,7 +39,7 @@ def genImg(build, bdisk):
                 '-comp', 'xz']
         subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
         # Generate the checksum files
-        print("Now generating SHA256 and MD5 hash checksum files for {0}. Please wait...".format(squashimg))
+        print("Generating SHA256 and MD5 hash checksum files for {0}. Please wait...".format(squashimg))
         hashes['sha256'][a] = hashlib.sha256()
         hashes['md5'][a] = hashlib.md5()
         with open(squashimg, 'rb') as f:
@@ -103,7 +104,7 @@ def genUEFI(build, bdisk):
             with open(shell1_path, 'wb+') as dl:
                 dl.write(shell1_fetch.read())
             shell1_fetch.close()
-        print("Now configuring UEFI bootloading...")
+        print("Configuring UEFI bootloading...")
         ## But wait! That's not all! We need more binaries.
         # http://blog.hansenpartnership.com/linux-foundation-secure-boot-system-released/
         shim_url = 'http://blog.hansenpartnership.com/wp-uploads/2013/'
@@ -162,7 +163,7 @@ def genUEFI(build, bdisk):
                 fname = os.path.join(path, file)
                 sizetotal += os.path.getsize(fname)
         # And now we create the file...
-        print("Now creating a {0} bytes EFI ESP image at {1}. Please wait...".format(sizetotal, efiboot_img))
+        print("Creating a {0} bytes EFI ESP image at {1}. Please wait...".format(sizetotal, efiboot_img))
         if os.path.isfile(efiboot_img):
             os.remove(efiboot_img)
         with open(efiboot_img, 'wb+') as f:
@@ -269,7 +270,7 @@ def genISO(conf):
             usbfile = '{0}-{1}-mini.usb.img'.format(bdisk['uxname'], bdisk['ver'])
             minipath = build['isodir'] + '/' + usbfile
     # Copy isolinux files
-    print("Now staging some files for ISO preparation. Please wait...")
+    print("Staging some files for ISO preparation. Please wait...")
     isolinux_files = ['isolinux.bin',
                     'vesamenu.c32',
                     'linux.c32',
@@ -298,7 +299,7 @@ def genISO(conf):
         f.write(tpl_out)
     # And we need to build the ISO!
     # TODO: only include UEFI support if we actually built it!
-    print("Now generating the full ISO at {0}. Please wait.".format(isopath))
+    print("Generating the full ISO at {0}. Please wait.".format(isopath))
     if efi:
         cmd = ['/usr/bin/xorriso',
             '-as', 'mkisofs',
@@ -350,6 +351,28 @@ def genISO(conf):
     #    print(line)
     #p.stdout.close()
     #p.wait()
+    # Get size of ISO
+    iso = {}
+    iso['sha'] = hashlib.sha256()
+    with open(isopath, 'rb') as f:
+        while True:
+            stream = f.read(65536)  # 64kb chunks
+            if not stream:
+                break
+            iso['sha'].update(stream)
+    iso['sha'] = iso['sha'].hexdigest()
+    iso['file'] = isopath
+    iso['size'] = humanize.naturalsize(os.path.getsize(isopath))
+    iso['type'] = 'Full'
+    iso['fmt'] = 'Hybrid ISO'
+    return(iso)
+
+def displayStats(iso):
+    print('== {0} {1} =='.format(iso['type'], iso['fmt']))
+    print('Size: {0}'.format(iso['size']))
+    print('SHA256: {0}'.format(iso['sha']))
+    print('Location: {0}'.format(iso['file']))
+    print()
 
 def cleanUp():
     # TODO: clear out all of tempdir?

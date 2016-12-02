@@ -21,7 +21,7 @@ def buildIPXE(conf):
     ipxe_src = srcdir + '/ipxe'
     ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
     patches_git_uri = 'https://github.com/eworm-de/ipxe.git'
-    print('Now building iPXE in {0}. Please wait...'.format(ipxe_src))
+    print('Building iPXE in {0}. Please wait...'.format(ipxe_src))
     # Get the source and apply some cherrypicks
     if os.path.isdir(ipxe_src):
         shutil.rmtree(ipxe_src)
