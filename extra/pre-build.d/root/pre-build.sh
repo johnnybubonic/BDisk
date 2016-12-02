@@ -64,7 +64,7 @@ else
 	TGT_ARCH='i686'
 fi
 # Install some stuff we need for the ISO.
-PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/iso.pkgs.both | tr '\n' ' ')
+PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/iso.pkgs.both | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
@@ -72,7 +72,7 @@ then
 	cleanPacorigs
 fi
 # And install arch-specific packages for the ISO, if there are any.
-PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/iso.pkgs.arch | tr '\n' ' ')
+PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/iso.pkgs.arch | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
@@ -89,7 +89,7 @@ mv -f /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
 cleanPacorigs
 
 # And install EXTRA functionality packages, if there are any.
-PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/packages.both | tr '\n' ' ')
+PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/packages.both | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
@@ -127,7 +127,7 @@ fi
 cleanPacorigs
 mv -f /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
 # And install arch-specific extra packages, if there are any.
-PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/packages.arch | tr '\n' ' ')
+PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/packages.arch | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
