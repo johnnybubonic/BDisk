@@ -177,12 +177,12 @@ def prepChroot(build, bdisk, user):
     # v2.51-gb3bb039:3
     if os.path.isfile(dlpath + '/buildnum'):
         with open(dlpath + '/buildnum', 'r') as f:
-            build['buildnum'] = int(f.readlines())
+            build['buildnum'] = int(f.readlines()[0])
     else:
         build['buildnum'] = 0
     build['buildnum'] += 1
     with open(dlpath + '/buildnum', 'w+') as f:
-        f.write(build['buildnum'])
+        f.write(str(build['buildnum']))
     # and now that we have that dict, let's write out the VERSION_INFO.txt file.
     loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = loader)

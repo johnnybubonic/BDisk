@@ -1,7 +1,6 @@
 #!/bin/bash
 
-source /etc/bashrc
-source /root/.bashrc
+source /etc/bash.bashrc
 
 # we need this fix before anything.
 dirmngr </dev/null > /dev/null 2>&1
@@ -57,7 +56,7 @@ cleanPacorigs
 # Install multilib-devel if we're in an x86_64 chroot.
 if $(egrep -q '^\[multilib' /etc/pacman.conf);
 then
-	pacman --noconfirm -R gcc-libs libtool
+	pacman --noconfirm -Rdd gcc gcc-libs libtool
 	pacman --noconfirm -S --needed multilib-devel
 	cleanPacorigs
 	TGT_ARCH='x86_64'
@@ -86,7 +85,7 @@ ln -s /usr/lib/libdialog.so.1.2 /usr/lib/libdialog.so
 cleanPacorigs
 apacman --noconfirm --noedit --skipinteg -S --needed linux
 apacman --gendb
-mv /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
+mv -f /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
 cleanPacorigs
 
 # And install EXTRA functionality packages, if there are any.
@@ -126,7 +125,7 @@ else
 	usermod -L root
 fi
 cleanPacorigs
-mv /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
+mv -f /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
 # And install arch-specific extra packages, if there are any.
 PKGLIST=$(sed -e '/^[[:space:]]*#/d ; /^[[:space:]]*$/d' /root/packages.arch | tr '\n' ' ')
 if [[ -n "${PKGLIST}" ]];

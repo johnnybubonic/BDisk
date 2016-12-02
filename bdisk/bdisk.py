@@ -24,6 +24,6 @@ if __name__ == '__main__':
     prep.postChroot(conf['build'])
     build.genImg(conf['build'], conf['bdisk'])
     build.genUEFI(conf['build'], conf['bdisk'])
-    fulliso = build.geniso(conf)
+    fulliso = build.genISO(conf)
     build.displayStats(fulliso)
     print('Finished successfully at {0}.'.format(datetime.datetime.now()))
