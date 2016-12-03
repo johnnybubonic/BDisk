@@ -2,15 +2,8 @@ import os
 import sys
 import psutil
 import subprocess
-import ctypes
+import datetime
 
-
-def chrootMount(source, target, fs, options=''):
-    ret = ctypes.CDLL('libc.so.6', use_errno=True).mount(source, target, fs, 0, options)
-    if ret < 0:
-        errno = ctypes.get_errno()
-        raise RuntimeError("Error mounting {} ({}) on {} with options '{}': {}".
-                        format(source, fs, target, options, os.strerror(errno)))
 
 def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     # MOUNT the chroot
@@ -50,8 +43,8 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
         if (chrootdir + '/tmp') not in mounts:
             subprocess.call(['/bin/mount', '-t', 'tmpfs', '-o', 'mode=1777,strictatime,nodev,nosuid', 'tmp', chrootdir + '/tmp'])
 
-    print("Performing '{0}' in chroot for {1}...".format(cmd, chrootdir))
-    print("You can view the progress via:\n\n\ttail -f {0}/var/log/chroot_install.log\n".format(chrootdir))
+    print("{0}: Performing '{1}' in chroot for {2}...".format(datetime.datetime.now(), cmd, chrootdir))
+    print("\t\t\t    You can view the progress via:\n\n\t\ttail -f {0}/var/log/chroot_install.log\n".format(chrootdir))
     real_root = os.open("/", os.O_RDONLY)
     os.chroot(chrootdir)
     os.system('locale-gen > /dev/null 2>&1')

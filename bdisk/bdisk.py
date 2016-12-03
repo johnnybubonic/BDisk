@@ -12,10 +12,10 @@ import datetime
 # we also need to figure out how to implement "mentos" (old bdisk) like functionality, letting us reuse an existing chroot install if possible to save time for future builds.
 #   if not, though, it's no big deal.
 if __name__ == '__main__':
-    print('Starting at {0}.'.format(datetime.datetime.now()))
+    print('{0}: Starting.'.format(datetime.datetime.now()))
     conf = host.parseConfig(host.getConfig())[1]
     prep.dirChk(conf)
-    prep.buildChroot(conf['build'])
+    prep.buildChroot(conf['build'], keep = False)
     prep.prepChroot(conf['build'], conf['bdisk'], conf['user'])
     arch = conf['build']['arch']
     for a in arch:
@@ -26,4 +26,4 @@ if __name__ == '__main__':
     build.genUEFI(conf['build'], conf['bdisk'])
     fulliso = build.genISO(conf)
     build.displayStats(fulliso)
-    print('Finished successfully at {0}.'.format(datetime.datetime.now()))
+    print('{0}: Finish.'.format(datetime.datetime.now()))

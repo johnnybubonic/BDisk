@@ -20,7 +20,7 @@ bin86
 bind-tools
 binutils
 bluez-utils
-#bonnie++ ## TODO: ugh. apacman has a new "regex mode"... that you can't disable. https://github.com/oshazard/apacman/issues/79
+bonnie++ ## TODO: ugh. apacman has a new "regex mode"... that you can't disable. https://github.com/oshazard/apacman/issues/79
 boxbackup-client
 boxbackup-server
 bozocrack-git

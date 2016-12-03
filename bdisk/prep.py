@@ -9,6 +9,7 @@ import re
 #import git
 import jinja2
 import datetime
+import humanize
 from urllib.request import urlopen
 import host  # bdisk.host
 
@@ -44,11 +45,11 @@ def downloadTarball(build):
     if build['mirrorgpgsig'] != '':
         # we don't want to futz with the user's normal gpg.
         gpg = gnupg.GPG(gnupghome = dlpath + '/.gnupg')
-        print("\nGenerating a GPG key. Please wait...")
+        print("\n{0}: Generating a GPG key. Please wait...".format(datetime.datetime.now()))
         # python-gnupg 0.3.9 spits this error in Arch. it's harmless, but ugly af.
         # TODO: remove this when the error doesn't happen anymore.
-        print("If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error, it can be safely ignored.")
-        print("If this is taking a VERY LONG time, try installing haveged and starting it. This can be " +
+        print("\tIf you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error, it can be safely ignored.")
+        print("\tIf this is taking a VERY LONG time, try installing haveged and starting it. This can be " +
                         "done safely in parallel with the build process.\n")
         input_data = gpg.gen_key_input(name_email = 'tempuser@nodomain.tld', passphrase = 'placeholder_passphrase')
         key = gpg.gen_key(input_data)
@@ -62,18 +63,27 @@ def downloadTarball(build):
             pass
         else:
             # fetch the tarball...
-            print("Fetching the tarball for {0} architecture, please wait...".format(a))
+            print("{0}: Fetching the tarball for {1} architecture, please wait...".format(
+                                                                    datetime.datetime.now(),
+                                                                    a))
             #dl_file = urllib.URLopener()
             tarball_dl = urlopen(rlsdir + tarball)
             with open(tarball_path[a], 'wb') as f:
                 f.write(tarball_dl.read())
             tarball_dl.close()
-        print(("Checking that the hash checksum for {0} matches {1}, please wait...").format(
-                                tarball_path[a], sha1))
+            print("{0}: Done fetching {1} ({2}).".format(
+                                                    datetime.datetime.now(),
+                                                    tarball_path[a],
+                                                    humanize.naturalsize(
+                                                        os.path.getsize(tarball_path[a]))))
+        print("{0}: Checking that the hash checksum for {1} matches {2}, please wait...".format(
+                                                                    datetime.datetime.now(),
+                                                                    tarball_path[a],
+                                                                    sha1))
         tarball_hash = hashlib.sha1(open(tarball_path[a], 'rb').read()).hexdigest()
         if tarball_hash != sha1:
-            exit(("{0} either did not download correctly or a wrong (probably old) version exists on the filesystem.\n" +
-                                "Please delete it and try again.").format(tarball))
+            exit(("{0}: {1} either did not download correctly or a wrong (probably old) version exists on the filesystem.\n" +
+                                "Please delete it and try again.").format(datetime.datetime.now(), tarball))
         elif build['mirrorgpgsig'] != '':
             # okay, so the sha1 matches. let's verify the signature.
             if build['mirrorgpgsig'] == '.sig':
@@ -91,36 +101,46 @@ def downloadTarball(build):
             gpg_verify = gpg.verify_data(sig, tarball_data_in)
             tarball_data.close()
             if not gpg_verify:
-                exit("There was a failure checking {0} against {1}. Please investigate.".format(
-                                 sig, tarball_path[a]))
+                exit("{0}: There was a failure checking {1} against {2}. Please investigate.".format(
+                                                                    datetime.datetime.now(),
+                                                                    sig,
+                                                                    tarball_path[a]))
             os.remove(sig)
 
     return(tarball_path)
 
-def unpackTarball(tarball_path, build):
+def unpackTarball(tarball_path, build, keep = False):
     chrootdir = build['chrootdir']
-    # Make the dir if it doesn't exist
-    shutil.rmtree(chrootdir, ignore_errors = True)
-    os.makedirs(chrootdir, exist_ok = True)
-    print("Extracting the tarball(s). Please wait...")
+    if os.path.isdir(chrootdir):
+        if not keep:
+            # Make the dir if it doesn't exist
+            shutil.rmtree(chrootdir, ignore_errors = True)
+            os.makedirs(chrootdir, exist_ok = True)
+    else:
+        os.makedirs(chrootdir, exist_ok = True)
     # Open and extract the tarball
-    for a in build['arch']:
-        tar = tarfile.open(tarball_path[a], 'r:gz')
-        tar.extractall(path = chrootdir)
-        tar.close()
-        print("Extraction for {0} finished.".format(tarball_path[a]))
+    if not keep:
+        for a in build['arch']:
+            print("{0}: Extracting tarball {1} ({2}). Please wait...".format(
+                                                                    datetime.datetime.now(),
+                                                                    tarball_path[a],
+                                                                    humanize.naturalsize(
+                                                                        os.path.getsize(tarball_path[a]))))
+            tar = tarfile.open(tarball_path[a], 'r:gz')
+            tar.extractall(path = chrootdir)
+            tar.close()
+            print("{0}: Extraction for {1} finished.".format(datetime.datetime.now(), tarball_path[a]))
 
-def buildChroot(build):
+def buildChroot(build, keep = False):
     dlpath = build['dlpath']
     chrootdir = build['chrootdir']
     arch = build['arch']
     extradir = build['basedir'] + '/extra'
-    unpack_me = unpackTarball(downloadTarball(build), build)
+    unpack_me = unpackTarball(downloadTarball(build), build, keep)
     # build dict of lists of files and dirs from pre-build.d dir, do the same with arch-specific changes.
     prebuild_overlay = {}
     prebuild_arch_overlay = {}
     for x in arch:
-        os.remove('{0}/root.{1}/README'.format(chrootdir, x))
         prebuild_arch_overlay[x] = {}
         for y in ['files', 'dirs']:
             prebuild_overlay[y] = []
@@ -182,7 +202,7 @@ def prepChroot(build, bdisk, user):
         build['buildnum'] = 0
     build['buildnum'] += 1
     with open(dlpath + '/buildnum', 'w+') as f:
-        f.write(str(build['buildnum']))
+        f.write(str(build['buildnum']) + "\n")
     # and now that we have that dict, let's write out the VERSION_INFO.txt file.
     loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = loader)
@@ -208,6 +228,7 @@ def postChroot(build):
     postbuild_overlay = {}
     postbuild_arch_overlay = {}
     for x in arch:
+        os.remove('{0}/root.{1}/README'.format(chrootdir, x))
         postbuild_arch_overlay[x] = {}
         for y in ['files', 'dirs']:
             postbuild_overlay[y] = []

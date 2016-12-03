@@ -2,9 +2,6 @@
 
 source /etc/bash.bashrc
 
-# we need this fix before anything.
-dirmngr </dev/null > /dev/null 2>&1
-
 # Import settings.
 source /root/VARS.txt
 
@@ -13,6 +10,10 @@ exec 3>&1 4>&2
 trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>/var/log/chroot_install.log 2>&1
 
+# we need this fix before anything.
+dirmngr </dev/null > /dev/null 2>&1
+locale-gen
+
 cleanPacorigs()
 {
 	for x in $(find /etc/ -type f -iname "*.pacorig");
@@ -20,7 +21,18 @@ cleanPacorigs()
 		mv -f ${x} ${x%%.pacorig}
 	done
 }
-
+getPkgList()
+{
+	if [ -f "${1}" ];
+	then
+		pkgfile=$(cat ${1})
+		echo "${pkgfile}" | \
+		sed -r -e '/^[[:space:]]*(#|$)/d' \
+			-e 's/[[:space:]]*#.*$//g' | \
+		tr '\n' ' ' | \
+		sed -re 's/([+\_])/\\\1/g'
+	fi
+}
 # NetworkManager is a scourge upon the earth that must be purged and cleansed.
 ln -s /dev/null /etc/systemd/system/NetworkManager.service
 ln -s /dev/null /etc/systemd/system/NetworkManager-dispatcher.service
@@ -64,7 +76,8 @@ else
 	TGT_ARCH='i686'
 fi
 # Install some stuff we need for the ISO.
-PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/iso.pkgs.both | tr '\n' ' ')
+#PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/iso.pkgs.both | tr '\n' ' ')
+PKGLIST=$(getPkgList /root/iso.pkgs.both)
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
@@ -72,7 +85,8 @@ then
 	cleanPacorigs
 fi
 # And install arch-specific packages for the ISO, if there are any.
-PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/iso.pkgs.arch | tr '\n' ' ')
+#PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/iso.pkgs.arch | tr '\n' ' ')
+PKGLIST=$(getPkgList /root/iso.pkgs.arch)
 if [[ -n "${PKGLIST}" ]];
 then
 	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
@@ -89,10 +103,16 @@ mv -f /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
 cleanPacorigs
 
 # And install EXTRA functionality packages, if there are any.
-PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/packages.both | tr '\n' ' ')
+#PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/packages.both | tr '\n' ' ')
+PKGLIST=$(getPkgList /root/packages.both)
 if [[ -n "${PKGLIST}" ]];
 then
-	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	echo "Now installing your extra packages. This will take a while and might appear to hang."
+	#yes 1 | apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	for p in ${PKGLIST};
+	do
+		apacman --noconfirm --noedit --skipinteg -S --needed ${p}
+	done
 	apacman --gendb
 	cleanPacorigs
 fi
@@ -127,17 +147,34 @@ fi
 cleanPacorigs
 mv -f /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
 # And install arch-specific extra packages, if there are any.
-PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/packages.arch | tr '\n' ' ')
+#PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/packages.arch | tr '\n' ' ')
+PKGLIST=$(getPkgList /root/packages.arch)
 if [[ -n "${PKGLIST}" ]];
 then
-	apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	#apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	for p in ${PKGLIST};
+	do
+		apacman --noconfirm --noedit --skipinteg -S --needed ${PKGLIST}
+	done
 	apacman --gendb
 	cleanPacorigs
+fi
+# Run any arch-specific tasks here.
+if [ -f '/root/pre-build.arch.sh' ];
+then
+	cnt=$(sed -re '/^[[:space:]]*(#|$)/d' /root/pre-build.arch.sh | wc -l)
+	if [[ "${cnt}" -ge 1 ]];
+	then
+		/root/pre-build.arch.sh
+	fi
+	rm -f /root/pre-build.arch.sh
 fi
 # Cleanup
 #yes | pacman -Scc # doesn't parse yes(1) output correctly, it seems.
 # TODO: look into https://wiki.archlinux.org/index.php/Pacman/Tips_and_tricks#Removing_unused_packages_.28orphans.29
 paccache -rk0
+localepurge-config
+localepurge
 rm -f /root/.bash_history
 rm -f /root/.viminfo
 rm -f /root/apacman-*.pkg.tar.xz

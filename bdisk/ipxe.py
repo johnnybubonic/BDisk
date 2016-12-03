@@ -4,6 +4,7 @@ import jinja2
 import git
 import patch
 import OpenSSL
+import datetime
 
 
 def sslIPXE(conf):
@@ -21,7 +22,9 @@ def buildIPXE(conf):
     ipxe_src = srcdir + '/ipxe'
     ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
     patches_git_uri = 'https://github.com/eworm-de/ipxe.git'
-    print('Building iPXE in {0}. Please wait...'.format(ipxe_src))
+    print('{0}: Building iPXE in {1}. Please wait...'.format(
+                                            datetime.datetime.now(),
+                                            ipxe_src))
     # Get the source and apply some cherrypicks
     if os.path.isdir(ipxe_src):
         shutil.rmtree(ipxe_src)

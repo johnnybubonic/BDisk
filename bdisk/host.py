@@ -5,6 +5,7 @@ import re
 import configparser
 import validators
 import git
+import datetime
 from socket import getaddrinfo
 
 def getOS():
@@ -79,8 +80,9 @@ def parseConfig(conf):
     elif config_dict['build']['multiarch'] == 'i686':
         config_dict['build']['arch'] = ['i686']
     else:
-        exit(('ERROR: {0} is not a valid value. Check your configuration.').format(
-                                config_dict['build']['multiarch']))
+        exit(('{0}: ERROR: {1} is not a valid value. Check your configuration.').format(
+                                        datetime.datetime.now(),
+                                        config_dict['build']['multiarch']))
     ## VALIDATORS ##
     # Validate bootstrap mirror
     if (validators.domain(config_dict['build']['mirror']) or validators.ipv4(
@@ -89,9 +91,10 @@ def parseConfig(conf):
         try:
             getaddrinfo(config_dict['build']['mirror'], None)
         except:
-            exit(('ERROR: {0} does not resolve and cannot be used as a ' + 
+            exit(('{0}: ERROR: {1} does not resolve and cannot be used as a ' + 
                 'mirror for the bootstrap tarballs. Check your configuration.').format(
-                    config_dict['build']['host']))
+                                        datetime.datetime.now(),
+                                        config_dict['build']['host']))
     # Are we rsyncing? If so, validate the rsync host.
     # Works for IP address too. It does NOT check to see if we can
     # actually *rsync* to it; that'll come later.
@@ -102,22 +105,29 @@ def parseConfig(conf):
             try:
                 getaddrinfo(config_dict['rsync']['host'], None)
             except:
-                exit(('ERROR: {0} does not resolve and cannot be used for rsyncing.' +
-                    'Check your configuration.').format(config_dict['rsync']['host']))
+                exit(('{0}: ERROR: {1} does not resolve and cannot be used for rsyncing.' +
+                    'Check your configuration.').format(
+                                            datetime.datetime.now(),
+                                            config_dict['rsync']['host']))
         else:
-            exit(('ERROR: {0} is not a valid host and cannot be used for rsyncing.' +
-                    'Check your configuration.').format(config_dict['rsync']['host']))
+            exit(('{0}: ERROR: {1} is not a valid host and cannot be used for rsyncing.' +
+                    'Check your configuration.').format(
+                                            datetime.datetime.now(),
+                                            config_dict['rsync']['host']))
     # Validate the URI.
     if config_dict['build']['ipxe']:
         # so this won't validate e.g. custom LAN domains (https://pxeserver/bdisk.php). TODO.
         if not validators.url(config_dict['ipxe']['uri']):
             if not re.match('^https?://localhost(/.*)?$'):
-                exit('ERROR: {0} is not a valid URL/URI. Check your configuration.'.format(
-                        config_dict['ipxe']['uri']))
+                exit('{0}: ERROR: {1} is not a valid URL/URI. Check your configuration.'.format(
+                                            datetime.datetime.now(),
+                                            config_dict['ipxe']['uri']))
     # Validate required paths
     if not os.path.exists(config_dict['build']['basedir'] + '/extra'):
-        exit(("ERROR: {0} does not contain BDisk's core files!" + 
-                "Check your configuration.").format(config_dict['build']['basedir']))
+        exit(("{0}: ERROR: {1} does not contain BDisk's core files!" + 
+                "Check your configuration.").format(
+                                            datetime.datetime.now(),
+                                            config_dict['build']['basedir']))
     # Make dirs if they don't exist
     for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'tempdir'):
         os.makedirs(config_dict['build'][d], exist_ok = True)
@@ -131,10 +141,14 @@ def parseConfig(conf):
             for x in ('ssl_key', 'ssl_cakey'):
                 if config_dict['ipxe'][x]:
                     if not os.path.isfile(config_dict['ipxe'][x]):
-                        exit(('ERROR: {0} is not an existing file. Check your' +
-                                'configuration.').format(config_dict['ipxe'][x]))
+                        exit(('{0}: ERROR: {1} is not an existing file. Check your' +
+                                'configuration.').format(
+                                            datetime.datetime.now(),
+                                            config_dict['ipxe'][x]))
             if config_dict['ipxe']['ssl_ca']:
                     if not os.path.isfile(config_dict['ipxe']['ssl_ca']):
-                        exit(('ERROR: {0} is not an existing file. Check your' +
-                                'configuration.').format(config_dict['ipxe']['ssl_ca']))
+                        exit(('{0}: ERROR: {1} is not an existing file. Check your' +
+                                'configuration.').format(
+                                            datetime.datetime.now(),
+                                            config_dict['ipxe']['ssl_ca']))
     return(config, config_dict)

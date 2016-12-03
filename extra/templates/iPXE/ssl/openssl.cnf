@@ -31,3 +31,4 @@ keyUsage               = critical,cRLSign,keyCertSign
 [ codesigning ]
 keyUsage                = digitalSignature
 extendedKeyUsage        = codeSigning
+
