@@ -14,6 +14,7 @@
 -- (http://blog.due.io/2014/linode-digitalocean-and-vultr-comparison/ etc.)
 -implement pyalpm to decreate dependency on chroot pacman-ing?
 --or even maybe https://wiki.archlinux.org/index.php/offline_installation_of_packages in pure python!
+-set up automatic exporting to PDF of the user manual server-side. https://pypi.python.org/pypi/unoconv/0.6
 
 
 ## NETWORKING ##

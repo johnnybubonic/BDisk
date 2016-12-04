@@ -24,6 +24,7 @@
 *.swp
 *.lck
 *~
+.~lock.*
 /extrasrc
 
 # You should really generate local copies of these, as they're pretty private.

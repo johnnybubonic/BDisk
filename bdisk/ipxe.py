@@ -3,12 +3,32 @@ import shutil
 import jinja2
 import git
 import patch
-import OpenSSL
 import datetime
+import bSSL
 
 
 def sslIPXE(conf):
+    try:
+        ca = conf['ipxe']['ssl_ca']
+    except:
+        ca = None
+    try:
+        cakey = conf['ipxe']['ssl_cakey']
+    except:
+        cakey = None
+    try:
+        crt = conf['ipxe']['ssl_crt']
+    except:
+        crt = None
+    try:
+        key = conf['ipxe']['ssl_key']
+    except:
+        key = None
     # http://www.pyopenssl.org/en/stable/api/crypto.html#pkey-objects
+    # http://docs.ganeti.org/ganeti/2.14/html/design-x509-ca.html
+    if not cakey:
+        cakey = bSSL.sslCAKey
+
     pass
 
 def buildIPXE(conf):
@@ -34,15 +54,17 @@ def buildIPXE(conf):
     eiso_commit = '189652b03032305a2db860e76fb58e81e3420c4d'
     nopie_commit = '58557055e51b2587ad3843af58075de916e5399b'
     # patch files
-    #cwd = os.getcwd()
-    #os.chdir(ipxe_src + '/src')
     for p in ('01.git-version.patch.j2', '02.banner.patch.j2'):
         try:
             patchfile = patch.fromfile(patches_dir + '/' + p)
             patchfile.apply(strip = 2, root = ipxe_src + '/src')
         except:
             pass
-    #os.chdir(cwd)
     # Patch using the files before applying the cherrypicks
     ipxe_repo.git.cherry_pick('-n', eiso_commit)
     ipxe_repo.git.cherry_pick('-n', nopie_commit)
+    # Now we make!
+    cwd = os.getcwd()
+    os.chdir(ipxe_src + '/src')
+
+    os.chdir(cwd)
