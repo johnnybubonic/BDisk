@@ -48,8 +48,8 @@ def downloadTarball(build):
         print("\n{0}: Generating a GPG key. Please wait...".format(datetime.datetime.now()))
         # python-gnupg 0.3.9 spits this error in Arch. it's harmless, but ugly af.
         # TODO: remove this when the error doesn't happen anymore.
-        print("\tIf you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error, it can be safely ignored.")
-        print("\tIf this is taking a VERY LONG time, try installing haveged and starting it. This can be " +
+        print("\t\t\t    If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error,\n\t\t\t    it can be safely ignored.")
+        print("\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it.\n\t\t\t    This can be" +
                         "done safely in parallel with the build process.\n")
         input_data = gpg.gen_key_input(name_email = 'tempuser@nodomain.tld', passphrase = 'placeholder_passphrase')
         key = gpg.gen_key(input_data)
@@ -76,7 +76,7 @@ def downloadTarball(build):
                                                     tarball_path[a],
                                                     humanize.naturalsize(
                                                         os.path.getsize(tarball_path[a]))))
-        print("{0}: Checking that the hash checksum for {1} matches {2}, please wait...".format(
+        print("{0}: Checking that the hash checksum for {1}\n\t\t\t    matches {2}, please wait...".format(
                                                                     datetime.datetime.now(),
                                                                     tarball_path[a],
                                                                     sha1))
@@ -166,14 +166,14 @@ def buildChroot(build, keep = False):
         # and copy over the files. again, chown to root.
         for file in prebuild_overlay['files']:
             shutil.copy2(extradir + '/pre-build.d/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
-            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0)
+            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
         # do the same for arch-specific stuff.
         for dir in prebuild_arch_overlay[a]['dirs']:
             os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
             os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0)
         for file in prebuild_arch_overlay[a]['files']:
             shutil.copy2(extradir + '/pre-build.d/' + a + '/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
-            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0)
+            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
 
 def prepChroot(build, bdisk, user):
     chrootdir = build['chrootdir']

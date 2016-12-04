@@ -3,7 +3,8 @@ Description=Restoring Installed Packages DB
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/tar -Jxf /usr/local/pacman.db.tar.xz -C /var/lib/pacman/
+#ExecStart=/usr/bin/tar -Jxf /usr/local/pacman.db.tar.xz -C /var/lib/pacman/
+ExecStart=/etc/systemd/system/scripts/pacmandb.sh
 RemainAfterExit=yes
 
 [Install]

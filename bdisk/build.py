@@ -363,12 +363,6 @@ def genISO(conf):
             tempdir]
     DEVNULL = open(os.devnull, 'w')
     subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
-    #proc = subprocess.Popen(cmd, stdout = subprocess.PIPE, bufsize = 1)
-    #for line in iter(proc.stdout.readline, b''):
-    #for line in iter(proc.stdout.readline, ''):
-    #    print(line)
-    #p.stdout.close()
-    #p.wait()
     # Get size of ISO
     iso = {}
     iso['sha'] = hashlib.sha256()
@@ -386,11 +380,10 @@ def genISO(conf):
     return(iso)
 
 def displayStats(iso):
-    print('== {0} {1} =='.format(iso['type'], iso['fmt']))
+    print("{0}:\n== {1} {2} ==".format(datetime.datetime.now(), iso['type'], iso['fmt']))
     print('Size: {0}'.format(iso['size']))
     print('SHA256: {0}'.format(iso['sha']))
-    print('Location: {0}'.format(iso['file']))
-    print()
+    print('Location: {0}\n'.format(iso['file']))
 
 def cleanUp():
     # TODO: clear out all of tempdir?

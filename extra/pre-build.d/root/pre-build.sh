@@ -12,7 +12,6 @@ exec 1>/var/log/chroot_install.log 2>&1
 
 # we need this fix before anything.
 dirmngr </dev/null > /dev/null 2>&1
-locale-gen
 
 cleanPacorigs()
 {
@@ -45,7 +44,9 @@ pacman -Syy
 # Just in case.
 cleanPacorigs
 # Install some prereqs
-pacman -S --noconfirm --needed base syslinux wget rsync unzip jshon sed sudo abs xmlto bc docbook-xsl git
+pacman -S sed
+pacman -S --noconfirm --needed base syslinux wget rsync unzip jshon sudo abs xmlto bc docbook-xsl git
+locale-gen
 # And get rid of files it wants to replace
 cleanPacorigs
 # Force update all currently installed packages in case the tarball's out of date
@@ -173,6 +174,8 @@ fi
 #yes | pacman -Scc # doesn't parse yes(1) output correctly, it seems.
 # TODO: look into https://wiki.archlinux.org/index.php/Pacman/Tips_and_tricks#Removing_unused_packages_.28orphans.29
 paccache -rk0
+localepurge-config
+localepurge
 localepurge-config
 localepurge
 rm -f /root/.bash_history
