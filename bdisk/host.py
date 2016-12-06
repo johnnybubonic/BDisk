@@ -30,9 +30,11 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
     default_conf_paths = ['/etc/bdisk/build.ini',
                         '/usr/share/bdisk/build.ini',
                         '/usr/share/bdisk/extra/build.ini',
-                        '/usr/share/docs/bdisk/build.ini',
+                        '/usr/share/docs/bdisk/build.ini',  # this is the preferred installation path for packagers
+                        '/usr/local/share/docs/bdisk/build.ini',
                         '/opt/dev/bdisk/build.ini',
-                        '/opt/dev/bdisk/extra/build.ini']
+                        '/opt/dev/bdisk/extra/build.ini',
+                        '/opt/dev/bdisk/extra/dist.build.ini']
         # if we weren't given one/using the default...
     if conf_file == '/etc/bdisk/build.ini':
         if not os.path.isfile(conf_file):
@@ -42,6 +44,7 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
                     break
     else:
         conf = conf_file
+    defconf = '{0}/../extra/dist.build.ini'.format(os.path.dirname(os.path.realpath(__file__)))
     if not conf:
         # okay, so let's check for distributed/"blank" ini's
         # since we can't seem to find one.
@@ -50,13 +53,15 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
             if os.path.isfile(q):
                 conf = q
                 break
-    return(conf)
+        if os.path.isfile(default_conf_paths[4]):
+            defconf = default_conf_paths[4]
+    confs = [defconf, conf]
+    return(confs)
 
-def parseConfig(conf):
+def parseConfig(confs):
     config = configparser.ConfigParser()
     config._interpolation = configparser.ExtendedInterpolation()
-    config.read(conf)
-    bdisk_repo_dir = config['build']['basedir']
+    config.read(confs)
     # a dict makes this so much easier.
     config_dict = {s:dict(config.items(s)) for s in config.sections()}
     # Convert the booleans to pythonic booleans in the dict...
@@ -67,7 +72,7 @@ def parseConfig(conf):
     if config_dict['bdisk']['ver'] == '':
         repo = git.Repo(config_dict['build']['basedir'])
         refs = repo.git.describe(repo.head.commit).split('-')
-        config_dict['bdisk']['ver'] = refs[0] + '-' + refs[2]
+        config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[2]
     for i in ('http', 'tftp', 'rsync', 'git'):
         config_dict['sync'][i] = config['sync'].getboolean(i)
     config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')
@@ -135,20 +140,4 @@ def parseConfig(conf):
     for x in ('http', 'tftp'):
         if config_dict['sync'][x]:
             os.makedirs(config_dict[x]['path'], exist_ok = True)
-    # Hoo boy. Now we test paths for SSL in iPXE...
-    if config_dict['build']['ipxe']:
-        if config_dict['ipxe']['ssl_crt']:
-            for x in ('ssl_key', 'ssl_cakey'):
-                if config_dict['ipxe'][x]:
-                    if not os.path.isfile(config_dict['ipxe'][x]):
-                        exit(('{0}: ERROR: {1} is not an existing file. Check your' +
-                                'configuration.').format(
-                                            datetime.datetime.now(),
-                                            config_dict['ipxe'][x]))
-            if config_dict['ipxe']['ssl_ca']:
-                    if not os.path.isfile(config_dict['ipxe']['ssl_ca']):
-                        exit(('{0}: ERROR: {1} is not an existing file. Check your' +
-                                'configuration.').format(
-                                            datetime.datetime.now(),
-                                            config_dict['ipxe']['ssl_ca']))
     return(config, config_dict)

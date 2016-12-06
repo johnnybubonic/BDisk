@@ -13,87 +13,182 @@ def verifyCert(cert, key, CA = None):
     try:
         chk.check_privatekey()
     except OpenSSL.SSL.Error:
-        exit(("{0}: Key does not match certificate!".format(datetime.datetime.now())))
+        return(False)
+        exit(("{0}: {1} does not match {2}!".format(datetime.datetime.now(), key, cert)))
     else:
-        print("{0}: Key verified against certificate successfully.".format(datetime.datetime.now()))
+        print("{0}: {1} verified against {2} successfully.".format(datetime.datetime.now(), key, cert))
+        return(True)
     # This is disabled because there doesn't seem to currently be any way
     # to actually verify certificates against a given CA.
     #if CA:
     #    try:
     #        magic stuff here
 
-def sslCAKey():
-    key = OpenSSL.crypto.PKey()
-    print("{0}: Generating SSL CA key...".format(datetime.datetime.now()))
-    key.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
-    #print OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key)
+def sslCAKey(conf):
+    # TODO: use path from conf, even if it doesn't exist?
+    # if it does, read it into a pkey object
+    keyfile = conf['ipxe']['ssl_cakey']
+    if os.path.isfile(keyfile):
+        try:
+            key = OpenSSL.crypto.load_privatekey(
+                                        OpenSSL.crypto.FILETYPE_PEM,
+                                        open(keyfile).read())
+        except:
+            exit('{0}: ERROR: It seems that {1} is not a proper PEM-encoded SSL key.'.format(
+                                                            datetime.datetime.now(),
+                                                            keyfile))
+    else:
+        key = OpenSSL.crypto.PKey()
+        print("{0}: Generating SSL CA key...".format(datetime.datetime.now()))
+        key.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
+        with open(keyfile, 'wb') as f:
+            f.write(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key))
     return(key)
 
 def sslCA(conf, key = None):
+    # NOTE: 'key' is a pkey OBJECT, not a file.
+    keyfile = conf['ipxe']['ssl_cakey']
+    crtfile = conf['ipxe']['ssl_ca']
     if not key:
+        if os.path.isfile(keyfile):
+            try:
+                key = OpenSSL.crypto.load_privatekey(
+                                        OpenSSL.crypto.FILETYPE_PEM,
+                                        open(keyfile).read())
+            except:
+                exit('{0}: ERROR: It seems that {1} is not a proper PEM-encoded SSL key.'.format(
+                                                                datetime.datetime.now(),
+                                                                keyfile))
+        else:
+            exit('{0}: ERROR: We need a key to generate a CA certificate!'.format(
+                                                                datetime.datetime.now()))
+    if os.path.isfile(crtfile):
         try:
-            key = conf['ipxe']['ssl_cakey']
+            ca = OpenSSL.crypto.load_certificate(
+                                        OpenSSL.crypto.FILETYPE_PEM,
+                                        open(crtfile).read())
         except:
-            exit("{0}: Cannot find a valid CA Key to use.".format(datetime.datetime.now()))
-    domain = (re.sub('^(https?|ftp)://([a-z0-9.-]+)/?.*$', '\g<2>',
-                        conf['ipxe']['uri'],
-                        flags=re.IGNORECASE)).lower()
-    # http://www.pyopenssl.org/en/stable/api/crypto.html#pkey-objects
-    # http://docs.ganeti.org/ganeti/2.14/html/design-x509-ca.html
-    ca = OpenSSL.crypto.X509()
-    ca.set_version(3)
-    ca.set_serial_number(1)
-    ca.get_subject().CN = domain
-    ca.gmtime_adj_notBefore(0)
-    # valid for ROUGHLY 10 years. years(ish) * days * hours * mins * secs.
-    # the paramater is in seconds, which is why we need to multiply them all together.
-    ca.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)  
-    ca.set_issuer(ca.get_subject())
-    ca.set_pubkey(key)
-    ca.add_extensions([
-            OpenSSL.crypto.X509Extension("basicConstraints",
-                                        True,
-		    	                "CA:TRUE, pathlen:0"),
-            OpenSSL.crypto.X509Extension("keyUsage",
-                                        True,
-                                        "keyCertSign, cRLSign"),
-            OpenSSL.crypto.X509Extension("subjectKeyIdentifier",
-                                        False,
-                                        "hash",
-                                        subject = ca),])
-    ca.sign(key, "sha512")
-    #print OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, ca)
+            exit('{0}: ERROR: It seems that {1} is not a proper PEM-encoded SSL certificate.'.format(
+                                                                datetime.datetime.now(),
+                                                                crtfile))
+    else:
+        domain = (re.sub('^(https?|ftp)://([a-z0-9.-]+)/?.*$', '\g<2>',
+                            conf['ipxe']['uri'],
+                            flags=re.IGNORECASE)).lower()
+        # http://www.pyopenssl.org/en/stable/api/crypto.html#pkey-objects
+        # http://docs.ganeti.org/ganeti/2.14/html/design-x509-ca.html
+        ca = OpenSSL.crypto.X509()
+        ca.set_version(3)
+        ca.set_serial_number(1)
+        #ca.get_subject().CN = domain
+        ca.get_subject().CN = '{0} CA'.format(conf['bdisk']['name'])
+        ca.gmtime_adj_notBefore(0)
+        # valid for ROUGHLY 10 years. years(ish) * days * hours * mins * secs.
+        # the paramater is in seconds, which is why we need to multiply them all together.
+        ca.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)  
+        ca.set_issuer(ca.get_subject())
+        ca.set_pubkey(key)
+        ca.add_extensions([
+                OpenSSL.crypto.X509Extension(b"basicConstraints",
+                                            True,
+    		    	                b"CA:TRUE, pathlen:0"),
+                OpenSSL.crypto.X509Extension(b"keyUsage",
+                                            True,
+                                            b"keyCertSign, cRLSign"),
+                OpenSSL.crypto.X509Extension(b"subjectKeyIdentifier",
+                                            False,
+                                            b"hash",
+                                            subject = ca),])
+        ca.sign(key, "sha512")
+        with open(crtfile, 'wb') as f:
+            f.write(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, ca))
     return(ca)
 
-def sslCKey():
-    key = OpenSSL.crypto.PKey()
-    print("{0}: Generating SSL Client key...".format(datetime.datetime.now()))
-    key.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
-    #print OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key)
+def sslCKey(conf):
+    keyfile = conf['ipxe']['ssl_key']
+    if os.path.isfile(keyfile):
+        try:
+            key = OpenSSL.crypto.load_privatekey(
+                                        OpenSSL.crypto.FILETYPE_PEM,
+                                        open(keyfile).read())
+        except:
+            exit('{0}: ERROR: It seems that {1} is not a proper PEM-encoded SSL key.'.format(
+                                                    datetime.datetime.now(),
+                                                    keyfile))
+    else:
+        key = OpenSSL.crypto.PKey()
+        print("{0}: Generating SSL Client key...".format(datetime.datetime.now()))
+        key.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
+        with open(keyfile, 'wb') as f:
+            f.write(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key))
     return(key)
 
-def sslCSR(conf, key):
+def sslCSR(conf, key = None):
+    # NOTE: 'key' is a pkey OBJECT, not a file.
+    keyfile = conf['ipxe']['ssl_key']
+    crtfile = conf['ipxe']['ssl_crt']
+    if not key:
+        if os.path.isfile(keyfile):
+            try:
+                key = OpenSSL.crypto.load_privatekey(
+                                                OpenSSL.crypto.FILETYPE_PEM,
+                                                open(keyfile).read())
+            except:
+                exit('{0}: ERROR: It seems that {1} is not a proper PEM-encoded SSL key.'.format(
+                                                                datetime.datetime.now(),
+                                                                keyfile))
+        else:
+            exit('{0}: ERROR: We need a key to generate a CSR!'.format(
+                                                                datetime.datetime.now()))
     domain = (re.sub('^(https?|ftp)://([a-z0-9.-]+)/?.*$', '\g<2>',
-                        conf['ipxe']['uri'],
-                        flags=re.IGNORECASE)).lower()
+                                                        conf['ipxe']['uri'],
+                                                        flags=re.IGNORECASE)).lower()
     csr = OpenSSL.crypto.X509Req()
     csr.get_subject().CN = domain
+    #req.get_subject().countryName = 'xxx'
+    #req.get_subject().stateOrProvinceName = 'xxx'
+    #req.get_subject().localityName = 'xxx'
+    #req.get_subject().organizationName = 'xxx'
+    #req.get_subject().organizationalUnitName = 'xxx'
     csr.set_pubkey(key)
     csr.sign(key, "sha512")
-    #print OpenSSL.crypto.dump_certificate_request(OpenSSL.crypto.FILETYPE_PEM, req)
+    with open('/tmp/main.csr', 'wb') as f:
+        f.write(OpenSSL.crypto.dump_certificate_request(OpenSSL.crypto.FILETYPE_PEM, csr))
     return(csr)
 
-def sslSign(ca, key, csr):
-    ca_cert = OpenSSL.crypto.load_certificate(ca)
-    ca_key = OpenSSL.crypto.load_privatekey(key)
-    req = OpenSSL.crypto.load_certificate_request(csr)
+def sslSign(conf, ca, key, csr):
+    #ca_cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, ca)
+    #ca_key = OpenSSL.crypto.load_privatekey(key)
+    #req = OpenSSL.crypto.load_certificate_request(csr)
+    csr = OpenSSL.crypto.load_certificate_request(OpenSSL.crypto.FILETYPE_PEM,
+                                                    open("/tmp/main.csr").read())
     cert = OpenSSL.crypto.X509()
-    cert.set_subject(req.get_subject())
+    cert.set_subject(csr.get_subject())
     cert.set_serial_number(1)
     cert.gmtime_adj_notBefore(0)
     cert.gmtime_adj_notAfter(24 * 60 * 60)
-    cert.set_issuer(ca_cert.get_subject())
-    cert.set_pubkey(req.get_pubkey())
-    cert.sign(ca_key, "sha512")
-    #print OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert)
+    cert.set_issuer(ca.get_subject())
+    cert.set_pubkey(csr.get_pubkey())
+    #cert.set_pubkey(ca.get_pubkey())
+    cert.sign(key, "sha512")
+    with open(conf['ipxe']['ssl_crt'], 'wb') as f:
+        f.write(OpenSSL.crypto.dump_certificate(OpenSSL.crypto.FILETYPE_PEM, cert))
+    return(cert)
+
+def sslPKI(conf):
+    # run checks for everything, gen what's missing
+    certfile = conf['ipxe']['ssl_crt']
+    key = sslCAKey(conf)
+    ca = sslCA(conf, key = key)
+    ckey = sslCKey(conf)
+    if os.path.isfile(certfile):
+        cert = OpenSSL.crypto.load_certificate(
+                                        OpenSSL.crypto.FILETYPE_PEM,
+                                        open(certfile).read())
+        if not verifyCert(cert, ckey):
+            csr = sslCSR(conf, ckey)
+            cert = sslSign(conf, ca, key, csr)
+    else:
+        csr = sslCSR(conf, ckey)
+        cert = sslSign(conf, ca, key, csr)
     return(cert)

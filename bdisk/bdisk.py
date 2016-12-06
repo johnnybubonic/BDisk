@@ -25,4 +25,6 @@ if __name__ == '__main__':
     build.genUEFI(conf['build'], conf['bdisk'])
     fulliso = build.genISO(conf)
     build.displayStats(fulliso)
+    if conf['build']['ipxe']:
+        bSSL.sslPKI(conf)
     print('{0}: Finish.'.format(datetime.datetime.now()))
