@@ -365,25 +365,27 @@ def genISO(conf):
     subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
     # Get size of ISO
     iso = {}
-    iso['sha'] = hashlib.sha256()
+    iso['name'] = ['Main']
+    iso['Main']['sha'] = hashlib.sha256()
     with open(isopath, 'rb') as f:
         while True:
             stream = f.read(65536)  # 64kb chunks
             if not stream:
                 break
-            iso['sha'].update(stream)
-    iso['sha'] = iso['sha'].hexdigest()
-    iso['file'] = isopath
-    iso['size'] = humanize.naturalsize(os.path.getsize(isopath))
-    iso['type'] = 'Full'
-    iso['fmt'] = 'Hybrid ISO'
+            iso['Main']['sha'].update(stream)
+    iso['Main']['sha'] = iso['sha'].hexdigest()
+    iso['Main']['file'] = isopath
+    iso['Main']['size'] = humanize.naturalsize(os.path.getsize(isopath))
+    iso['Main']['type'] = 'Full'
+    iso['Main']['fmt'] = 'Hybrid ISO'
     return(iso)
 
 def displayStats(iso):
-    print("{0}:\n== {1} {2} ==".format(datetime.datetime.now(), iso['type'], iso['fmt']))
-    print('Size: {0}'.format(iso['size']))
-    print('SHA256: {0}'.format(iso['sha']))
-    print('Location: {0}\n'.format(iso['file']))
+    for i in iso['name']:
+        print("{0}:\n== {1} {2} ==".format(datetime.datetime.now(), iso[i]['type'], iso[i]['fmt']))
+        print('Size: {0}'.format(iso[i]['size']))
+        print('SHA256: {0}'.format(iso[i]['sha']))
+        print('Location: {0}\n'.format(iso[i]['file']))
 
 def cleanUp():
     # TODO: clear out all of tempdir?
