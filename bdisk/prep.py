@@ -49,7 +49,7 @@ def downloadTarball(build):
         # python-gnupg 0.3.9 spits this error in Arch. it's harmless, but ugly af.
         # TODO: remove this when the error doesn't happen anymore.
         print("\t\t\t    If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error,\n\t\t\t    it can be safely ignored.")
-        print("\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it.\n\t\t\t    This can be" +
+        print("\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it.\n\t\t\t    This can be " +
                         "done safely in parallel with the build process.\n")
         input_data = gpg.gen_key_input(name_email = 'tempuser@nodomain.tld', passphrase = 'placeholder_passphrase')
         key = gpg.gen_key(input_data)

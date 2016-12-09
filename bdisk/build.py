@@ -160,7 +160,7 @@ def genUEFI(build, bdisk):
         # This is more important than it looks.
         #sizetotal = 33553920  # The spec'd EFI binary size (32MB). It's okay to go over this though (and we do)
         # because xorriso sees it as a filesystem image and adjusts the ISO automagically.
-        sizetotal = 786432  # we start with 768KB and add to it for wiggle room
+        sizetotal = 2097152  # we start with 2MB and add to it for wiggle room
         sizefiles = ['/boot/' + bdisk['uxname'] + '.64.img',
                     '/boot/' + bdisk['uxname'] + '.64.kern',
                     '/EFI/boot/bootx64.efi',
@@ -366,6 +366,7 @@ def genISO(conf):
     # Get size of ISO
     iso = {}
     iso['name'] = ['Main']
+    iso['Main'] = {}
     iso['Main']['sha'] = hashlib.sha256()
     with open(isopath, 'rb') as f:
         while True:
@@ -373,7 +374,7 @@ def genISO(conf):
             if not stream:
                 break
             iso['Main']['sha'].update(stream)
-    iso['Main']['sha'] = iso['sha'].hexdigest()
+    iso['Main']['sha'] = iso['Main']['sha'].hexdigest()
     iso['Main']['file'] = isopath
     iso['Main']['size'] = humanize.naturalsize(os.path.getsize(isopath))
     iso['Main']['type'] = 'Full'
@@ -382,10 +383,10 @@ def genISO(conf):
 
 def displayStats(iso):
     for i in iso['name']:
-        print("{0}:\n== {1} {2} ==".format(datetime.datetime.now(), iso[i]['type'], iso[i]['fmt']))
-        print('Size: {0}'.format(iso[i]['size']))
-        print('SHA256: {0}'.format(iso[i]['sha']))
-        print('Location: {0}\n'.format(iso[i]['file']))
+        print("{0}: == {1} {2} ==".format(datetime.datetime.now(), iso[i]['type'], iso[i]['fmt']))
+        print('\t\t\t    = Size: {0}'.format(iso[i]['size']))
+        print('\t\t\t    = SHA256: {0}'.format(iso[i]['sha']))
+        print('\t\t\t    = Location: {0}\n'.format(iso[i]['file']))
 
 def cleanUp():
     # TODO: clear out all of tempdir?

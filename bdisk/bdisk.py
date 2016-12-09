@@ -4,6 +4,8 @@ import prep
 import bchroot
 import build
 import datetime
+import bSSL
+import ipxe
 
 # we need to:
 # we also need to figure out how to implement "mentos" (old bdisk) like functionality, letting us reuse an existing chroot install if possible to save time for future builds.
@@ -27,4 +29,6 @@ if __name__ == '__main__':
     build.displayStats(fulliso)
     if conf['build']['ipxe']:
         bSSL.sslPKI(conf)
+        iso = ipxe.buildIPXE(conf)
+        build.displayStats(iso)
     print('{0}: Finish.'.format(datetime.datetime.now()))

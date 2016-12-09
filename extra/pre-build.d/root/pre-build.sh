@@ -44,7 +44,7 @@ pacman -Syy
 # Just in case.
 cleanPacorigs
 # Install some prereqs
-pacman -S sed
+pacman -S --noconfirm --needed sed
 pacman -S --noconfirm --needed base syslinux wget rsync unzip jshon sudo abs xmlto bc docbook-xsl git
 locale-gen
 # And get rid of files it wants to replace
@@ -69,7 +69,7 @@ cleanPacorigs
 # Install multilib-devel if we're in an x86_64 chroot.
 if $(egrep -q '^\[multilib' /etc/pacman.conf);
 then
-	pacman --noconfirm -Rdd gcc gcc-libs libtool
+	yes 'y' | pacman -S --needed gcc-multilib lib32-fakeroot lib32-libltdl
 	pacman --noconfirm -S --needed multilib-devel
 	cleanPacorigs
 	TGT_ARCH='x86_64'
