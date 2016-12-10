@@ -10,7 +10,7 @@ import subprocess
 def http(conf):
     http = conf['http']
     build = conf['build']
-    tempdir = conf['tempdir']
+    tempdir = build['tempdir']
     arch = build['arch']
     bdisk = conf['bdisk']
     if conf['sync']['http']:
@@ -45,7 +45,9 @@ def http(conf):
         # and now the magic.
         for k in httpfiles.keys():
             destpath = httpfiles[k]
-            os.makedirs(os.path.split('{0}/{1}'.format(tempdir, destpath))[0], exist_ok = True)
+            fulldest = '{0}/{1}'.format(httpdir, destpath)
+            parentdir = os.path.split(fulldest)[0]
+            os.makedirs(parentdir, exist_ok = True)
             shutil.copy2('{0}/{1}'.format(tempdir, k), '{0}/{1}'.format(httpdir, httpfiles[k]))
         for root, dirs, files in os.walk(httpdir):
             for d in dirs:
@@ -57,7 +59,7 @@ def tftp(conf):
     # TODO: pxelinux cfg
     tftp = conf['tftp']
     build = conf['build']
-    tempdir = conf['build']
+    tempdir = build['tempdir']
     arch = build['arch']
     bdisk = conf['bdisk']
     if conf['sync']['tftp']:
@@ -91,7 +93,9 @@ def tftp(conf):
         # and now the magic.
         for k in tftpfiles.keys():
             destpath = tftpfiles[k]
-            os.makedirs(os.path.split('{0}/{1}'.format(tempdir, destpath))[0], exist_ok = True)
+            fulldest = '{0}/{1}'.format(tftpdir, destpath)
+            parentdir = os.path.split(fulldest)[0]
+            os.makedirs(parentdir, exist_ok = True)
             shutil.copy2('{0}/{1}'.format(tempdir, k), '{0}/{1}'.format(tftpdir, tftpfiles[k]))
         for root, dirs, files in os.walk(tftpdir):
             for d in dirs:
