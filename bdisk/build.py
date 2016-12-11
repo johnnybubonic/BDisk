@@ -28,7 +28,7 @@ def genImg(build, bdisk):
         airoot = archboot + '/' + a + '/'
         squashimg = airoot + 'airootfs.sfs'
         os.makedirs(airoot, exist_ok = True)
-        print("{0}: Generating squashed filesystem image for {1}. Please wait...".format(
+        print("{0}: [BUILD] Squashing filesystem ({1})...".format(
                                                 datetime.datetime.now(),
                                                 chrootdir + '/root.' + a))
         # TODO: use stdout and -progress if debugging is enabled. the below subprocess.call() just redirects to
@@ -41,13 +41,13 @@ def genImg(build, bdisk):
                 '-noappend',
                 '-comp', 'xz']
         subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
-        print("{0}: Generated {1} ({2}).".format(
+        print("{0}: [BUILD] Generated {1} ({2}).".format(
                                             datetime.datetime.now(),
                                             squashimg,
                                             humanize.naturalsize(
                                                 os.path.getsize(squashimg))))
         # Generate the checksum files
-        print("{0}: Generating SHA256 and MD5 hash checksum files for {1}. Please wait...".format(
+        print("{0}: [BUILD] Generating SHA256, MD5 checksums ({1})...".format(
                                                 datetime.datetime.now(),
                                                 squashimg))
         hashes['sha256'][a] = hashlib.sha256()
@@ -64,7 +64,7 @@ def genImg(build, bdisk):
             f.write("{0}  airootfs.sfs".format(hashes['sha256'][a].hexdigest()))
         with open(airoot + 'airootfs.md5', 'w+') as f:
             f.write("{0}  airootfs.sfs".format(hashes['md5'][a].hexdigest()))
-        print("{0}: Hash checksums complete.".format(datetime.datetime.now()))
+        print("{0}: [BUILD] Hash checksums complete.".format(datetime.datetime.now()))
         # Logo
         os.makedirs(tempdir + '/boot', exist_ok = True)
         if not os.path.isfile('{0}/extra/{1}.png'.format(basedir, bdisk['uxname'])):
@@ -101,7 +101,7 @@ def genUEFI(build, bdisk):
         # For UEFI 2.3+ (http://sourceforge.net/apps/mediawiki/tianocore/index.php?title=UEFI_Shell)
         if not os.path.isfile(tempdir + '/EFI/shellx64_v2.efi'):
             shell2_path = tempdir + '/EFI/shellx64_v2.efi'
-            print("{0}: You are missing {1}. We'll download it for you.".format(datetime.datetime.now(), shell2_path))
+            print("{0}: [BUILD] Warning: You are missing {1}. Fetching...".format(datetime.datetime.now(), shell2_path))
             shell2_url = 'https://raw.githubusercontent.com/tianocore/edk2/master/ShellBinPkg/UefiShell/X64/Shell.efi'
             shell2_fetch = urlopen(shell2_url)
             with open(shell2_path, 'wb+') as dl:
@@ -111,13 +111,13 @@ def genUEFI(build, bdisk):
         # TODO: is there an Arch package for this? can we just install that in the chroot and copy the shell binaries?
         if not os.path.isfile(tempdir + '/EFI/shellx64_v1.efi'):
             shell1_path = tempdir + '/EFI/shellx64_v1.efi'
-            print("{0}: You are missing {1}. We'll download it for you.".format(datetime.datetime.now(), shell1_path))
+            print("{0}: [BUILD] Warning: You are missing {1}. Fetching...".format(datetime.datetime.now(), shell1_path))
             shell1_url = 'https://raw.githubusercontent.com/tianocore/edk2/master/EdkShellBinPkg/FullShell/X64/Shell_Full.efi'
             shell1_fetch = urlopen(shell1_url)
             with open(shell1_path, 'wb+') as dl:
                 dl.write(shell1_fetch.read())
             shell1_fetch.close()
-        print("{0}: Configuring UEFI bootloading...".format(datetime.datetime.now()))
+        print("{0}: [BUILD] Building UEFI support...".format(datetime.datetime.now()))
         ## But wait! That's not all! We need more binaries.
         # http://blog.hansenpartnership.com/linux-foundation-secure-boot-system-released/
         shim_url = 'http://blog.hansenpartnership.com/wp-uploads/2013/'
@@ -176,7 +176,7 @@ def genUEFI(build, bdisk):
                 fname = os.path.join(path, file)
                 sizetotal += os.path.getsize(fname)
         # And now we create the EFI binary filesystem image/binary...
-        print("{0}: Creating a {1} EFI ESP image at {2}. Please wait...".format(
+        print("{0}: [BUILD] Creating EFI ESP image {2} ({1})...".format(
                                         datetime.datetime.now(),
                                         humanize.naturalsize(sizetotal),
                                         efiboot_img))
@@ -239,7 +239,7 @@ def genUEFI(build, bdisk):
         cmd = ['/bin/umount', mountpt]
         subprocess.call(cmd)
         efisize = humanize.naturalsize(os.path.getsize(efiboot_img))
-        print('{0}: Built EFI binary.'.format(datetime.datetime.now()))
+        print('{0}: [BUILD] Built EFI binary.'.format(datetime.datetime.now()))
         return(efiboot_img)
 
 def genISO(conf):
@@ -257,7 +257,10 @@ def genISO(conf):
     syslinuxdir = build['chrootdir'] + '/root.' + arch[0] + '/usr/lib/syslinux/bios/'
     sysl_tmp = tempdir + '/isolinux/'
     ver = bdisk['ver']
-    isofile = '{0}-{1}.iso'.format(bdisk['uxname'], bdisk['ver'])
+    if len(arch) == 1:
+        isofile = '{0}-{1}-{2}.iso'.format(bdisk['uxname'], bdisk['ver'], arch[0])
+    else:
+        isofile = '{0}-{1}.iso'.format(bdisk['uxname'], bdisk['ver'])
     isopath = build['isodir'] + '/' + isofile
     arch = build['arch']
     # In case we're building a single-arch ISO...
@@ -288,7 +291,7 @@ def genISO(conf):
             usbfile = '{0}-{1}-mini.usb.img'.format(bdisk['uxname'], bdisk['ver'])
             minipath = build['isodir'] + '/' + usbfile
     # Copy isolinux files
-    print("{0}: Staging some files for ISO preparation. Please wait...".format(datetime.datetime.now()))
+    print("{0}: [BUILD] Staging ISO preparation...".format(datetime.datetime.now()))
     isolinux_files = ['isolinux.bin',
                     'vesamenu.c32',
                     'linux.c32',
@@ -317,7 +320,7 @@ def genISO(conf):
         f.write(tpl_out)
     # And we need to build the ISO!
     # TODO: only include UEFI support if we actually built it!
-    print("{0}: Generating the full ISO at {1}. Please wait.".format(datetime.datetime.now(), isopath))
+    print("{0}: [BUILD] Building full ISO ({1})...".format(datetime.datetime.now(), isopath))
     if efi:
         cmd = ['/usr/bin/xorriso',
             '-as', 'mkisofs',
@@ -383,10 +386,10 @@ def genISO(conf):
 
 def displayStats(iso):
     for i in iso['name']:
-        print("{0}: == {1} {2} ==".format(datetime.datetime.now(), iso[i]['type'], iso[i]['fmt']))
+        print("{0}:\t\t\t    == {1} {2} ==".format(datetime.datetime.now(), iso[i]['type'], iso[i]['fmt']))
         print('\t\t\t    = Size: {0}'.format(iso[i]['size']))
         print('\t\t\t    = SHA256: {0}'.format(iso[i]['sha']))
-        print('\t\t\t    = Location: {0}\n'.format(iso[i]['file']))
+        print('\t\t\t    = Location: {0}'.format(iso[i]['file']))
 
 def cleanUp():
     # TODO: clear out all of tempdir?

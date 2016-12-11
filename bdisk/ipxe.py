@@ -30,7 +30,7 @@ def buildIPXE(conf):
     mini_file = '{0}{1}'.format(img_path, ipxe_mini)
     ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
     patches_git_uri = 'https://github.com/eworm-de/ipxe.git'
-    print('{0}: Preparing and fetching sources for iPXE. Please wait...'.format(
+    print('{0}: [IPXE] Prep/fetch sources...'.format(
                                         datetime.datetime.now()))
     # Get the source and apply some cherrypicks
     if os.path.isdir(ipxe_src):
@@ -110,8 +110,8 @@ def buildIPXE(conf):
     DEVNULL = open(os.devnull, 'w')
     if os.path.isfile(build['dlpath'] + '/ipxe.log'):
         os.remove(build['dlpath'] + '/ipxe.log')
-    print(('{0}: Building iPXE in {1}. Please wait...\n\t\t\t    You can view progress' +
-            ' via:\n\t\t\t    tail -f {2}/ipxe.log').format(
+    print(('{0}: [IPXE] Building iPXE ({1})...\n\t\t\t    PROGRESS: ' +
+            'tail -f {2}/ipxe.log').format(
                                             datetime.datetime.now(),
                                             ipxe_src,
                                             build['dlpath']))
@@ -125,7 +125,7 @@ def buildIPXE(conf):
     with open('{0}/ipxe.log'.format(build['dlpath']), 'a') as f:
         subprocess.call(build_cmd['efi'], stdout = f, stderr = subprocess.STDOUT, env=modenv)
         subprocess.call(build_cmd['img'], stdout = f, stderr = subprocess.STDOUT, env=modenv)
-    print('{0}: Built iPXE image(s) successfully.'.format(datetime.datetime.now()))
+    print('{0}: [IPXE] Built iPXE image(s) successfully.'.format(datetime.datetime.now()))
     os.chdir(cwd)
     # move the files to the results dir
     os.rename('{0}/src/bin/ipxe.usb'.format(ipxe_src), usb_file)

@@ -45,15 +45,15 @@ def downloadTarball(build):
     if build['mirrorgpgsig'] != '':
         # we don't want to futz with the user's normal gpg.
         gpg = gnupg.GPG(gnupghome = dlpath + '/.gnupg')
-        print("\n{0}: Generating a GPG key. Please wait...".format(datetime.datetime.now()))
+        print("\n{0}: [PREP] Generating a GPG key...".format(datetime.datetime.now()))
         # python-gnupg 0.3.9 spits this error in Arch. it's harmless, but ugly af.
         # TODO: remove this when the error doesn't happen anymore.
         print("\t\t\t    If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error,\n\t\t\t    it can be safely ignored.")
         print("\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it.\n\t\t\t    This can be " +
                         "done safely in parallel with the build process.\n")
         input_data = gpg.gen_key_input(name_email = 'tempuser@nodomain.tld', passphrase = 'placeholder_passphrase')
-        key = gpg.gen_key(input_data)
-        keyid = build['gpgkey']
+        key = gpg.gen_key(input_data)  # this gives the "error"
+        keyid = build['gpgkey']  # this gives the "error" as well
         gpg.recv_keys(build['gpgkeyserver'], keyid)
     for a in arch:
         pattern = re.compile('^.*' + a + '\.tar(\.(gz|bz2|xz))?$')
@@ -63,26 +63,26 @@ def downloadTarball(build):
             pass
         else:
             # fetch the tarball...
-            print("{0}: Fetching the tarball for {1} architecture, please wait...".format(
-                                                                    datetime.datetime.now(),
-                                                                    a))
+            print("{0}: [PREP] Fetching tarball ({1} architecture)...".format(
+                                                            datetime.datetime.now(),
+                                                            a))
             #dl_file = urllib.URLopener()
             tarball_dl = urlopen(rlsdir + tarball)
             with open(tarball_path[a], 'wb') as f:
                 f.write(tarball_dl.read())
             tarball_dl.close()
-            print("{0}: Done fetching {1} ({2}).".format(
+            print("{0}: [PREP] Done fetching {1} ({2}).".format(
                                                     datetime.datetime.now(),
                                                     tarball_path[a],
                                                     humanize.naturalsize(
                                                         os.path.getsize(tarball_path[a]))))
-        print("{0}: Checking that the hash checksum for {1}\n\t\t\t    matches {2}, please wait...".format(
-                                                                    datetime.datetime.now(),
-                                                                    tarball_path[a],
-                                                                    sha1))
+        print("{0}: [PREP] Checking hash checksum {1} against {2}...".format(
+                                                    datetime.datetime.now(),
+                                                    sha1,
+                                                    tarball_path[a]))
         tarball_hash = hashlib.sha1(open(tarball_path[a], 'rb').read()).hexdigest()
         if tarball_hash != sha1:
-            exit(("{0}: {1} either did not download correctly or a wrong (probably old) version exists on the filesystem.\n" +
+            exit(("{0}: {1} either did not download correctly\n\t\t\t    or a wrong (probably old) version exists on the filesystem.\n\t\t\t    " +
                                 "Please delete it and try again.").format(datetime.datetime.now(), tarball))
         elif build['mirrorgpgsig'] != '':
             # okay, so the sha1 matches. let's verify the signature.
@@ -121,7 +121,7 @@ def unpackTarball(tarball_path, build, keep = False):
     # Open and extract the tarball
     if not keep:
         for a in build['arch']:
-            print("{0}: Extracting tarball {1} ({2}). Please wait...".format(
+            print("{0}: [PREP] Extracting tarball {1} ({2}). Please wait...".format(
                                                                     datetime.datetime.now(),
                                                                     tarball_path[a],
                                                                     humanize.naturalsize(
@@ -129,7 +129,7 @@ def unpackTarball(tarball_path, build, keep = False):
             tar = tarfile.open(tarball_path[a], 'r:gz')
             tar.extractall(path = chrootdir)
             tar.close()
-            print("{0}: Extraction for {1} finished.".format(datetime.datetime.now(), tarball_path[a]))
+            print("{0}: [PREP] Extraction for {1} finished.".format(datetime.datetime.now(), tarball_path[a]))
 
 def buildChroot(build, keep = False):
     dlpath = build['dlpath']

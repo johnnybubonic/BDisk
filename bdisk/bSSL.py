@@ -16,7 +16,7 @@ def verifyCert(cert, key, CA = None):
         return(False)
         exit(("{0}: {1} does not match {2}!".format(datetime.datetime.now(), key, cert)))
     else:
-        print("{0}: {1} verified against {2} successfully.".format(datetime.datetime.now(), key, cert))
+        print("{0}: [SSL] Verified {1} against {2} successfully.".format(datetime.datetime.now(), key, cert))
         return(True)
     # This is disabled because there doesn't seem to currently be any way
     # to actually verify certificates against a given CA.
@@ -39,7 +39,7 @@ def sslCAKey(conf):
                                                             keyfile))
     else:
         key = OpenSSL.crypto.PKey()
-        print("{0}: Generating SSL CA key...".format(datetime.datetime.now()))
+        print("{0}: [SSL] Generating SSL CA key...".format(datetime.datetime.now()))
         key.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
         with open(keyfile, 'wb') as f:
             f.write(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key))
@@ -117,7 +117,7 @@ def sslCKey(conf):
                                                     keyfile))
     else:
         key = OpenSSL.crypto.PKey()
-        print("{0}: Generating SSL Client key...".format(datetime.datetime.now()))
+        print("{0}: [SSL] Generating SSL Client key...".format(datetime.datetime.now()))
         key.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
         with open(keyfile, 'wb') as f:
             f.write(OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM, key))
@@ -177,6 +177,8 @@ def sslSign(conf, ca, key, csr):
 
 def sslPKI(conf):
     # run checks for everything, gen what's missing
+    ssldir = conf['ipxe']['ssldir']
+    os.makedirs(ssldir, exist_ok = True)
     certfile = conf['ipxe']['ssl_crt']
     key = sslCAKey(conf)
     ca = sslCA(conf, key = key)

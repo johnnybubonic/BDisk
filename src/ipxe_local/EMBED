@@ -1,8 +1,0 @@
-#!ipxe
-
-dhcp
-## TODO: signed kernel and initrd
-#imgtrust --permanent
-#imgverify vmlinuz path/to/vmlinuz.sig
-#imgverify initrd path/to/initrd.sig
-chain https://bdisk.square-r00t.net

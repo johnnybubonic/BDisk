@@ -95,8 +95,10 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     for m in ('chroot', 'resolv', 'proc', 'sys', 'efi', 'dev', 'pts', 'shm', 'run', 'tmp'):
         if cmounts[m]:
             subprocess.call(cmounts[m])
-    print("{0}: Performing '{1}' in chroot for {2}...".format(datetime.datetime.now(), cmd, chrootdir))
-    print("\t\t\t    You can view the progress via:\n\t\t\t    tail -f {0}/var/log/chroot_install.log".format(chrootdir))
+    print("{0}: [CHROOT] Running '{1}' ({2}). PROGRESS: tail -f {2}/var/log/chroot_install.log ...".format(
+                                                    datetime.datetime.now(),
+                                                    cmd,
+                                                    chrootdir))
     real_root = os.open("/", os.O_RDONLY)
     os.chroot(chrootdir)
     os.system('/root/pre-build.sh')
@@ -119,21 +121,21 @@ def chrootTrim(build):
             tarball = '{0}/root.{1}/usr/local/{2}/{2}.db.tar.xz'.format(chrootdir, a, i)
             dbdir = '{0}/root.{1}/var/lib/{2}/local'.format(chrootdir, a, i)
             if os.path.isdir(dbdir):
-                print("{0}: Now compressing the {1} cache ({2}). Please wait...".format(
-                                                                datetime.datetime.now(),
-                                                                chrootdir,
-                                                                a))
+                print("{0}: [CHROOT] Compressing {1}'s cache ({2})...".format(
+                                                        datetime.datetime.now(),
+                                                        chrootdir,
+                                                        a))
                 if os.path.isfile(tarball):
                     os.remove(tarball)
                 with tarfile.open(name = tarball, mode = 'w:xz') as tar:  # if this complains, use x:xz instead
                     tar.add(dbdir, arcname = os.path.basename(dbdir))
                 shutil.rmtree(dbdir, ignore_errors = True)
-                print("{0}: Done creating {1} ({2}).\n\t\t\t    {3} cleared.".format(
-                                                                    datetime.datetime.now(),
-                                                                    tarball,
-                                                                    humanize.naturalsize(
-                                                                        os.path.getsize(tarball)),
-                                                                    dbdir))
+                print("{0}: [CHROOT] Created {1} ({2}). {3} cleared.".format(
+                                                        datetime.datetime.now(),
+                                                        tarball,
+                                                        humanize.naturalsize(
+                                                            os.path.getsize(tarball)),
+                                                        dbdir))
         # TODO: move the self-cleanup in pre-build.sh to here.
         delme = ['/root/.gnupg',
                 '/root/.bash_history',
