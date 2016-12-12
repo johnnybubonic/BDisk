@@ -110,8 +110,7 @@ def buildIPXE(conf):
     DEVNULL = open(os.devnull, 'w')
     if os.path.isfile(build['dlpath'] + '/ipxe.log'):
         os.remove(build['dlpath'] + '/ipxe.log')
-    print(('{0}: [IPXE] Building iPXE ({1})...\n\t\t\t    PROGRESS: ' +
-            'tail -f {2}/ipxe.log').format(
+    print(('{0}: [IPXE] Building iPXE ({1})... PROGRESS: tail -f {2}/ipxe.log ...').format(
                                             datetime.datetime.now(),
                                             ipxe_src,
                                             build['dlpath']))

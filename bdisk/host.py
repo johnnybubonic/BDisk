@@ -2,6 +2,7 @@ import os
 import sys
 import platform
 import re
+import glob
 import configparser
 import validators
 import git
@@ -75,6 +76,22 @@ def parseConfig(confs):
         config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[2]
     for i in ('http', 'tftp', 'rsync', 'git'):
         config_dict['sync'][i] = config['sync'].getboolean(i)
+    # And the build number.
+    # TODO: support tracking builds per version. i.e. in buildnum:
+    # v2.51r13:0
+    # v2.51r17:3
+    if os.path.isfile(config_dict['build']['dlpath'] + '/buildnum'):
+        with open(config_dict['build']['dlpath'] + '/buildnum', 'r') as f:
+            config_dict['build']['buildnum'] = int(f.readlines()[0])
+    else:
+        config_dict['build']['buildnum'] = 0
+    # But logically we should start the build over at 0 if we don't have any existing ISO's.
+    if os.path.isdir(config_dict['build']['isodir']):
+        if os.listdir(config_dict['build']['isodir']) == []:
+            conf_dict['build']['buildnum'] = 0
+        # ...or if we don't have any previous builds for this ISO version.
+        elif not glob.glob('{0}/*v{1}r*.iso'.format(config_dict['build']['isodir'], config_dict['build']['ver'])):
+            config_dict['build']['buildnum'] = 0
     config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')
     config_dict['ipxe']['usb'] = config['ipxe'].getboolean('usb')
     # and build a list of arch(es) we want to build

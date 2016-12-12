@@ -191,15 +191,6 @@ def prepChroot(build, bdisk, user):
     build['user'] = os.environ['USER']
     if 'SUDO_USER' in os.environ:
         build['realuser'] = os.environ['SUDO_USER']
-    # Get the build number...
-    # TODO: support tracking builds per version. i.e. in buildnum:
-    # v2.51-g7381cc3:0
-    # v2.51-gb3bb039:3
-    if os.path.isfile(dlpath + '/buildnum'):
-        with open(dlpath + '/buildnum', 'r') as f:
-            build['buildnum'] = int(f.readlines()[0])
-    else:
-        build['buildnum'] = 0
     build['buildnum'] += 1
     with open(dlpath + '/buildnum', 'w+') as f:
         f.write(str(build['buildnum']) + "\n")

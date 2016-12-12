@@ -386,7 +386,7 @@ def genISO(conf):
 
 def displayStats(iso):
     for i in iso['name']:
-        print("{0}:\t\t\t    == {1} {2} ==".format(datetime.datetime.now(), iso[i]['type'], iso[i]['fmt']))
+        print("{0}: == {1} {2} ==".format(datetime.datetime.now(), iso[i]['type'], iso[i]['fmt']))
         print('\t\t\t    = Size: {0}'.format(iso[i]['size']))
         print('\t\t\t    = SHA256: {0}'.format(iso[i]['sha']))
         print('\t\t\t    = Location: {0}'.format(iso[i]['file']))
