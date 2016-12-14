@@ -138,7 +138,7 @@ def rsync(conf):
                 '-z',
                 locpath,
                 '{0}@{1}:{2}/.'.format(user, server, path)]
-        #if sync['http']:
+        #if sync['http']:  # TODO: rsync:http to enable this
         #    cmd[4] = conf['http']['path']
         #    print('{0}: Syncing {1} to {2}. Please wait...'.format(
         #                                            datetime.datetime.now(),
@@ -161,12 +161,13 @@ def rsync(conf):
             subprocess.call(cmd)
             cmd[4] = '{0}/boot'.format(build['tempdir'])
             subprocess.call(cmd)
-        cmd[4] = isodir
-        print('{0}: [RSYNC] {1} => {2}...'.format(
-                                            datetime.datetime.now(),
-                                            cmd[4],
-                                            server))
-        subprocess.call(cmd)
+        if conf['rsync']['iso']:
+            cmd[4] = isodir
+            print('{0}: [RSYNC] {1} => {2}...'.format(
+                                                datetime.datetime.now(),
+                                                cmd[4],
+                                                server))
+            subprocess.call(cmd)
         # Now we copy some extra files.
         prebuild_dir = '{0}/extra/pre-build.d'.format(build['basedir'])
         rsync_files = ['{0}/VERSION_INFO.txt'.format(tempdir),
@@ -174,15 +175,8 @@ def rsync(conf):
                         '{0}/root/iso.pkgs.both'.format(prebuild_dir)]
         for x in rsync_files:
             cmd[4] = x
-            print('{0}: [RSYNC] {1} => {2}...'.format(
-                                                datetime.datetime.now(),
-                                                cmd[4],
-                                                server))
             subprocess.call(cmd)
         # And we grab the remaining, since we need to rename them.
-        print('{0}: [RSYNC] (Informational files) => {1}...'.format(
-                                                    datetime.datetime.now(),
-                                                    server))
         for a in arch:
             cmd[4] = '{0}/{1}/root/packages.arch'.format(prebuild_dir, a)
             cmd[5] = '{0}@{1}:{2}/packages.{3}'.format(user, server, path, a)

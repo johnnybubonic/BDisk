@@ -56,7 +56,7 @@ then
  echo -n "${DEFROUTEIF} (${HWADDR}) is: ${IPADDR}"
 fi
 echo
-echo  -n "tun0 is:"
+echo  -n "tun0 is: "
 ifconfig tun0 | grep inet | grep -v "inet6" | awk '{print $2}'
 echo
 echo "http://bdisk.square-r00t.net/"

@@ -4,13 +4,16 @@ import shutil
 import glob
 import subprocess
 import hashlib
+import gnupg
 import jinja2
 import humanize
 import datetime
 from urllib.request import urlopen
 
 
-def genImg(build, bdisk):
+def genImg(conf):
+    bdisk = conf['bdisk']
+    build = conf['build']
     arch = build['arch']
     chrootdir = build['chrootdir']
     archboot = build['archboot']
@@ -19,6 +22,7 @@ def genImg(build, bdisk):
     hashes = {}
     hashes['sha256'] = {}
     hashes['md5'] = {}
+    squashfses = []
     for a in arch:
         if a == 'i686':
             bitness = '32'
@@ -64,6 +68,7 @@ def genImg(build, bdisk):
             f.write("{0}  airootfs.sfs".format(hashes['sha256'][a].hexdigest()))
         with open(airoot + 'airootfs.md5', 'w+') as f:
             f.write("{0}  airootfs.sfs".format(hashes['md5'][a].hexdigest()))
+        squashfses.append('{0}'.format(squashimg))
         print("{0}: [BUILD] Hash checksums complete.".format(datetime.datetime.now()))
         # Logo
         os.makedirs(tempdir + '/boot', exist_ok = True)
@@ -79,6 +84,8 @@ def genImg(build, bdisk):
         bootfiles['initrd'] = ['initramfs-linux-{0}.img'.format(bdisk['name']), '{0}.{1}.img'.format(bdisk['uxname'], bitness)]
         for x in ('kernel', 'initrd'):
             shutil.copy2('{0}/root.{1}/boot/{2}'.format(chrootdir, a, bootfiles[x][0]), '{0}/boot/{1}'.format(tempdir, bootfiles[x][1]))
+    for i in squashfses:
+        signIMG(i, conf)
 
 
 def genUEFI(build, bdisk):
@@ -258,9 +265,9 @@ def genISO(conf):
     sysl_tmp = tempdir + '/isolinux/'
     ver = bdisk['ver']
     if len(arch) == 1:
-        isofile = '{0}-{1}-{2}.iso'.format(bdisk['uxname'], bdisk['ver'], arch[0])
+        isofile = '{0}-{1}-{2}-{3}.iso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'], arch[0])
     else:
-        isofile = '{0}-{1}.iso'.format(bdisk['uxname'], bdisk['ver'])
+        isofile = '{0}-{1}-{2}.iso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
     isopath = build['isodir'] + '/' + isofile
     arch = build['arch']
     # In case we're building a single-arch ISO...
@@ -383,6 +390,36 @@ def genISO(conf):
     iso['Main']['type'] = 'Full'
     iso['Main']['fmt'] = 'Hybrid ISO'
     return(iso)
+
+def signIMG(file, conf):
+    if conf['build']['gpg']:
+        # If we enabled GPG signing, we need to figure out if we
+        # are using a personal key or the automatically generated one.
+        if conf['gpg']['mygpghome'] != '':
+            gpghome = conf['gpg']['mygpghome']
+        else:
+            gpghome = conf['build']['dlpath'] + '/.gnupg'
+        if conf['gpg']['mygpgkey'] != '':
+            keyid = conf['gpg']['mygpgkey']
+        else:
+            keyid = False
+        gpg = gnupg.GPG(gnupghome = gpghome, use_agent = True)
+        # And if we didn't specify one manually, we'll pick the first one we find.
+        # This way we can use the automatically generated one from prep.
+        if not keyid:
+            keyid = gpg.list_keys(True)[0]['keyid']
+        print('{0}: [BUILD] Signing {1} with {2}...'.format(
+                                        datetime.datetime.now(),
+                                        file,
+                                        keyid))
+        # TODO: remove this warning when upstream python-gnupg fixes
+        print('\t\t\t    If you see a "ValueError: Unknown status message: \'KEY_CONSIDERED\'" error, ' +
+                'it can be safely ignored.')
+        print('\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it. ' +
+                'This can be done safely in parallel with the build process.')
+        with open(file, 'rb') as fh:
+            gpg.sign_file(fh, keyid = keyid, detach = True,
+                            clearsign = False, output = '{0}.sig'.format(file))
 
 def displayStats(iso):
     for i in iso['name']:

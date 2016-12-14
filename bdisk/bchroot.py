@@ -105,6 +105,8 @@ def chroot(chrootdir, chroot_hostname, cmd = '/root/pre-build.sh'):
     os.fchdir(real_root)
     os.chroot('.')
     os.close(real_root)
+    if not os.path.isfile('{0}/sbin/init'.format(chrootdir)):
+        os.symlink('../lib/systemd/systemd', '{0}/sbin/init'.format(chrootdir))
     return(chrootdir)
 
 def chrootUnmount(chrootdir):
@@ -123,8 +125,8 @@ def chrootTrim(build):
             if os.path.isdir(dbdir):
                 print("{0}: [CHROOT] Compressing {1}'s cache ({2})...".format(
                                                         datetime.datetime.now(),
-                                                        chrootdir,
-                                                        a))
+                                                        chrootdir + '/root.' + a,
+                                                        i))
                 if os.path.isfile(tarball):
                     os.remove(tarball)
                 with tarfile.open(name = tarball, mode = 'w:xz') as tar:  # if this complains, use x:xz instead
@@ -136,6 +138,9 @@ def chrootTrim(build):
                                                         humanize.naturalsize(
                                                             os.path.getsize(tarball)),
                                                         dbdir))
+        for d in ('etc/pacman.d/gnupg', 'var/empty/.gnupg'):
+            if os.path.isdir('{0}/root.{1}/{2}'.format(chrootdir, a, d)):
+                shutil.rmtree('{0}/root.{1}/{2}'.format(chrootdir, a, d))
         # TODO: move the self-cleanup in pre-build.sh to here.
         delme = ['/root/.gnupg',
                 '/root/.bash_history',

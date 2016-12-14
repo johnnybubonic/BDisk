@@ -45,11 +45,11 @@ def downloadTarball(build):
     if build['mirrorgpgsig'] != '':
         # we don't want to futz with the user's normal gpg.
         gpg = gnupg.GPG(gnupghome = dlpath + '/.gnupg')
-        print("\n{0}: [PREP] Generating a GPG key...".format(datetime.datetime.now()))
+        print("{0}: [PREP] Generating a GPG key...".format(datetime.datetime.now()))
         # python-gnupg 0.3.9 spits this error in Arch. it's harmless, but ugly af.
         # TODO: remove this when the error doesn't happen anymore.
-        print("\t\t\t    If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error,\n\t\t\t    it can be safely ignored.")
-        print("\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it.\n\t\t\t    This can be " +
+        print("\t\t\t    If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error, it can be safely ignored.")
+        print("\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it. This can be " +
                         "done safely in parallel with the build process.\n")
         input_data = gpg.gen_key_input(name_email = 'tempuser@nodomain.tld', passphrase = 'placeholder_passphrase')
         key = gpg.gen_key(input_data)  # this gives the "error"
@@ -121,11 +121,11 @@ def unpackTarball(tarball_path, build, keep = False):
     # Open and extract the tarball
     if not keep:
         for a in build['arch']:
-            print("{0}: [PREP] Extracting tarball {1} ({2}). Please wait...".format(
-                                                                    datetime.datetime.now(),
-                                                                    tarball_path[a],
-                                                                    humanize.naturalsize(
-                                                                        os.path.getsize(tarball_path[a]))))
+            print("{0}: [PREP] Extracting tarball {1} ({2})...".format(
+                                                            datetime.datetime.now(),
+                                                            tarball_path[a],
+                                                            humanize.naturalsize(
+                                                                os.path.getsize(tarball_path[a]))))
             tar = tarfile.open(tarball_path[a], 'r:gz')
             tar.extractall(path = chrootdir)
             tar.close()

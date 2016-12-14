@@ -67,13 +67,27 @@ def parseConfig(confs):
     config_dict = {s:dict(config.items(s)) for s in config.sections()}
     # Convert the booleans to pythonic booleans in the dict...
     config_dict['bdisk']['user'] = config['bdisk'].getboolean('user')
+    config_dict['build']['gpg'] = config['build'].getboolean('gpg')
     config_dict['build']['i_am_a_racecar'] = config['build'].getboolean('i_am_a_racecar')
+    config_dict['build']['ipxe'] = config['build'].getboolean('ipxe')
     config_dict['build']['multiarch'] = (config_dict['build']['multiarch']).lower()
+    config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')
+    config_dict['ipxe']['usb'] = config['ipxe'].getboolean('usb')
+    config_dict['sync']['git'] = config['sync'].getboolean('git')
+    config_dict['sync']['http'] = config['sync'].getboolean('http')
+    config_dict['sync']['rsync'] = config['sync'].getboolean('rsync')
+    config_dict['sync']['tftp'] = config['sync'].getboolean('tftp')
+    config_dict['rsync']['iso'] = config['rsync'].getboolean('iso')
     # Get the version...
     if config_dict['bdisk']['ver'] == '':
         repo = git.Repo(config_dict['build']['basedir'])
         refs = repo.git.describe(repo.head.commit).split('-')
-        config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[2]
+        if len(refs) >= 3:
+            config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[2]
+        elif len(refs) == 2:
+            config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[1]
+        else:
+            config_dict['bdisk']['ver'] = refs[0]
     for i in ('http', 'tftp', 'rsync', 'git'):
         config_dict['sync'][i] = config['sync'].getboolean(i)
     # And the build number.
@@ -88,12 +102,10 @@ def parseConfig(confs):
     # But logically we should start the build over at 0 if we don't have any existing ISO's.
     if os.path.isdir(config_dict['build']['isodir']):
         if os.listdir(config_dict['build']['isodir']) == []:
-            conf_dict['build']['buildnum'] = 0
-        # ...or if we don't have any previous builds for this ISO version.
-        elif not glob.glob('{0}/*v{1}r*.iso'.format(config_dict['build']['isodir'], config_dict['build']['ver'])):
             config_dict['build']['buildnum'] = 0
-    config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')
-    config_dict['ipxe']['usb'] = config['ipxe'].getboolean('usb')
+        # ...or if we don't have any previous builds for this ISO version.
+        elif not glob.glob('{0}/*v{1}r*.iso'.format(config_dict['build']['isodir'], config_dict['bdisk']['ver'])):
+            config_dict['build']['buildnum'] = 0
     # and build a list of arch(es) we want to build
     if config_dict['build']['multiarch'] in ('','yes','true','1'):
         config_dict['build']['arch'] = ['x86_64','i686']

@@ -68,9 +68,10 @@ build ()
   [ -e "${TMPDIR}/passwd" ] && ( grep -q -e '^root:' "${TMPDIR}/passwd" ) || make_etc_passwd
 
   add_checked_modules "/drivers/net/"
-  add_binary "rm"
-  add_binary "dropbear"
-  add_binary "killall"
+  add_binary "/usr/bin/rm"
+  add_binary "/usr/bin/dropbear"
+  add_binary "/usr/bin/killall"
+  add_binary "/usr/bin/pkill"
 
   echo '/bin/ash' > "${TMPDIR}"/shells
   add_file "${TMPDIR}/shells" "/etc/shells"

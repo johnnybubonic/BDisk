@@ -24,14 +24,20 @@ if __name__ == '__main__':
         bchroot.chrootUnmount(conf['build']['chrootdir'] + '/root.' + a)
     prep.postChroot(conf['build'])
     bchroot.chrootTrim(conf['build'])
-    build.genImg(conf['build'], conf['bdisk'])
+    build.genImg(conf)
     build.genUEFI(conf['build'], conf['bdisk'])
     fulliso = build.genISO(conf)
+    build.signIMG(fulliso['Main']['file'], conf)
     build.displayStats(fulliso)
     if conf['build']['ipxe']:
         bSSL.sslPKI(conf)
         iso = ipxe.buildIPXE(conf)
-        build.displayStats(iso)
+        if iso:
+            for x in iso.keys():
+                if x != 'name':
+                    path = iso[x]['file']
+                    build.signIMG(path, conf)
+            build.displayStats(iso)
     bsync.http(conf)
     bsync.tftp(conf)
     bsync.git(conf)

@@ -6,8 +6,11 @@ build()
 	add_module 'loop'
 	add_module 'overlay'
 
-        add_binary "sed"
-        add_binary "pkill"
+        add_binary "/usr/bin/sed"
+        add_binary "/usr/bin/pkill"
+        add_binary "/usr/bin/curl"
+	add_full_dir /etc/ssl
+    	add_full_dir /etc/ca-certificates
 
         add_runscript
 
@@ -16,6 +19,6 @@ build()
 help() 
 {
         cat <<HELPEOF
-Mount a squashed flat-file directory with OverlayFS on /
+Mount a squashed flat-file directory with OverlayFS on /, add SSL support
 HELPEOF
 }

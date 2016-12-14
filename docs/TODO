@@ -4,6 +4,7 @@
 -TFTP, HTTP, RSYNC, git
 -UPDATE THE README!
 -sizes of build iso files
+-GPG sigs on built files
 
 ## General ##
 
@@ -17,6 +18,7 @@
 -set up automatic exporting to PDF of the user manual server-side. https://pypi.python.org/pypi/unoconv/0.6
 -There *has* to be a better way of handling package installation in the chroots.
 -maybe remove lxde, firefox, chrome and replace with enlightenment/midori?
+-custom repo? https://brainwreckedtech.wordpress.com/2013/01/27/making-your-own-arch-linux-repository/
 
 
 ## NETWORKING ##

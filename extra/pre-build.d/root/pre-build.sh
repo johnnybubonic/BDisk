@@ -45,6 +45,9 @@ pacman -Syy
 cleanPacorigs
 # Install some prereqs
 pacman -S --noconfirm --needed sed
+sed -i.bak -e 's/^CheckSpace/#CheckSpace/g' /etc/pacman.conf
+pacman -S --noconfirm --needed filesystem
+mv /etc/pacman.conf.bak /etc/pacman.conf
 pacman -S --noconfirm --needed base syslinux wget rsync unzip jshon sudo abs xmlto bc docbook-xsl git
 locale-gen
 # And get rid of files it wants to replace
