@@ -79,14 +79,13 @@ def parseConfig(confs):
     config_dict['sync']['tftp'] = config['sync'].getboolean('tftp')
     config_dict['rsync']['iso'] = config['rsync'].getboolean('iso')
     # Get the version...
-    # Three possibilities.
-    # e.g. 1 commit after tag with short hash: ['v3.10', '1', 'gb4a5e40']
+    # Two possibilities.
+    # e.g. 1 commit after tag with 7-digit object hex: ['v3.10', '1', 'gb4a5e40']
+    # Or if were sitting on a tag with no commits: ['v3.10']
     if config_dict['bdisk']['ver'] == '':
         repo = git.Repo(config_dict['build']['basedir'])
         refs = repo.git.describe(repo.head.commit).split('-')
-        if len(refs) >= 3:
-            config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[2]
-        elif len(refs) == 2:
+        if len(refs) >= 2:
             config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[1]
         else:
             config_dict['bdisk']['ver'] = refs[0]
