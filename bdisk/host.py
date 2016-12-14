@@ -82,6 +82,13 @@ def parseConfig(confs):
     # Two possibilities.
     # e.g. 1 commit after tag with 7-digit object hex: ['v3.10', '1', 'gb4a5e40']
     # Or if were sitting on a tag with no commits: ['v3.10']
+    # So we want our REAL version to be the following:
+    # Tagged release:  v#.##
+    # X number of commits after release: v#.##rX
+    # Both have the (local) build number appended to the deliverables,
+    # which is reset for an empty isodir OR a new tagged release (incl.
+    # commits on top of a new tagged release). e.g. for build Y:
+    # v#.##-Y or v#.##rX-Y
     if config_dict['bdisk']['ver'] == '':
         repo = git.Repo(config_dict['build']['basedir'])
         refs = repo.git.describe(repo.head.commit).split('-')
@@ -89,8 +96,6 @@ def parseConfig(confs):
             config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[1]
         else:
             config_dict['bdisk']['ver'] = refs[0]
-    for i in ('http', 'tftp', 'rsync', 'git'):
-        config_dict['sync'][i] = config['sync'].getboolean(i)
     # And the build number.
     # TODO: support tracking builds per version. i.e. in buildnum:
     # v2.51r13:0

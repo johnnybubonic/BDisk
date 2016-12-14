@@ -106,22 +106,23 @@ def buildIPXE(conf):
     #modenv['CERT'] = '{0},{1}'.format(ipxe_ssl_ca, ipxe_ssl_crt)  # TODO: test these
     #modenv['PRIVKEY'] = ipxe_ssl_ckey  # TODO: test these
     build_cmd = {}
+    # This build include the USB image.
     build_cmd['base'] = ['/usr/bin/make',
-                    'all',
-                    'EMBED="{0}"'.format(embedscript)]
+                            'all',
+                            'EMBED={0}'.format(embedscript)]
     # TODO: copy the UNDI stuff/chainloader to tftpboot, if enabled
     build_cmd['undi'] = ['/usr/bin/make',
-                    'bin/ipxe.pxe',
-                    'EMBED="{0}"'.format(embedscript)]
+                            'bin/ipxe.pxe',
+                            'EMBED={0}'.format(embedscript)]
     build_cmd['efi'] = ['/usr/bin/make',
-                    'bin-i386-efi/ipxe.efi',
-                    'bin-x86_64-efi/ipxe.efi',
-                    'EMBED="{0}"'.format(embedscript)]
-    # Command to build the actual USB and Mini images
+                            'bin-i386-efi/ipxe.efi',
+                            'bin-x86_64-efi/ipxe.efi',
+                            'EMBED={0}'.format(embedscript)]
+    # Command to build the actual mini image
     build_cmd['iso'] = ['/usr/bin/make',
-                    'bin/ipxe.liso',
-                    'bin/ipxe.eiso',
-                    'EMBED="{0}"'.format(embedscript)]
+                            'bin/ipxe.liso',
+                            'bin/ipxe.eiso',
+                            'EMBED={0}'.format(embedscript)]
     # Now we call the commands.
     DEVNULL = open(os.devnull, 'w')
     if os.path.isfile(build['dlpath'] + '/ipxe.log'):
