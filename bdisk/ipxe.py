@@ -27,7 +27,7 @@ def buildIPXE(conf):
     ipxe_usb = '{0}-{1}-{2}.usb.img'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
     ipxe_mini = '{0}-{1}-{2}.mini.iso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
     ipxe_emini = '{0}-{1}-{2}.mini.eiso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
-    usb_file = '{0}/{1}'.format(img_path, ipxe_usb)
+    usb_file = '{0}{1}'.format(img_path, ipxe_usb)
     emini_file = '{0}{1}'.format(img_path, ipxe_emini)
     mini_file = '{0}{1}'.format(img_path, ipxe_mini)
     ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
@@ -126,7 +126,7 @@ def buildIPXE(conf):
     DEVNULL = open(os.devnull, 'w')
     if os.path.isfile(build['dlpath'] + '/ipxe.log'):
         os.remove(build['dlpath'] + '/ipxe.log')
-    print(('{0}: [IPXE] Building iPXE ({1})... PROGRESS: tail -f {2}/ipxe.log ...').format(
+    print(('{0}: [IPXE] Building iPXE ({1}). PROGRESS: tail -f {2}/ipxe.log ...').format(
                                             datetime.datetime.now(),
                                             ipxe_src,
                                             build['dlpath']))
