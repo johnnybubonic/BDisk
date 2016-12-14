@@ -15,7 +15,6 @@ def buildIPXE(conf):
     bdisk = conf['bdisk']
     ipxe = conf['ipxe']
     mini = ipxe['iso']
-    usb = ipxe['usb']
     tempdir = conf['build']['tempdir']
     templates_dir = build['basedir'] + '/extra/templates'
     ipxe_tpl = templates_dir + '/iPXE'
@@ -23,13 +22,6 @@ def buildIPXE(conf):
     srcdir = build['srcdir']
     embedscript = build['dlpath'] + '/EMBED'
     ipxe_src = srcdir + '/ipxe'
-    img_path = build['isodir'] + '/'
-    ipxe_usb = '{0}-{1}-{2}.usb.img'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
-    ipxe_mini = '{0}-{1}-{2}.mini.iso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
-    ipxe_emini = '{0}-{1}-{2}.mini.eiso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
-    usb_file = '{0}{1}'.format(img_path, ipxe_usb)
-    emini_file = '{0}{1}'.format(img_path, ipxe_emini)
-    mini_file = '{0}{1}'.format(img_path, ipxe_mini)
     ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
     patches_git_uri = 'https://github.com/eworm-de/ipxe.git'
     print('{0}: [IPXE] Prep/fetch sources...'.format(
@@ -141,8 +133,6 @@ def buildIPXE(conf):
     os.chdir(cwd)
     # move the files to the results dir
     # TODO: grab ipxe.pxe here too.
-    if usb:
-        os.rename('{0}/src/bin/ipxe.usb'.format(ipxe_src), usb_file)
     if mini:
         os.rename('{0}/src/bin/ipxe.eiso'.format(ipxe_src), emini_file)
         os.rename('{0}/src/bin/ipxe.iso'.format(ipxe_src), mini_file)
@@ -150,18 +140,14 @@ def buildIPXE(conf):
     iso = {}
     stream = {}
     iso['name'] = []
-    for t in ('usb', 'mini'):  # TODO: do this programmatically based on config
+    for t in ('usb'):  # TODO: do this programmatically based on config
         if t == 'usb':
             imgname = 'USB'
-        elif t == 'mini':
-            imgname = 'Mini'
         iso['name'].append(t)
         iso[t] = {}
         shasum = False
         shasum = hashlib.sha256()
-        if t == 'usb':
-            isopath = usb_file
-        elif t == 'mini':
+        if t == 'mini':
             isopath = mini_file
         stream = False
         if os.path.isfile(isopath):
@@ -180,3 +166,24 @@ def buildIPXE(conf):
             elif t == 'mini':
                 iso[t]['fmt'] = 'ISO'
     return(iso)
+
+def genISO(conf, files):
+    build = conf['build']
+    bdisk = conf['bdisk']
+    ipxe = conf['ipxe']
+    mini = ipxe['iso']
+    usb = ipxe['usb']
+    iso = {}
+    srcdir = build['srcdir']
+    ipxe_src = srcdir + '/ipxe'
+    if mini:
+        # EFI prep
+
+        pass  # create ISO here. hybrid, efi support
+
+def tftpbootEnv(conf):
+    build = conf['build']
+    ipxe = conf['ipxe']
+    sync = conf['sync']
+    if sync['tftp']:
+        pass  # TODO: generate a pxelinux.cfg in bdisk/tftp.py (to write) and sync in the ipxe chainloader here
