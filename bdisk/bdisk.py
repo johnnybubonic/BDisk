@@ -31,7 +31,8 @@ if __name__ == '__main__':
     build.displayStats(fulliso)
     if conf['build']['ipxe']:
         bSSL.sslPKI(conf)
-        iso = ipxe.buildIPXE(conf)
+        ipxe.buildIPXE(conf)
+        iso = ipxe.genISO(conf)
         if iso:
             for x in iso.keys():
                 if x != 'name':

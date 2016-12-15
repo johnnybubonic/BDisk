@@ -18,48 +18,23 @@ def buildIPXE(conf):
     tempdir = conf['build']['tempdir']
     templates_dir = build['basedir'] + '/extra/templates'
     ipxe_tpl = templates_dir + '/iPXE'
-    patches_dir = tempdir + '/patches'
     srcdir = build['srcdir']
     embedscript = build['dlpath'] + '/EMBED'
     ipxe_src = srcdir + '/ipxe'
     ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
-    #patches_git_uri = 'https://github.com/eworm-de/ipxe.git'  # DO WE EVEN NEED THIS ANYMORE THO
     print('{0}: [IPXE] Prep/fetch sources...'.format(
                                         datetime.datetime.now()))
-    # Get the source and apply some cherrypicks
+    # Get the source
     if os.path.isdir(ipxe_src):
         shutil.rmtree(ipxe_src)
     ipxe_repo = git.Repo.clone_from(ipxe_git_uri, ipxe_src)
     # Generate patches
-    #os.makedirs(patches_dir, exist_ok = True)  # needed?
-    os.makedirs(img_path, exist_ok = True)
     tpl_loader = jinja2.FileSystemLoader(ipxe_tpl)
     env = jinja2.Environment(loader = tpl_loader)
-    #patches = ipxe_repo.create_remote('eworm', patches_git_uri)  # needed?
-    #patches.fetch()  # needed?
-    # TODO: per http://ipxe.org/download#uefi, it builds efi *binaries* now.
-    # we can probably skip the commit patching from eworm and the iso/eiso
-    # (and even usb) generation, and instead use the same method we use in genISO
-    #eiso_commit = '189652b03032305a2db860e76fb58e81e3420c4d'  # needed?
-    #nopie_commit = '58557055e51b2587ad3843af58075de916e5399b'  # needed?
-    # patch files needed?
-   # for p in ('01.git-version.patch', '02.banner.patch'):
-   #     try:
-   #         tpl = env.get_template('patches/{0}.j2'.format(p))
-   #         tpl_out = tpl.render(bdisk = bdisk)
-   #         with open('{0}/{1}'.format(patches_dir, p), 'w+') as f:
-   #             f.write(tpl_out)
-   #         patchfile = patch.fromfile(patches_dir + '/' + p)
-   #         patchfile.apply(strip = 2, root = ipxe_src + '/src')
-   #     except:
-   #         pass
     tpl = env.get_template('EMBED.j2')
     tpl_out = tpl.render(ipxe = ipxe)
     with open(embedscript, 'w+') as f:
         f.write(tpl_out)
-    # Patch using the files before applying the cherrypicks needed?
-   # ipxe_repo.git.cherry_pick('-n', eiso_commit)
-   # ipxe_repo.git.cherry_pick('-n', nopie_commit)
     # Feature enabling
     # In config/general.h
     with open('{0}/src/config/general.h'.format(ipxe_src), 'r') as f:
@@ -90,15 +65,12 @@ def buildIPXE(conf):
     # Now we make!
     cwd = os.getcwd()
     os.chdir(ipxe_src + '/src')
-    # TODO: split this into logic to only create the selected images.
-    # Command to build the .efi file
     modenv = os.environ.copy()
     modenv['EMBED'] = embedscript
     #modenv['TRUST'] = ipxe_ssl_ca  # TODO: test these
     #modenv['CERT'] = '{0},{1}'.format(ipxe_ssl_ca, ipxe_ssl_crt)  # TODO: test these
     #modenv['PRIVKEY'] = ipxe_ssl_ckey  # TODO: test these
     build_cmd = {}
-    # This build include the USB image.
     build_cmd['base'] = ['/usr/bin/make',
                             'all',
                             'EMBED={0}'.format(embedscript)]
@@ -110,11 +82,6 @@ def buildIPXE(conf):
                             'bin-i386-efi/ipxe.efi',
                             'bin-x86_64-efi/ipxe.efi',
                             'EMBED={0}'.format(embedscript)]
-    # Command to build the actual mini image needed?
-   # build_cmd['iso'] = ['/usr/bin/make',
-   #                         'bin/ipxe.liso',
-   #                         'bin/ipxe.eiso',
-   #                         'EMBED={0}'.format(embedscript)]
     # Now we call the commands.
     DEVNULL = open(os.devnull, 'w')
     if os.path.isfile(build['dlpath'] + '/ipxe.log'):
@@ -127,52 +94,16 @@ def buildIPXE(conf):
         subprocess.call(build_cmd['base'], stdout = f, stderr = subprocess.STDOUT, env=modenv)
         subprocess.call(build_cmd['undi'], stdout = f, stderr = subprocess.STDOUT, env=modenv)
         subprocess.call(build_cmd['efi'], stdout = f, stderr = subprocess.STDOUT, env=modenv)
-        #if mini:
-        #    subprocess.call(build_cmd['iso'], stdout = f, stderr = subprocess.STDOUT, env=modenv)
     print('{0}: [IPXE] Built iPXE image(s) successfully.'.format(datetime.datetime.now()))
     os.chdir(cwd)
-    # move the files to the results dir
-    # TODO: grab ipxe.pxe here too.
-   # if mini: # needed?
-   #     os.rename('{0}/src/bin/ipxe.eiso'.format(ipxe_src), emini_file)
-   #     os.rename('{0}/src/bin/ipxe.iso'.format(ipxe_src), mini_file)
-    # Get size etc. of build results
-    iso = {}
-    stream = {}
-    iso['name'] = []
-    for t in ('usb'):  # TODO: do this programmatically based on config
-        if t == 'usb':
-            imgname = 'USB'
-        iso['name'].append(t)
-        iso[t] = {}
-        shasum = False
-        shasum = hashlib.sha256()
-        if t == 'mini':
-            isopath = mini_file
-        stream = False
-        if os.path.isfile(isopath):
-            with open(isopath, 'rb') as f:
-                while True:
-                    stream = f.read(65536)  # 64kb chunks
-                    if not stream:
-                        break
-                    shasum.update(stream)
-            iso[t]['sha'] = shasum.hexdigest()
-            iso[t]['file'] = isopath
-            iso[t]['size'] = humanize.naturalsize(os.path.getsize(isopath))
-            iso[t]['type'] = 'iPXE {0}'.format(imgname)
-            if t == 'usb':
-                iso[t]['fmt'] = 'Image'
-            elif t == 'mini':
-                iso[t]['fmt'] = 'ISO'
-    return(iso)
 
 def genISO(conf):
     build = conf['build']
     bdisk = conf['bdisk']
     ipxe = conf['ipxe']
     arch = build['arch']
-    ver = build['ver']
+    ver = bdisk['ver']
+    isodir = build['isodir']
     isofile = '{0}-{1}-{2}.mini.iso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
     isopath = '{0}/{1}'.format(isodir, isofile)
     tempdir = build['tempdir']
@@ -186,7 +117,7 @@ def genISO(conf):
     tpl_loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = tpl_loader)
     bootdir = tempdir + '/ipxe_mini'
-    efiboot_img = bootdir + '/efiboot.efi'
+    efiboot_img = bootdir + '/EFI/BOOT/mini.efi'
     innerefi64 = '{0}/src/bin-x86_64-efi/ipxe.efi'.format(ipxe_src)
     efi = False
     # this shouldn't be necessary... if it is, we can revisit this in the future. see "Inner dir" below.
@@ -198,7 +129,8 @@ def genISO(conf):
         print('{0}: [IPXE] UEFI support for Mini ISO...'.format(datetime.datetime.now()))
         if os.path.isdir(bootdir):
             shutil.rmtree(bootdir)
-        # Inner dir (efiboot.img file)
+        os.makedirs('{0}/EFI/BOOT'.format(bootdir), exist_ok = True)  # EFI
+        # Inner dir (efiboot.efi file)
         sizetotal = 65536  # 64K wiggle room. increase this if we add IA64.
         sizetotal += os.path.getsize(innerefi64)
         print("{0}: [IPXE] Creating EFI ESP image {1} ({2})...".format(
@@ -220,7 +152,6 @@ def genISO(conf):
         subprocess.call(cmd)
         # Outer dir
         os.makedirs('{0}/boot'.format(bootdir), exist_ok = True)  # kernel(s)
-        os.makedirs('{0}/EFI/BOOT'.format(bootdir), exist_ok = True)  # EFI
         os.makedirs('{0}/loader/entries'.format(bootdir), exist_ok = True)  # EFI
         os.makedirs('{0}/isolinux'.format(bootdir), exist_ok = True)  # BIOS
         # we reuse the preloader.efi from full ISO build
@@ -266,7 +197,7 @@ def genISO(conf):
                     '-boot-info-table',
                     '-isohybrid-mbr', '{0}/root.{1}/usr/lib/syslinux/bios/isohdpfx.bin'.format(chrootdir, arch[0]),
                     '-eltorito-alt-boot',
-                    '-e', 'efiboot.img',
+                    '-e', 'efiboot.efi',
                     '-no-emul-boot',
                     '-isohybrid-gpt-basdat',
                     '-output', isopath,
@@ -275,6 +206,7 @@ def genISO(conf):
             # UNTESTED. TODO.
             # I think i want to also get rid of: -boot-load-size 4,
             # -boot-info-table, ... possiblyyy -isohybrid-gpt-basedat...
+            # https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#Remove_UEFI_boot_support_from_Optical_Media
             cmd = ['/usr/bin/xorriso',
                     '-as', 'mkisofs',
                     '-iso-level', '3',

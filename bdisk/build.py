@@ -353,6 +353,7 @@ def genISO(conf):
         # UNTESTED. TODO.
         # I think i want to also get rid of: -boot-load-size 4,
         # -boot-info-table, ... possiblyyy -isohybrid-gpt-basedat...
+        # https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#Remove_UEFI_boot_support_from_Optical_Media
         cmd = ['/usr/bin/xorriso',
             '-as', 'mkisofs',
             '-iso-level', '3',
@@ -391,7 +392,7 @@ def genISO(conf):
     iso['Main']['fmt'] = 'Hybrid ISO'
     return(iso)
 
-def signIMG(file, conf):
+def signIMG(path, conf):
     if conf['build']['gpg']:
         # If we enabled GPG signing, we need to figure out if we
         # are using a personal key or the automatically generated one.
@@ -410,16 +411,17 @@ def signIMG(file, conf):
             keyid = gpg.list_keys(True)[0]['keyid']
         print('{0}: [BUILD] Signing {1} with {2}...'.format(
                                         datetime.datetime.now(),
-                                        file,
+                                        path,
                                         keyid))
         # TODO: remove this warning when upstream python-gnupg fixes
         print('\t\t\t    If you see a "ValueError: Unknown status message: \'KEY_CONSIDERED\'" error, ' +
                 'it can be safely ignored.')
         print('\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it. ' +
                 'This can be done safely in parallel with the build process.')
-        with open(file, 'rb') as fh:
-            gpg.sign_file(fh, keyid = keyid, detach = True,
-                            clearsign = False, output = '{0}.sig'.format(file))
+        data_in = open(path, 'rb')
+        gpg.sign_file(data_in, keyid = keyid, detach = True,
+                            clearsign = False, output = '{0}.sig'.format(path))
+        data_in.close()
 
 def displayStats(iso):
     for i in iso['name']:
