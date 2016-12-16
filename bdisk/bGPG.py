@@ -25,6 +25,15 @@ def genGPG(conf):
             gpghome = build['dlpath'] + '/.gnupg'
     os.environ['GNUPGHOME'] = gpghome
     gpg = gpgme.Context()
+    # do we need to add a keyserver?
+    if build['gpgkeyserver'] != '':
+        dirmgr = '{0}/dirmngr.conf'.format(gpghome)
+        if os.path.isfile(dirmgr):
+            with open(dirmgr, 'r+') as f:
+                findme = any(gpgmirror in line for line in f)
+                if not findme:
+                    f.seek(0, os.SEEK_END)
+                    f.write("\n# Added by {0}.\nkeyserver {1}\n")
     if mykey:
         try:
             privkey = gpg.get_key(mykey, True)
@@ -37,9 +46,6 @@ def genGPG(conf):
             if key.can_sign:
                 pkeys.append(key)
                 break
-            #for subkey in key.subkeys:  # for parsing each and every subkey- this should be unnecessary
-                #if subkey.can_sign:
-                    #pkeys.append(gpg.get_key(subkey.fpr))
         if len(pkeys) == 0:
             print("{0}: [GPG] Generating a GPG key...".format(datetime.datetime.now()))
             loader = jinja2.FileSystemLoader(templates_dir)
@@ -48,6 +54,15 @@ def genGPG(conf):
             tpl_out = tpl.render(build = build, bdisk = bdisk)
             privkey = gpg.get_key(gpg.genkey(tpl_out).fpr, True)
             pkeys.append(privkey)
+            # do we need to add a keyserver? this is for the freshly-generated GNUPGHOME
+            if build['gpgkeyserver'] != '':
+                dirmgr = '{0}/dirmngr.conf'.format(gpghome)
+                with open(dirmgr, 'r+') as f:
+                    findme = any(gpgmirror in line for line in f)
+                    if not findme:
+                        f.seek(0, os.SEEK_END)
+                        f.write("\n# Added by {0}.\nkeyserver {1}\n"
+    gpg.signers = pkeys
     # Now we try to find and add the key for the base image.
     gpg.keylist_mode = 2  # remote (keyserver)
     try:
@@ -67,23 +82,28 @@ def genGPG(conf):
     subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
     sigkeys = []
     for k in gpg.get_key(importkey).subkeys:
-        signkeys.append(k.fpr)
+        sigkeys.append(k.fpr)
+    cmd = ['/usr/bin/gpg',
+            '--batch',
+            '--yes',
+            '--lsign-key',
+            '0x{0}'.format(importkey)]
+    subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
+    return(gpg)
 
-
-    # RETURNS:
-    # our private/signing keys: privkey (is a list)
-    
-
-def killStaleAgent():
+def killStaleAgent(conf):
     # Kill off any stale GPG agents running.
     # Probably not even needed, but good to have.
+    chrootdir = conf['build']['chrootdir']
+    dlpath = conf['build']['dlpath']
     procs = psutil.process_iter()
     plst = []
     for p in procs:
-        if (p.name() == 'gpg-agent' and p.uids()[0] == os.getuid()):
+        if (p.name() in ('gpg-agent', 'dirmngr') and p.uids()[0] == os.getuid()):
             pd = psutil.Process(p.pid).as_dict()
-            if pd['cwd'] != '/':
-                plst.append(p.pid)
+            for d in (chrootdir, dlpath):
+                if pd['cwd'].startswith('{0}'.format(d)):
+                    plst.append(p.pid)
     if len(plst) >= 1:
         for p in plst:
             psutil.Process(p).terminate()
@@ -132,3 +152,7 @@ def signIMG(path, conf):
 
 def gpgVerify(sigfile, datafile, conf):
     pass
+
+def delTempKeys(conf):
+    pass
+    killStaleAgent(conf)

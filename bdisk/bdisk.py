@@ -7,6 +7,7 @@ import datetime
 import bSSL
 import ipxe
 import bsync
+import bGPG
 
 # we need to:
 # we also need to figure out how to implement "mentos" (old bdisk) like functionality, letting us reuse an existing chroot install if possible to save time for future builds.
@@ -16,6 +17,7 @@ if __name__ == '__main__':
     print('{0}: Starting.'.format(datetime.datetime.now()))
     conf = host.parseConfig(host.getConfig())[1]
     prep.dirChk(conf)
+    conf['gpgobj'] = bGPG.genGPG(conf)
     prep.buildChroot(conf['build'], keep = False)
     prep.prepChroot(conf['build'], conf['bdisk'], conf['user'])
     arch = conf['build']['arch']
