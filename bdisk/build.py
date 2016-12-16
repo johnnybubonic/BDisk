@@ -4,7 +4,7 @@ import shutil
 import glob
 import subprocess
 import hashlib
-import gnupg
+import psutil
 import jinja2
 import humanize
 import datetime
@@ -391,37 +391,6 @@ def genISO(conf):
     iso['Main']['type'] = 'Full'
     iso['Main']['fmt'] = 'Hybrid ISO'
     return(iso)
-
-def signIMG(path, conf):
-    if conf['build']['gpg']:
-        # If we enabled GPG signing, we need to figure out if we
-        # are using a personal key or the automatically generated one.
-        if conf['gpg']['mygpghome'] != '':
-            gpghome = conf['gpg']['mygpghome']
-        else:
-            gpghome = conf['build']['dlpath'] + '/.gnupg'
-        if conf['gpg']['mygpgkey'] != '':
-            keyid = conf['gpg']['mygpgkey']
-        else:
-            keyid = False
-        gpg = gnupg.GPG(gnupghome = gpghome, use_agent = True)
-        # And if we didn't specify one manually, we'll pick the first one we find.
-        # This way we can use the automatically generated one from prep.
-        if not keyid:
-            keyid = gpg.list_keys(True)[0]['keyid']
-        print('{0}: [BUILD] Signing {1} with {2}...'.format(
-                                        datetime.datetime.now(),
-                                        path,
-                                        keyid))
-        # TODO: remove this warning when upstream python-gnupg fixes
-        print('\t\t\t    If you see a "ValueError: Unknown status message: \'KEY_CONSIDERED\'" error, ' +
-                'it can be safely ignored.')
-        print('\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it. ' +
-                'This can be done safely in parallel with the build process.')
-        data_in = open(path, 'rb')
-        gpg.sign_file(data_in, keyid = keyid, detach = True,
-                            clearsign = False, output = '{0}.sig'.format(path))
-        data_in.close()
 
 def displayStats(iso):
     for i in iso['name']:

@@ -2,11 +2,10 @@ import os
 import shutil
 import re
 import hashlib
-import gnupg
+import gpgme
 import tarfile
 import subprocess
 import re
-#import git
 import jinja2
 import datetime
 import humanize
@@ -45,16 +44,6 @@ def downloadTarball(build):
     if build['mirrorgpgsig'] != '':
         # we don't want to futz with the user's normal gpg.
         gpg = gnupg.GPG(gnupghome = dlpath + '/.gnupg')
-        print("{0}: [PREP] Generating a GPG key...".format(datetime.datetime.now()))
-        # python-gnupg 0.3.9 spits this error in Arch. it's harmless, but ugly af.
-        # TODO: remove this when the error doesn't happen anymore.
-        print("\t\t\t    If you see a \"ValueError: Unknown status message: 'KEY_CONSIDERED'\" error, it can be safely ignored.")
-        print("\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it. This can be " +
-                        "done safely in parallel with the build process.\n")
-        input_data = gpg.gen_key_input(name_email = 'tempuser@nodomain.tld', passphrase = 'placeholder_passphrase')
-        key = gpg.gen_key(input_data)  # this gives the "error"
-        keyid = build['gpgkey']  # this gives the "error" as well
-        gpg.recv_keys(build['gpgkeyserver'], keyid)
     for a in arch:
         pattern = re.compile('^.*' + a + '\.tar(\.(gz|bz2|xz))?$')
         tarball = [filename.group(0) for l in list(sha_dict.keys()) for filename in [pattern.search(l)] if filename][0]
@@ -89,24 +78,18 @@ def downloadTarball(build):
             if build['mirrorgpgsig'] == '.sig':
                 gpgsig_remote = rlsdir + tarball + '.sig'
             else:
-                gpgsig_remote = mirror + build['mirrorgpgsig']
-            gpg_sig = tarball + '.sig'
+                gpgsig_remote = build['mirrorgpgsig']
             sig_dl = urlopen(gpgsig_remote)
             sig = tarball_path[a] + '.sig'
             with open(sig, 'wb+') as f:
                 f.write(sig_dl.read())
             sig_dl.close()
-            tarball_data = open(tarball_path[a], 'rb')
-            tarball_data_in = tarball_data.read()
-            gpg_verify = gpg.verify_data(sig, tarball_data_in)
-            tarball_data.close()
+            gpg_verify = bGPG.gpgVerify(sig, tarball_path[a], conf)
             if not gpg_verify:
                 exit("{0}: There was a failure checking {1} against {2}. Please investigate.".format(
                                                                     datetime.datetime.now(),
                                                                     sig,
                                                                     tarball_path[a]))
-            os.remove(sig)
-
     return(tarball_path)
 
 def unpackTarball(tarball_path, build, keep = False):
