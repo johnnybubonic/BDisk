@@ -1,6 +1,9 @@
 #!/bin/bash
 
 source /etc/bash.bashrc
+# needed so we override whatever's set in python
+# alternatively, we can just mkdir -p $GNUPGHOME
+export GNUPGHOME=/root/.gnupg
 
 # Import settings.
 source /root/VARS.txt

@@ -18,9 +18,10 @@ if __name__ == '__main__':
     conf = host.parseConfig(host.getConfig())[1]
     prep.dirChk(conf)
     conf['gpgobj'] = bGPG.genGPG(conf)
-    prep.buildChroot(conf['build'], keep = False)
-    prep.prepChroot(conf['build'], conf['bdisk'], conf['user'])
+    prep.buildChroot(conf, keep = False)
+    prep.prepChroot(conf)
     arch = conf['build']['arch']
+    #bGPG.killStaleAgent(conf)
     for a in arch:
         bchroot.chroot(conf['build']['chrootdir'] + '/root.' + a, 'bdisk.square-r00t.net')
         bchroot.chrootUnmount(conf['build']['chrootdir'] + '/root.' + a)
@@ -29,7 +30,7 @@ if __name__ == '__main__':
     build.genImg(conf)
     build.genUEFI(conf['build'], conf['bdisk'])
     fulliso = build.genISO(conf)
-    build.signIMG(fulliso['Main']['file'], conf)
+    bGPG.signIMG(fulliso['Main']['file'], conf)
     build.displayStats(fulliso)
     if conf['build']['ipxe']:
         bSSL.sslPKI(conf)
@@ -39,7 +40,7 @@ if __name__ == '__main__':
             for x in iso.keys():
                 if x != 'name':
                     path = iso[x]['file']
-                    build.signIMG(path, conf)
+                    bGPG.signIMG(path, conf)
             build.displayStats(iso)
     bsync.http(conf)
     bsync.tftp(conf)

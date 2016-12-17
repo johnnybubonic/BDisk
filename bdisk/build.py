@@ -8,6 +8,7 @@ import psutil
 import jinja2
 import humanize
 import datetime
+import bGPG  # bdisk.bGPG
 from urllib.request import urlopen
 
 
@@ -18,7 +19,7 @@ def genImg(conf):
     chrootdir = build['chrootdir']
     archboot = build['archboot']
     basedir = build['basedir']
-    tempdir = build['tempdir']
+    prepdir = build['prepdir']
     hashes = {}
     hashes['sha256'] = {}
     hashes['md5'] = {}
@@ -71,11 +72,11 @@ def genImg(conf):
         squashfses.append('{0}'.format(squashimg))
         print("{0}: [BUILD] Hash checksums complete.".format(datetime.datetime.now()))
         # Logo
-        os.makedirs(tempdir + '/boot', exist_ok = True)
+        os.makedirs(prepdir + '/boot', exist_ok = True)
         if not os.path.isfile('{0}/extra/{1}.png'.format(basedir, bdisk['uxname'])):
-            shutil.copy2(basedir + '/extra/bdisk.png', '{0}/{1}.png'.format(tempdir, bdisk['uxname']))
+            shutil.copy2(basedir + '/extra/bdisk.png', '{0}/{1}.png'.format(prepdir, bdisk['uxname']))
         else:
-            shutil.copy2(basedir + '/extra/{0}.png'.format(bdisk['uxname']), '{0}/{1}.png'.format(tempdir, bdisk['uxname']))
+            shutil.copy2(basedir + '/extra/{0}.png'.format(bdisk['uxname']), '{0}/{1}.png'.format(prepdir, bdisk['uxname']))
         # Kernels, initrds...
         # We use a dict here so we can use the right filenames...
         # I might change how I handle this in the future.
@@ -83,9 +84,9 @@ def genImg(conf):
         bootfiles['kernel'] = ['vmlinuz-linux-' + bdisk['name'], '{0}.{1}.kern'.format(bdisk['uxname'], bitness)]
         bootfiles['initrd'] = ['initramfs-linux-{0}.img'.format(bdisk['name']), '{0}.{1}.img'.format(bdisk['uxname'], bitness)]
         for x in ('kernel', 'initrd'):
-            shutil.copy2('{0}/root.{1}/boot/{2}'.format(chrootdir, a, bootfiles[x][0]), '{0}/boot/{1}'.format(tempdir, bootfiles[x][1]))
+            shutil.copy2('{0}/root.{1}/boot/{2}'.format(chrootdir, a, bootfiles[x][0]), '{0}/boot/{1}'.format(prepdir, bootfiles[x][1]))
     for i in squashfses:
-        signIMG(i, conf)
+        bGPG.signIMG(i, conf)
 
 
 def genUEFI(build, bdisk):
@@ -95,19 +96,20 @@ def genUEFI(build, bdisk):
     # Plus there's always multiarch.
     # I can probably do this better with a dict... TODO.
     if 'x86_64' in arch:
-        tempdir = build['tempdir']
+        prepdir = build['prepdir']
         basedir = build['basedir']
         chrootdir = build['chrootdir']
         mountpt = build['mountpt']
         templates_dir = build['basedir'] + '/extra/templates'
-        efidir = '{0}/EFI/{1}'.format(tempdir, bdisk['name'])
+        efidir = '{0}/EFI/{1}'.format(prepdir, bdisk['name'])
         os.makedirs(efidir, exist_ok = True)
         efiboot_img = efidir + '/efiboot.img'
-        os.makedirs(tempdir + '/EFI/boot', exist_ok = True)
+        os.makedirs(prepdir + '/EFI/boot', exist_ok = True)
+        os.makedirs(efidir, exist_ok = True)
         ## Download the EFI shells if we don't have them.
         # For UEFI 2.3+ (http://sourceforge.net/apps/mediawiki/tianocore/index.php?title=UEFI_Shell)
-        if not os.path.isfile(tempdir + '/EFI/shellx64_v2.efi'):
-            shell2_path = tempdir + '/EFI/shellx64_v2.efi'
+        if not os.path.isfile(prepdir + '/EFI/shellx64_v2.efi'):
+            shell2_path = prepdir + '/EFI/shellx64_v2.efi'
             print("{0}: [BUILD] Warning: You are missing {1}. Fetching...".format(datetime.datetime.now(), shell2_path))
             shell2_url = 'https://raw.githubusercontent.com/tianocore/edk2/master/ShellBinPkg/UefiShell/X64/Shell.efi'
             shell2_fetch = urlopen(shell2_url)
@@ -116,8 +118,8 @@ def genUEFI(build, bdisk):
             shell2_fetch.close()
         # Shell for older versions (http://sourceforge.net/apps/mediawiki/tianocore/index.php?title=Efi-shell)
         # TODO: is there an Arch package for this? can we just install that in the chroot and copy the shell binaries?
-        if not os.path.isfile(tempdir + '/EFI/shellx64_v1.efi'):
-            shell1_path = tempdir + '/EFI/shellx64_v1.efi'
+        if not os.path.isfile(prepdir + '/EFI/shellx64_v1.efi'):
+            shell1_path = prepdir + '/EFI/shellx64_v1.efi'
             print("{0}: [BUILD] Warning: You are missing {1}. Fetching...".format(datetime.datetime.now(), shell1_path))
             shell1_url = 'https://raw.githubusercontent.com/tianocore/edk2/master/EdkShellBinPkg/FullShell/X64/Shell_Full.efi'
             shell1_fetch = urlopen(shell1_url)
@@ -133,20 +135,20 @@ def genUEFI(build, bdisk):
                 fname = 'bootx64.efi'
             else:
                 fname = f
-            if not os.path.isfile(tempdir + '/EFI/boot/' + fname):
+            if not os.path.isfile(prepdir + '/EFI/boot/' + fname):
                 url = shim_url + f
                 url_fetch = urlopen(url)
-                with open(tempdir + '/EFI/boot/' + fname, 'wb+') as dl:
+                with open(prepdir + '/EFI/boot/' + fname, 'wb+') as dl:
                     dl.write(url_fetch.read())
                 url_fetch.close()
         # And we also need the systemd efi bootloader.
-        if os.path.isfile(tempdir + '/EFI/boot/loader.efi'):
-            os.remove(tempdir + '/EFI/boot/loader.efi')
-        shutil.copy2(chrootdir + '/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi', tempdir + '/EFI/boot/loader.efi')
+        if os.path.isfile(prepdir + '/EFI/boot/loader.efi'):
+            os.remove(prepdir + '/EFI/boot/loader.efi')
+        shutil.copy2(chrootdir + '/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi', prepdir + '/EFI/boot/loader.efi')
         # And the accompanying configs for the systemd efi bootloader, too.
         tpl_loader = jinja2.FileSystemLoader(templates_dir)
         env = jinja2.Environment(loader = tpl_loader)
-        os.makedirs(tempdir + '/loader/entries', exist_ok = True)
+        os.makedirs(prepdir + '/loader/entries', exist_ok = True)
         for t in ('loader', 'ram', 'base', 'uefi2', 'uefi1'):
             if t == 'base':
                 fname = bdisk['uxname'] + '.conf'
@@ -155,10 +157,10 @@ def genUEFI(build, bdisk):
             else:
                 fname = bdisk['uxname'] + '_' + t + '.conf'
             if t == 'loader':
-                tplpath = tempdir + '/loader/'
+                tplpath = prepdir + '/loader/'
                 fname = 'loader.conf'  # we change the var from above because it's an oddball.
             else:
-                tplpath = tempdir + '/loader/entries/'
+                tplpath = prepdir + '/loader/entries/'
             tpl = env.get_template('EFI/' + t + '.conf.j2')
             tpl_out = tpl.render(build = build, bdisk = bdisk)
             with open(tplpath + fname, "w+") as f:
@@ -176,9 +178,9 @@ def genUEFI(build, bdisk):
                     '/EFI/shellx64_v1.efi',
                     '/EFI/shellx64_v2.efi']
         for i in sizefiles:
-            sizetotal += os.path.getsize(tempdir + i)
+            sizetotal += os.path.getsize(prepdir + i)
         # Loader configs
-        for (path, dirs, files) in os.walk(tempdir + '/loader/'):
+        for (path, dirs, files) in os.walk(prepdir + '/loader/'):
             for file in files:
                 fname = os.path.join(path, file)
                 sizetotal += os.path.getsize(fname)
@@ -223,13 +225,13 @@ def genUEFI(build, bdisk):
             with open(tplpath + fname, "w+") as f:
                 f.write(tpl_out)
             for x in ('bootx64.efi', 'HashTool.efi', 'loader.efi'):
-                y = tempdir + '/EFI/boot/' + x
+                y = prepdir + '/EFI/boot/' + x
                 z = mountpt + '/EFI/boot/' + x
                 if os.path.isfile(z):
                     os.remove(z)
                 shutil.copy(y, z)
             for x in ('shellx64_v1.efi', 'shellx64_v2.efi'):
-                y = tempdir + '/EFI/' + x
+                y = prepdir + '/EFI/' + x
                 z = mountpt + '/EFI/' + x
                 if os.path.isfile(z):
                     os.remove(z)
@@ -253,16 +255,16 @@ def genISO(conf):
     build = conf['build']
     bdisk = conf['bdisk']
     archboot = build['archboot']
-    tempdir = build['tempdir']
+    prepdir = build['prepdir']
     templates_dir = build['basedir'] + '/extra/templates'
     arch = build['arch']
-    builddir = tempdir + '/' + bdisk['name']
+    builddir = prepdir + '/' + bdisk['name']
     extradir = build['basedir'] + '/extra/'
     # arch[0] is safe to use, even if multiarch, because the only cases when it'd be ambiguous
     # is when x86_64 is specifically set to [0]. See host.py's parseConfig().
     # TODO: can we use syslinux for EFI too instead of prebootloader?
     syslinuxdir = build['chrootdir'] + '/root.' + arch[0] + '/usr/lib/syslinux/bios/'
-    sysl_tmp = tempdir + '/isolinux/'
+    sysl_tmp = prepdir + '/isolinux/'
     ver = bdisk['ver']
     if len(arch) == 1:
         isofile = '{0}-{1}-{2}-{3}.iso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'], arch[0])
@@ -285,7 +287,7 @@ def genISO(conf):
         efi = True
     if os.path.isfile(isopath):
         os.remove(isopath)
-    if archboot != tempdir + '/' + bdisk['name']:  # best to use static concat here... 
+    if archboot != prepdir + '/' + bdisk['name']:  # best to use static concat here... 
         if os.path.isdir(builddir):
             shutil.rmtree(builddir, ignore_errors = True)
         shutil.copytree(archboot, builddir)
@@ -348,7 +350,7 @@ def genISO(conf):
             '-no-emul-boot',
             '-isohybrid-gpt-basdat',
             '-output', isopath,
-            tempdir]
+            prepdir]
     else:
         # UNTESTED. TODO.
         # I think i want to also get rid of: -boot-load-size 4,
@@ -371,7 +373,7 @@ def genISO(conf):
             '-no-emul-boot',
             '-isohybrid-gpt-basdat',
             '-output', isopath,
-            tempdir]
+            prepdir]
     DEVNULL = open(os.devnull, 'w')
     subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
     # Get size of ISO
@@ -400,5 +402,5 @@ def displayStats(iso):
         print('\t\t\t    = Location: {0}'.format(iso[i]['file']))
 
 def cleanUp():
-    # TODO: clear out all of tempdir?
+    # TODO: clear out all of prepdir?
     pass

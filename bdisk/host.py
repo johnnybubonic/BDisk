@@ -169,7 +169,7 @@ def parseConfig(confs):
                                             datetime.datetime.now(),
                                             config_dict['build']['basedir']))
     # Make dirs if they don't exist
-    for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'tempdir'):
+    for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'prepdir'):
         os.makedirs(config_dict['build'][d], exist_ok = True)
     # Make dirs for sync staging if we need to
     for x in ('http', 'tftp'):

@@ -2,7 +2,6 @@ import os
 import shutil
 import re
 import hashlib
-import gpgme
 import tarfile
 import subprocess
 import re
@@ -11,18 +10,20 @@ import datetime
 import humanize
 from urllib.request import urlopen
 import host  # bdisk.host
+import bGPG  # bdisk.bGPG
 
 
 def dirChk(config_dict):
     # Make dirs if they don't exist
-    for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'tempdir'):
+    for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'prepdir'):
         os.makedirs(config_dict['build'][d], exist_ok = True)
     # Make dirs for sync staging if we need to
     for x in ('http', 'tftp'):
         if config_dict['sync'][x]:
             os.makedirs(config_dict[x]['path'], exist_ok = True)
 
-def downloadTarball(build):
+def downloadTarball(conf):
+    build = conf['build']
     dlpath = build['dlpath']
     arch = build['arch']
     #mirror = 'http://mirrors.kernel.org/archlinux'
@@ -41,9 +42,6 @@ def downloadTarball(build):
     sha_list = list(filter(None, sha_raw.split('\n')))
     sha_dict = {x.split()[1]: x.split()[0] for x in sha_list}
     # all that lousy work just to get a sha1 sum. okay. so.
-    if build['mirrorgpgsig'] != '':
-        # we don't want to futz with the user's normal gpg.
-        gpg = gnupg.GPG(gnupghome = dlpath + '/.gnupg')
     for a in arch:
         pattern = re.compile('^.*' + a + '\.tar(\.(gz|bz2|xz))?$')
         tarball = [filename.group(0) for l in list(sha_dict.keys()) for filename in [pattern.search(l)] if filename][0]
@@ -114,12 +112,15 @@ def unpackTarball(tarball_path, build, keep = False):
             tar.close()
             print("{0}: [PREP] Extraction for {1} finished.".format(datetime.datetime.now(), tarball_path[a]))
 
-def buildChroot(build, keep = False):
+def buildChroot(conf, keep = False):
+    build = conf['build']
+    bdisk = conf['bdisk']
+    user = conf['user']
     dlpath = build['dlpath']
     chrootdir = build['chrootdir']
     arch = build['arch']
     extradir = build['basedir'] + '/extra'
-    unpack_me = unpackTarball(downloadTarball(build), build, keep)
+    unpack_me = unpackTarball(downloadTarball(conf), build, keep)
     # build dict of lists of files and dirs from pre-build.d dir, do the same with arch-specific changes.
     prebuild_overlay = {}
     prebuild_arch_overlay = {}
@@ -158,9 +159,12 @@ def buildChroot(build, keep = False):
             shutil.copy2(extradir + '/pre-build.d/' + a + '/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
             os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
 
-def prepChroot(build, bdisk, user):
+def prepChroot(conf):
+    build = conf['build']
+    bdisk = conf['bdisk']
+    user = conf['user']
     chrootdir = build['chrootdir']
-    tempdir = build['tempdir']
+    prepdir = build['prepdir']
     arch = build['arch']
     bdisk_repo_dir = build['basedir']
     dlpath = build['dlpath']
@@ -185,7 +189,7 @@ def prepChroot(build, bdisk, user):
     for a in arch:
         with open('{0}/root.{1}/root/VERSION_INFO.txt'.format(chrootdir, a), 'w+') as f:
             f.write(tpl_out)
-        with open(tempdir + '/VERSION_INFO.txt', 'w+') as f:
+        with open(prepdir + '/VERSION_INFO.txt', 'w+') as f:
             f.write(tpl_out)
     tpl = env.get_template('VARS.txt.j2')
     tpl_out = tpl.render(bdisk = bdisk, user = user)

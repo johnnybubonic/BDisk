@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 import subprocess
 import datetime
 import jinja2
@@ -8,8 +9,10 @@ import psutil
 def genGPG(conf):
     # https://media.readthedocs.org/pdf/pygpgme/latest/pygpgme.pdf
     build = conf['build']
+    bdisk = conf['bdisk']
     gpghome = conf['gpg']['mygpghome']
     distkey = build['gpgkey']
+    gpgkeyserver = build['gpgkeyserver']
     templates_dir = '{0}/extra/templates'.format(build['basedir'])
     mykey = False
     pkeys = []
@@ -26,14 +29,16 @@ def genGPG(conf):
     os.environ['GNUPGHOME'] = gpghome
     gpg = gpgme.Context()
     # do we need to add a keyserver?
-    if build['gpgkeyserver'] != '':
+    if gpgkeyserver != '':
         dirmgr = '{0}/dirmngr.conf'.format(gpghome)
         if os.path.isfile(dirmgr):
             with open(dirmgr, 'r+') as f:
-                findme = any(gpgmirror in line for line in f)
+                findme = any(gpgkeyserver in line for line in f)
                 if not findme:
                     f.seek(0, os.SEEK_END)
-                    f.write("\n# Added by {0}.\nkeyserver {1}\n")
+                    f.write("\n# Added by {0}.\nkeyserver {1}\n".format(
+                                                        bdisk['pname'],
+                                                        gpgkeyserver))
     if mykey:
         try:
             privkey = gpg.get_key(mykey, True)
@@ -58,22 +63,28 @@ def genGPG(conf):
             if build['gpgkeyserver'] != '':
                 dirmgr = '{0}/dirmngr.conf'.format(gpghome)
                 with open(dirmgr, 'r+') as f:
-                    findme = any(gpgmirror in line for line in f)
+                    findme = any(gpgkeyserver in line for line in f)
                     if not findme:
                         f.seek(0, os.SEEK_END)
-                        f.write("\n# Added by {0}.\nkeyserver {1}\n"
+                        f.write("\n# Added by {0}.\nkeyserver {1}\n".format(
+                                                            bdisk['pname'],
+                                                            build['gpgkeyserver']))
     gpg.signers = pkeys
     # Now we try to find and add the key for the base image.
-    gpg.keylist_mode = 2  # remote (keyserver)
-    try:
+    gpg.keylist_mode = gpgme.KEYLIST_MODE_EXTERN  # remote (keyserver)
+    if distkey: # testing
+    #try:
         key = gpg.get_key(distkey)
-    except:
-        exit('{0}: ERROR: We cannot find key ID {1}!'.format(
+    #except:
+    #    exit('{0}: ERROR: We cannot find key ID {1}!'.format(
+    #                                datetime.datetime.now(),
+    #                                distkey))
+    importkey = key.subkeys[0].fpr
+    gpg.keylist_mode = gpgme.KEYLIST_MODE_LOCAL # local keyring (default)
+    DEVNULL = open(os.devnull, 'w')
+    print('{0}: [GPG] Importing {1} and signing it for verification purposes...'.format(
                                     datetime.datetime.now(),
                                     distkey))
-    importkey = key.subkeys[0].fpr
-    gpg.keylist_mode = 1 # local keyring (default)
-    DEVNULL = open(os.devnull, 'w')
     cmd = ['/usr/bin/gpg',
             '--recv-keys',
             '--batch',
@@ -110,49 +121,97 @@ def killStaleAgent(conf):
 
 def signIMG(path, conf):
     if conf['build']['gpg']:
-        # If we enabled GPG signing, we need to figure out if we
-        # are using a personal key or the automatically generated one.
-        if conf['gpg']['mygpghome'] != '':
-            gpghome = conf['gpg']['mygpghome']
-        else:
-            gpghome = conf['build']['dlpath'] + '/.gnupg'
-        if conf['gpg']['mygpgkey'] != '':
-            keyid = conf['gpg']['mygpgkey']
-        else:
-            keyid = False
-        # We want to kill off any stale gpg-agents so we spawn a new one.
-        killStaleAgent()
-        ## HERE BE DRAGONS. Converting to PyGPGME...
-        # List of Key instances used for signing with sign() and encrypt_sign().
-        gpg = gpgme.Context()
-        if keyid:
-            gpg.signers = gpg.get_key(keyid)
-        else:
-            # Try to "guess" the key ID.
-            # If we got here, it means we generated a key earlier during the tarball download...
-            # So we can use that!
-            pass
-        # And if we didn't specify one manually, we'll pick the first one we find.
-        # This way we can use the automatically generated one from prep.
-        if not keyid:
-            keyid = gpg.list_keys(True)[0]['keyid']
-        print('{0}: [BUILD] Signing {1} with {2}...'.format(
+        # Do we want to kill off any stale gpg-agents? (So we spawn a new one)
+        # Requires further testing.
+        #killStaleAgent()
+        gpg = conf['gpgobj']
+        print('{0}: [GPG] Signing {1}...'.format(
                                         datetime.datetime.now(),
-                                        path,
-                                        keyid))
-        # TODO: remove this warning when upstream python-gnupg fixes
-        print('\t\t\t    If you see a "ValueError: Unknown status message: \'KEY_CONSIDERED\'" error, ' +
-                'it can be safely ignored.')
-        print('\t\t\t    If this is taking a VERY LONG time, try installing haveged and starting it. ' +
-                'This can be done safely in parallel with the build process.')
+                                        path))
+        # May not be necessary; further testing necessary
+        #if os.getenv('GPG_AGENT_INFO'):
+        #    del os.environ['GPG_AGENT_INFO']
+        gpg = conf['gpgobj']
+        # ASCII-armor (.asc)
+        gpg.armor = True
         data_in = open(path, 'rb')
-        gpg.sign_file(data_in, keyid = keyid, detach = True,
-                            clearsign = False, output = '{0}.sig'.format(path))
+        sigbuf = BytesIO()
+        sig = gpg.sign(data_in, sigbuf, gpgme.SIG_MODE_DETACH)
+        _ = sigbuf.seek(0)
+        _ = data_in.seek(0)
         data_in.close()
+        with open('{0}.asc'.format(path), 'wb') as f:
+            f.write(sigbuf.read())
+        print('{0}: [GPG] Wrote {1}.asc (ASCII-armored signature).'.format(
+                                    datetime.datetime.now(),
+                                    path))
+        # Binary signature (.sig)
+        gpg.armor = False
+        data_in = open(path, 'rb')
+        sigbuf = BytesIO()
+        sig = gpg.sign(data_in, sigbuf, gpgme.SIG_MODE_DETACH)
+        _ = sigbuf.seek(0)
+        _ = data_in.seek(0)
+        data_in.close()
+        with open('{0}.sig'.format(path), 'wb') as f:
+            f.write(sigbuf.read())
+        print('{0}: [GPG] Wrote {1}.sig (binary signature).'.format(
+                                    datetime.datetime.now(),
+                                    path))
 
 def gpgVerify(sigfile, datafile, conf):
-    pass
+    gpg = conf['gpgobj']
+    fullkeys = []
+    print('{0}: [GPG] Verifying {1} with {2}...'.format(
+                                    datetime.datetime.now(),
+                                    datafile,
+                                    sigfile))
+    keylst = gpg.keylist()
+    for k in keylst:
+        fullkeys.append(k.subkeys[0].fpr)
+    with open(sigfile,'rb') as s:
+        with open(datafile, 'rb') as f:
+            sig = gpg.verify(s, f, None)
+    for x in sig:
+        if x.validity <= 1:
+            if not x.validity_reason:
+                reason = 'we require a signature trust of 2 or higher'
+            else:
+                reason = x.validity_reason
+            print('{0}: [GPG] Key {1} failed to verify: {2}'.format(
+                                datetime.datetime.now(),
+                                x.fpr,
+                                reason))
+    verified = False
+    skeys = []
+    for k in sig:
+        skeys.append(k.fpr)
+        if k.fpr in fullkeys:
+            verified = True
+            break
+        else:
+            pass
+    if verified:
+        print('{0}: [GPG] {1} verified (success).'.format(
+                                datetime.datetime.now(),
+                                datafile))
+    else:
+        print('{0}: [GPG] {1} failed verification!'.format(
+                                datetime.datetime.now(),
+                                datafile))
+    return(verified)
 
 def delTempKeys(conf):
-    pass
+    # Create a config option to delete these.
+    # It's handy to keep these keys, but I'd understand if
+    # people didn't want to use them.
+    gpg = conf['gpgobj']
+    if conf['gpg']:
+        keys = []
+        if conf['gpgkey'] != '':
+            keys.append(gpg.get_key(conf['gpgkey']))
+            if conf['mygpghome'] == '':
+                keys.append(gpg.get_key(None, True))  # this is safe; we generated our own
+        for k in keys:
+            gpg.delete(k)
     killStaleAgent(conf)

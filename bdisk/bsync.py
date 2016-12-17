@@ -10,7 +10,7 @@ import subprocess
 def http(conf):
     http = conf['http']
     build = conf['build']
-    tempdir = build['tempdir']
+    prepdir = build['prepdir']
     arch = build['arch']
     bdisk = conf['bdisk']
     if conf['sync']['http']:
@@ -48,7 +48,7 @@ def http(conf):
             fulldest = '{0}/{1}'.format(httpdir, destpath)
             parentdir = os.path.split(fulldest)[0]
             os.makedirs(parentdir, exist_ok = True)
-            shutil.copy2('{0}/{1}'.format(tempdir, k), '{0}/{1}'.format(httpdir, httpfiles[k]))
+            shutil.copy2('{0}/{1}'.format(prepdir, k), '{0}/{1}'.format(httpdir, httpfiles[k]))
         for root, dirs, files in os.walk(httpdir):
             for d in dirs:
                 os.chown(os.path.join(root, d), uid, gid)
@@ -59,7 +59,7 @@ def tftp(conf):
     # TODO: pxelinux cfg
     tftp = conf['tftp']
     build = conf['build']
-    tempdir = build['tempdir']
+    prepdir = build['prepdir']
     arch = build['arch']
     bdisk = conf['bdisk']
     if conf['sync']['tftp']:
@@ -96,7 +96,7 @@ def tftp(conf):
             fulldest = '{0}/{1}'.format(tftpdir, destpath)
             parentdir = os.path.split(fulldest)[0]
             os.makedirs(parentdir, exist_ok = True)
-            shutil.copy2('{0}/{1}'.format(tempdir, k), '{0}/{1}'.format(tftpdir, tftpfiles[k]))
+            shutil.copy2('{0}/{1}'.format(prepdir, k), '{0}/{1}'.format(tftpdir, tftpfiles[k]))
         for root, dirs, files in os.walk(tftpdir):
             for d in dirs:
                 os.chown(os.path.join(root, d), uid, gid)
@@ -121,7 +121,7 @@ def rsync(conf):
     # and do nothing if http- copying over three copies of the squashed filesystems
     # is a waste of time, bandwidth, and disk space on target.
     build = conf['build']
-    tempdir = build['tempdir']
+    prepdir = build['prepdir']
     isodir = build['isodir']
     arch = build['arch']
     rsync = conf['rsync']
@@ -159,7 +159,7 @@ def rsync(conf):
                                                 cmd[4],
                                                 server))
             subprocess.call(cmd)
-            cmd[4] = '{0}/boot'.format(build['tempdir'])
+            cmd[4] = '{0}/boot'.format(build['prepdir'])
             subprocess.call(cmd)
         if conf['rsync']['iso']:
             cmd[4] = isodir
@@ -170,7 +170,7 @@ def rsync(conf):
             subprocess.call(cmd)
         # Now we copy some extra files.
         prebuild_dir = '{0}/extra/pre-build.d'.format(build['basedir'])
-        rsync_files = ['{0}/VERSION_INFO.txt'.format(tempdir),
+        rsync_files = ['{0}/VERSION_INFO.txt'.format(prepdir),
                         '{0}/root/packages.both'.format(prebuild_dir),
                         '{0}/root/iso.pkgs.both'.format(prebuild_dir)]
         for x in rsync_files:

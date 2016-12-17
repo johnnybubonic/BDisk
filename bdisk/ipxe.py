@@ -15,7 +15,7 @@ def buildIPXE(conf):
     bdisk = conf['bdisk']
     ipxe = conf['ipxe']
     mini = ipxe['iso']
-    tempdir = conf['build']['tempdir']
+    prepdir = conf['build']['prepdir']
     templates_dir = build['basedir'] + '/extra/templates'
     ipxe_tpl = templates_dir + '/iPXE'
     srcdir = build['srcdir']
@@ -102,11 +102,12 @@ def genISO(conf):
     bdisk = conf['bdisk']
     ipxe = conf['ipxe']
     arch = build['arch']
+    dlpath = build['dlpath']
     ver = bdisk['ver']
     isodir = build['isodir']
     isofile = '{0}-{1}-{2}.mini.iso'.format(bdisk['uxname'], bdisk['ver'], build['buildnum'])
     isopath = '{0}/{1}'.format(isodir, isofile)
-    tempdir = build['tempdir']
+    prepdir = build['prepdir']
     chrootdir = build['chrootdir']
     mini = ipxe['iso']
     iso = {}
@@ -116,8 +117,8 @@ def genISO(conf):
     templates_dir = build['basedir'] + '/extra/templates/iPXE/'
     tpl_loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = tpl_loader)
-    bootdir = tempdir + '/ipxe_mini'
-    efiboot_img = bootdir + '/EFI/BOOT/mini.efi'
+    bootdir = '{0}/ipxe_mini'.format(dlpath)
+    efiboot_img = '{0}/EFI/BOOT/mini.efi'.format(bootdir)
     innerefi64 = '{0}/src/bin-x86_64-efi/ipxe.efi'.format(ipxe_src)
     efi = False
     # this shouldn't be necessary... if it is, we can revisit this in the future. see "Inner dir" below.
@@ -130,7 +131,7 @@ def genISO(conf):
         if os.path.isdir(bootdir):
             shutil.rmtree(bootdir)
         os.makedirs('{0}/EFI/BOOT'.format(bootdir), exist_ok = True)  # EFI
-        # Inner dir (efiboot.efi file)
+        # Inner dir (mini.efi file)
         sizetotal = 65536  # 64K wiggle room. increase this if we add IA64.
         sizetotal += os.path.getsize(innerefi64)
         print("{0}: [IPXE] Creating EFI ESP image {1} ({2})...".format(
@@ -155,7 +156,7 @@ def genISO(conf):
         os.makedirs('{0}/loader/entries'.format(bootdir), exist_ok = True)  # EFI
         os.makedirs('{0}/isolinux'.format(bootdir), exist_ok = True)  # BIOS
         # we reuse the preloader.efi from full ISO build
-        shutil.copy2('{0}/EFI/boot/bootx64.efi'.format(tempdir),
+        shutil.copy2('{0}/EFI/boot/bootx64.efi'.format(prepdir),
                         '{0}/EFI/BOOT/BOOTX64.EFI'.format(bootdir))
         # and we create the loader entries
         for t in ('loader','base'):
@@ -197,7 +198,7 @@ def genISO(conf):
                     '-boot-info-table',
                     '-isohybrid-mbr', '{0}/root.{1}/usr/lib/syslinux/bios/isohdpfx.bin'.format(chrootdir, arch[0]),
                     '-eltorito-alt-boot',
-                    '-e', 'efiboot.efi',
+                    '-e', 'EFI/BOOT/mini.efi',
                     '-no-emul-boot',
                     '-isohybrid-gpt-basdat',
                     '-output', isopath,
