@@ -1,0 +1,10 @@
+= Developer Manual
+[partintro]
+.What good is software if nobody changes it?
+--
+Text.
+
+More text.
+--
+
+include::dev/FUNCTIONS.adoc[]

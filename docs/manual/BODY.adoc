@@ -1,0 +1,4 @@
+include::USER.adoc[]
+include::DEV.adoc[]
+
+include::FOOT.adoc[]

@@ -118,7 +118,7 @@ def genISO(conf):
     tpl_loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = tpl_loader)
     bootdir = '{0}/ipxe_mini'.format(dlpath)
-    efiboot_img = '{0}/EFI/BOOT/mini.efi'.format(bootdir)
+    efiboot_img = '{0}/EFI/{1}/efiboot.img'.format(bootdir, bdisk['name'])
     innerefi64 = '{0}/src/bin-x86_64-efi/ipxe.efi'.format(ipxe_src)
     efi = False
     # this shouldn't be necessary... if it is, we can revisit this in the future. see "Inner dir" below.
@@ -130,10 +130,23 @@ def genISO(conf):
         print('{0}: [IPXE] UEFI support for Mini ISO...'.format(datetime.datetime.now()))
         if os.path.isdir(bootdir):
             shutil.rmtree(bootdir)
-        os.makedirs('{0}/EFI/BOOT'.format(bootdir), exist_ok = True)  # EFI
-        # Inner dir (mini.efi file)
-        sizetotal = 65536  # 64K wiggle room. increase this if we add IA64.
+        os.makedirs(os.path.dirname(efiboot_img), exist_ok = True)  # FAT32 embedded EFI dir
+        os.makedirs('{0}/EFI/boot'.format(bootdir), exist_ok = True)  # EFI bootloader binary dir
+        # Inner dir (miniboot.img file)
+        #sizetotal = 2097152  # 2MB wiggle room. increase this if we add IA64.
+        sizetotal = 34603008  # 33MB wiggle room. increase this if we add IA64.
         sizetotal += os.path.getsize(innerefi64)
+        sizefiles = ['HashTool', 'PreLoader']
+        for f in sizefiles:
+            sizetotal += os.path.getsize('{0}/root.x86_64/usr/share/efitools/efi/{1}.efi'.format(
+                                                        chrootdir,
+                                                        f))
+        # These won't be *quite* accurate since it's before the template substitution,
+        # but it'll be close enough.
+        for (path, dirs, files) in os.walk(templates_dir):
+            for file in files:
+                fname = os.path.join(path, file)
+                sizetotal += os.path.getsize(fname)
         print("{0}: [IPXE] Creating EFI ESP image {1} ({2})...".format(
                                                                 datetime.datetime.now(),
                                                                 efiboot_img,
@@ -143,22 +156,53 @@ def genISO(conf):
         with open(efiboot_img, 'wb+') as f:
             f.truncate(sizetotal)
         DEVNULL = open(os.devnull, 'w')
-        cmd = ['/sbin/mkfs.vfat', '-F', '32', '-n', 'iPXE_EFI', efiboot_img]
+        cmd = ['/sbin/mkfs.fat', '-F', '32', '-n', 'iPXE_EFI', efiboot_img]
         subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
-        cmd = ['/bin/mount', efiboot_img, build['mountpt']]
+        cmd = ['/bin/mount', efiboot_img, mountpt]
         subprocess.call(cmd)
-        os.makedirs(mountpt + '/EFI/BOOT')
-        shutil.copy2(innerefi64,'{0}/EFI/BOOT/BOOTX64.EFI'.format(mountpt))
+        os.makedirs(mountpt + '/EFI/boot', exist_ok = True)  # "Inner" (EFI image)
+        os.makedirs('{0}/EFI/{1}'.format(mountpt, bdisk['name']), exist_ok = True)  # "Inner" (EFI image)
+        os.makedirs('{0}/boot'.format(bootdir), exist_ok = True)  # kernel(s)
+        os.makedirs('{0}/loader/entries'.format(bootdir), exist_ok = True)  # EFI
+        for d in (mountpt, bootdir):
+            shutil.copy2(innerefi64,'{0}/EFI/boot/ipxe.efi'.format(d))
+        for f in ('PreLoader.efi', 'HashTool.efi'):
+            if f == 'PreLoader.efi':
+                fname = 'bootx64.efi'
+            else:
+                fname = f
+            if not os.path.isfile('{0}/EFI/boot/{1}'.format(mountpt, fname)):
+                shutil.copy2('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(chrootdir, f),
+                    '{0}/EFI/boot/{1}'.format(mountpt, fname))
+                if not os.path.isfile('{0}/EFI/boot/{1}'.format(bootdir, f)):
+                    shutil.copy2('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(chrootdir, f),
+                        '{0}/EFI/boot/{1}'.format(bootdir, fname))
+                # And the systemd efi bootloader.
+                if not os.path.isfile('{0}/EFI/boot/loader.efi'.format(mountpt)):
+                    shutil.copy2('{0}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi'.format(chrootdir),
+                                    '{0}/EFI/boot/loader.efi'.format(mountpt))
+                    if not os.path.isfile('{0}/EFI/boot/loader.efi'.format(bootdir)):
+                        shutil.copy2('{0}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi'.format(chrootdir),
+                                        '{0}/EFI/boot/loader.efi'.format(bootdir))
+        # And loader entries.
+        os.makedirs('{0}/loader/entries'.format(mountpt, exist_ok = True))
+        for t in ('loader', 'base'):
+            if t == 'base':
+                name = bdisk['uxname']
+                tplpath = '{0}/loader/entries'.format(mountpt)
+            else:
+                name = t
+                tplpath = '{0}/loader'.format(mountpt)
+            tpl = env.get_template('EFI/{0}.conf.j2'.format(t))
+            tpl_out = tpl.render(build = build, bdisk = bdisk)
+            with open('{0}/{1}.conf'.format(tplpath, name), "w+") as f:
+                f.write(tpl_out)
         cmd = ['/bin/umount', mountpt]
         subprocess.call(cmd)
         # Outer dir
-        os.makedirs('{0}/boot'.format(bootdir), exist_ok = True)  # kernel(s)
-        os.makedirs('{0}/loader/entries'.format(bootdir), exist_ok = True)  # EFI
+        outerdir = True
         os.makedirs('{0}/isolinux'.format(bootdir), exist_ok = True)  # BIOS
-        # we reuse the preloader.efi from full ISO build
-        shutil.copy2('{0}/EFI/boot/bootx64.efi'.format(prepdir),
-                        '{0}/EFI/BOOT/BOOTX64.EFI'.format(bootdir))
-        # and we create the loader entries
+        # and we create the loader entries (outer)
         for t in ('loader','base'):
             if t == 'base':
                 name = bdisk['uxname']
@@ -167,7 +211,7 @@ def genISO(conf):
                 name = t
                 tplpath = '{0}/loader'.format(bootdir)
             tpl = env.get_template('EFI/{0}.conf.j2'.format(t))
-            tpl_out = tpl.render(build = build, bdisk = bdisk)
+            tpl_out = tpl.render(build = build, bdisk = bdisk, outerdir = outerdir)
             with open('{0}/{1}.conf'.format(tplpath, name), "w+") as f:
                 f.write(tpl_out)
     if mini:
@@ -198,7 +242,7 @@ def genISO(conf):
                     '-boot-info-table',
                     '-isohybrid-mbr', '{0}/root.{1}/usr/lib/syslinux/bios/isohdpfx.bin'.format(chrootdir, arch[0]),
                     '-eltorito-alt-boot',
-                    '-e', 'EFI/BOOT/mini.efi',
+                    '-e', 'EFI/{0}/{1}'.format(bdisk['name'], os.path.basename(efiboot_img)),
                     '-no-emul-boot',
                     '-isohybrid-gpt-basdat',
                     '-output', isopath,
@@ -227,7 +271,8 @@ def genISO(conf):
                     '-output', isopath,
                     bootdir]
         DEVNULL = open(os.devnull, 'w')
-        subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
+        #subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
+        subprocess.call(cmd)
         # Get size of ISO
         iso['name'] = ['Mini']
         iso['Mini'] = {}

@@ -1,33 +1,38 @@
-BDisk User and Developer Manual
-===============================
-Brent Saner
+= BDisk User and Developer Manual
+Brent Saner <bts@square-r00t.net>
 v1.0, 2016-12
 :doctype: book
-
-<<<
+:data-uri:
+:imagesdir: images
+:toc: preamble
+:toc2: left
+:sectnums:
+:toclevels: 5
+// So there's currently a "bug" in that the TOC will display with continued numbering across parts.
+// i essentially want the opposite of https://github.com/asciidoctor/asciidoctor/issues/979 TODO
 
 [dedication]
-Thanks
-======
+= Thanks
 See CREDITS in the project source for a list of thanks.
 
+
 [preface]
-Preface
-=======
+= Preface
+=== About the Author
 I (Brent Saner) am a GNU/Linux Systems/Network Administrator/Engineer- I wear a lot of hats. I have a lot of side projects to keep me busy when I’m not working at _${dayjob}_, mostly to assist in other side projects and become more efficient and proficient at those tasks. “Shaving the yak,” footnote:[See http://catb.org/jargon/html/Y/yak-shaving.html] indeed.
 
 A lot of research went into how low-level boot operations take place when writing BDisk, both in BIOS and UEFI footnote:[*Unified Extensible Firmware Interface.* UEFI is not BIOS, and BIOS is not UEFI.] (and corresponding concepts such as Secureboot, etc.) which is no easy task to understand and very commonly misunderstood. (For instance, a common misconception is that UEFI necessarily implies Secureboot. This is quite far from the truth and UEFI by itself is quite a useful replacement for BIOS). I invite you to do research into the specifications yourself; it's rather fascinating.
 
-What is BDisk?
-~~~~~~~~~~~~~~
+
+=== What is BDisk?
 BDisk refers to both a live distribution I use in my own uses (for rescue situations, recovery, etc.) but foremost and most importantly, it also refers to the tool I use for building that distribution. The latter is what this project and documentation refer to when the word “BDisk” is used.
 
 When I rewrote BDisk in Python 3.x (I should take the time to note that I am still quite new to Python so expect there to be plenty of optimizations to be made and general WTF-ery from seasoned Python developers), one of my main goals was to make it as easy to use as possible. This is surprisingly hard to do- it’s quite challenging to try to approach software you’ve written with the mindset of someone other than you.
 
 It’s my hope that by releasing this utility (and documenting it), you can use it and save some time for yourself as well (and hopefully get the chance to learn a bit more in the process!). 
 
-Copyright/Licensing
-~~~~~~~~~~~~~~~~~~~
+
+=== Copyright/Licensing
 BDisk is GPLv3-licensed. This means that you can use it for business reasons, personal reasons, modify it, etc. Please be sure to familiarize yourself with the full set of terms. You can find the full license in `docs/LICENSE`.
 
 image::https://www.gnu.org/graphics/gplv3-127x51.png[GPLv3,align="center"]
@@ -36,16 +41,4 @@ This document (and all other associated author-generated documentation) are rele
 
 image::https://i.creativecommons.org/l/by-sa/4.0/88x31.png[CC-BY-SA_4.0,align="center"]
 
-<<<
-
-User Manual
-===========
-
-[partintro]
-.What good is software if nobody uses it?
---
-BDisk was ultimately designed to make your life easier.
---
-
-TEXT
-----
+include::BODY.adoc[]

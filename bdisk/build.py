@@ -128,23 +128,20 @@ def genUEFI(build, bdisk):
             shell1_fetch.close()
         print("{0}: [BUILD] Building UEFI support...".format(datetime.datetime.now()))
         ## But wait! That's not all! We need more binaries.
-        # http://blog.hansenpartnership.com/linux-foundation-secure-boot-system-released/
-        shim_url = 'http://blog.hansenpartnership.com/wp-uploads/2013/'
+        # Looks like these are in the "efitools" package now.
         for f in ('PreLoader.efi', 'HashTool.efi'):
             if f == 'PreLoader.efi':
                 fname = 'bootx64.efi'
             else:
                 fname = f
             if not os.path.isfile(prepdir + '/EFI/boot/' + fname):
-                url = shim_url + f
-                url_fetch = urlopen(url)
-                with open(prepdir + '/EFI/boot/' + fname, 'wb+') as dl:
-                    dl.write(url_fetch.read())
-                url_fetch.close()
+                shutil.copy2('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(chrootdir, f),
+                            '{0}/EFI/boot/{1}'.format(prepdir, fname))
         # And we also need the systemd efi bootloader.
         if os.path.isfile(prepdir + '/EFI/boot/loader.efi'):
             os.remove(prepdir + '/EFI/boot/loader.efi')
-        shutil.copy2(chrootdir + '/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi', prepdir + '/EFI/boot/loader.efi')
+        shutil.copy2(chrootdir + '/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi',
+                    prepdir + '/EFI/boot/loader.efi')
         # And the accompanying configs for the systemd efi bootloader, too.
         tpl_loader = jinja2.FileSystemLoader(templates_dir)
         env = jinja2.Environment(loader = tpl_loader)
@@ -194,7 +191,7 @@ def genUEFI(build, bdisk):
         with open(efiboot_img, 'wb+') as f:
             f.truncate(sizetotal)
         DEVNULL = open(os.devnull, 'w')
-        cmd = ['/sbin/mkfs.vfat', '-F', '32', '-n', bdisk['name'] + '_EFI', efiboot_img]
+        cmd = ['/sbin/mkfs.fat', '-F', '32', '-n', bdisk['name'] + '_EFI', efiboot_img]
         subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
         cmd = ['/bin/mount', efiboot_img, build['mountpt']]
         subprocess.call(cmd)
