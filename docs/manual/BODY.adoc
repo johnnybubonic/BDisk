@@ -1,4 +1,5 @@
 include::USER.adoc[]
 include::DEV.adoc[]
+include::FAQ.adoc[]
 
 include::FOOT.adoc[]

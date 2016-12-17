@@ -18,6 +18,6 @@ This manual will give you the information you need to build your very own live G
 --
 
 include::user/GETTING_STARTED.adoc[]
-
+include::user/IMPORTANT_CONCEPTS.adoc[]
 include::user/PROJECT_LAYOUT.adoc[]
 

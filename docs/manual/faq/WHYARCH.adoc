@@ -1,0 +1,5 @@
+== Why Arch Linux?
+Because it's a very easy-to-use, simple, https://wiki.archlinux.org/[well-documented] distro. It's no-frills and incredibly flexible/customizable, and can be made rather slim (and is out of the box, in fact). It's also very friendly to run as a chroot inside any other distro or as a chroot host to any other distro.
+
+Plus they have tarballs all ready for chroot easily accessible.
+
