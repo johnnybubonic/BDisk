@@ -16,7 +16,7 @@ You'll most likely want to https://svwh.dl.sourceforge.net/project/usbwriter/USB
 
 Next, make sure your USB stick is inserted in your computer and https://support.microsoft.com/en-us/help/17418/windows-7-create-format-hard-disk-partition[formatted/"initialized"] already.
 
-CAUTION: Formatting a disk/partition will *destroy* any and all data on that device! Make sure there is nothing on your USB drive you want to keep, as formatting BDisk to it *will* delete any data on it.
+WARNING: Formatting a disk/partition will *destroy* any and all data on that device! Make sure there is nothing on your USB drive you want to keep, as formatting BDisk to it *will* delete any data on it.
 
 Now right-click on the USBWriter icon and select *Run as administrator*. You may get a warning pop up asking for permissions for USBWriter. It's safe to click Yes.
 

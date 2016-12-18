@@ -19,8 +19,6 @@ Alternatively, you can use https://git-scm.com/[git]. Git most definitely _shoul
 
 TIP: If you're new to git and want to learn more, I highly recommend the book https://git-scm.com/book/en/v2[Pro Git]. It is available for free download (or online reading).
 
-You can use https:
-
 You can clone via https:
 
 `git clone https://git.square-r00t.net/BDisk`
