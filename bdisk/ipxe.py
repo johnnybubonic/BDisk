@@ -271,8 +271,7 @@ def genISO(conf):
                     '-output', isopath,
                     bootdir]
         DEVNULL = open(os.devnull, 'w')
-        #subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
-        subprocess.call(cmd)
+        subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
         # Get size of ISO
         iso['name'] = ['Mini']
         iso['Mini'] = {}

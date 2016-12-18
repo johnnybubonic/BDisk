@@ -1,0 +1,39 @@
+== How to Netboot BDisk
+I update this server with images and iPXE images you can use to netboot my personal spin of BDisk.
+
+You can https://bdisk.square-r00t.net/download/bdisk-mini.iso[download] a demo of the iPXE functionality. Note that your computer needs to be connected to a valid Internet connection via ethernet and be able to get a DHCP lease for it to work.
+
+NOTE: Advanced users, you can https://www.gnupg.org/gph/en/manual/x135.html[verify] it against the GPG signature (https://bdisk.square-r00t.net/download/bdisk-mini.iso.asc[ASC], https://bdisk.square-r00t.net/download/bdisk-mini.iso.gpg[BIN]). My key can be found in https://square-r00t.net/gpg/ascii/personal.asc[ASC] or https://square-r00t.net/gpg/bin/personal.gpg[BIN] format. Proofs of identity can be found in the footnotes of https://devblog.square-r00t.net/articles/a-note-on-using-gpg-signatures-in-pkgbuilds[this] blog post. Note that while this project is in flux, I may be signing with temporarily-generated throwaway keys.
+
+Once downloaded, you can follow the appropriate steps based on your operating system:
+
+=== Windows
+==== CD/DVD
+Simply put a blank CD/DVD-R (or RW, RW+, etc.) in your optical media drive. Find where you downloaded the above file (it should be named `bdisk-mini.iso`). Right-click and select *Burn disc image*.
+
+==== USB
+You'll most likely want to https://svwh.dl.sourceforge.net/project/usbwriter/USBWriter-1.3.zip[download] a program caled https://sourceforge.net/projects/usbwriter/[USBWriter]. Unzip it (or just open it via double-clicking) and copy the USBWriter.exe program somewhere you'll remember- your desktop, for instance.
+
+Next, make sure your USB stick is inserted in your computer and https://support.microsoft.com/en-us/help/17418/windows-7-create-format-hard-disk-partition[formatted/"initialized"] already.
+
+CAUTION: Formatting a disk/partition will *destroy* any and all data on that device! Make sure there is nothing on your USB drive you want to keep, as formatting BDisk to it *will* delete any data on it.
+
+Now right-click on the USBWriter icon and select *Run as administrator*. You may get a warning pop up asking for permissions for USBWriter. It's safe to click Yes.
+
+Select the proper USB flash drive from the *Target device* dropdown menu. If your USB drive isn't showing up, try clicking the Refresh button and looking again. (If it still doesn't show up, you may need to reboot your computer.)
+
+Click the *Browse...* button and find where you saved `bdisk-mini.iso`. Once you've found it, double-click it. Then click *Write*. It might take a little bit of time depending on how fast your USB interface is, so give it some time. When it finishes, click *Close*. You now have a bootable USB thumbdrive.
+
+==== Booting
+Booting differs depending on each and every hardware, but *typically* you should get a message when you first start up for "_Setup_" and/or "_Boot options_" or the like. The terminology differs here. It will probably be an *F__#__* button (usually `F2`, `F4`, `F10`, or `F12`) or the *Delete* key. While rebooting, try to hold or press repeatedly this key and you should come across an option somewhere with a list of devices to boot from or an order you can set. Make sure the USB (or CD/DVD, whichever media type you're using) is set as first, and save.
+
+=== Mac OS X/macOS
+==== CD/DVD
+==== USB
+==== Booting
+The instructions here don't differ too much than from Windows, though it's always the same key. For OS X/macOS hardware, I believe it's the *c* key or the *b* key. From it being in a shutdown state, power on your Macbook Pro (or whatever it is you have) and hold the *c* key if it's CD/DVD. The *b* key should bring up a boot menu that will let you select a USB device to boot from.
+
+=== GNU/Linux
+==== CD/DVD
+==== USB
+==== Booting

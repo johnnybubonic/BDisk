@@ -4,6 +4,7 @@ v1.0, 2016-12
 :doctype: book
 :data-uri:
 :imagesdir: images
+:sectlinks:
 :toc: preamble
 :toc2: left
 :sectnums:
@@ -27,7 +28,7 @@ A lot of research went into how low-level boot operations take place when writin
 === What is BDisk?
 BDisk refers to both a live distribution I use in my own uses (for rescue situations, recovery, etc.) but foremost and most importantly, it also refers to the tool I use for building that distribution. The latter is what this project and documentation refer to when the word “BDisk” is used.
 
-When I rewrote BDisk in Python 3.x (I should take the time to note that I am still quite new to Python so expect there to be plenty of optimizations to be made and general WTF-ery from seasoned Python developers), one of my main goals was to make it as easy to use as possible. This is surprisingly hard to do- it’s quite challenging to try to approach software you’ve written with the mindset of someone other than you.
+When I rewrote BDisk in Python 3.x (Version 0.x-2.x of BDisk was written in Bash, and horribly inelegant and rigid. I should take the time to note that I am still quite new to Python so expect there to be plenty of optimizations to be made and general WTF-ery from seasoned Python developers), one of my main goals was to make it as easy to use as possible. This is surprisingly hard to do- it’s quite challenging to try to approach software you’ve written with the mindset of someone other than you.
 
 It’s my hope that by releasing this utility (and documenting it), you can use it and save some time for yourself as well (and hopefully get the chance to learn a bit more in the process!). 
 

@@ -16,6 +16,7 @@ def genGPG(conf):
     templates_dir = '{0}/extra/templates'.format(build['basedir'])
     mykey = False
     pkeys = []
+    killStaleAgent(conf)
     if conf['gpg']['mygpgkey'] != '':
         mykey = conf['gpg']['mygpgkey']
         if gpghome == '':

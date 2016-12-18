@@ -9,4 +9,5 @@ There are two basic types of booting systems that communicate between the *hardw
 
 *GNU/Linux*, sometimes just referred to as _Linux_ (And there is a difference between the terminologies, but it's nuanced. You are welcome to https://www.gnu.org/gnu/linux-and-gnu.en.html[read up on it] though!), is an example of an operating system. Other examples include _Windows_, _macOS_ (previously _OS X_), _iOS_, _Android_, and a whole slew of others.
 
-A *live distro*, *live CD*, *live DVD*, *live USB*, and the like are a way of booting an operating system without installing it on the hard drive- this means the computer doesn't even need a hard drive installed, or it doesn't matter if the operating system is broken. Typically they are Linux-based, but there are several Windows-based live releases out there (usually they're focused on rescuing broken systems, so they're not very useful).
+A *live distro*, *live CD*, *live DVD*, *live USB*, and the like are a way of booting an operating system without installing it on the hard drive- this means the computer doesn't even need a hard drive installed, or it doesn't matter if the operating system is broken. Typically they are Linux-based, but there are several Windows-based live releases out there (usually they're focused on rescuing broken Windows systems, so they're not very flexible).
+

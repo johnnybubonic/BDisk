@@ -7,3 +7,5 @@ Here you will find some answers to Frequently Asked Questions I've received abou
 --
 
 include::faq/INDEX.adoc[]
+
+
