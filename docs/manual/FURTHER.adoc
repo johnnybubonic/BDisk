@@ -1,0 +1,10 @@
+= Further Reading/Resources
+[partintro]
+.What good is software if you can't interact?
+--
+Here you will find further info, other resources, and such relating to BDisk.
+--
+
+include::further/BUGS.adoc[]
+include::further/CONTACT.adoc[]
+

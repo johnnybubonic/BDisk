@@ -1,7 +1,7 @@
 == Getting Started
 
 === Downloading
-If it isn't in your distro's repositories (It *is* in Arch's AUR! Both https://aur.archlinux.org/packages/bdisk/[tagged release] and https://aur.archlinux.org/packages/bdisk-git/[git master].), you can still easily get rolling. Simply visit the project's https://git.square-r00t.net/BDisk/[source code web interface] and download a tarball under the *Download* column:
+If it isn't in your distro's repositories (It *is* in Arch's AUR! Both https://aur.archlinux.org/packages/bdisk/[tagged release^] and https://aur.archlinux.org/packages/bdisk-git/[git master^].), you can still easily get rolling. Simply visit the project's https://git.square-r00t.net/BDisk/[source code web interface^] and download a tarball under the *Download* column:
 
 image::fig1.1.png[cgit,align="center"]
 
@@ -15,9 +15,9 @@ or wget:
 
 You can use `https://git.square-r00t.net/BDisk/snapshot/BDisk-master.tar.xz` for the URL if you want the latest working version. If you want a snapshot of a specific commit, you can use e.g. `https://git.square-r00t.net/BDisk/snapshot/BDisk-5ac510762ce00eef213957825de0e6d07186e7f8.tar.xz` and so on.
 
-Alternatively, you can use https://git-scm.com/[git]. Git most definitely _should_ be in your distro's repositories.
+Alternatively, you can use https://git-scm.com/[git^]. Git most definitely _should_ be in your distro's repositories.
 
-TIP: If you're new to git and want to learn more, I highly recommend the book https://git-scm.com/book/en/v2[Pro Git]. It is available for free download (or online reading).
+TIP: If you're new to git and want to learn more, I highly recommend the book https://git-scm.com/book/en/v2[Pro Git^]. It is available for free download (or online reading).
 
 You can clone via https:
 
@@ -28,6 +28,8 @@ or native git protocol:
  git clone git://git.square-r00t.net/bdisk.git BDisk
 
 The git protocol is much faster, but at a cost of lessened security.
+
+NOTE: I also have a mirror at https://github.com/johnnybubonic/BDisk[GitHub^], but I don't like GitHub very much and since it's a mirror repository, it's possible it will be out of date. For this reason, it's recommended that you use the resources above.
 
 === Prerequisites
 This is a list of software you'll need available to build with BDisk.
@@ -41,40 +43,40 @@ CAUTION: You will need at least about *15GB* of free disk space, depending on wh
 ==== Necessary
 These are needed for using BDisk.
 
-* https://www.python.org/[Python] (>=3.5)
-* https://github.com/dosfstools/dosfstools[dosfstools]
-* http://gcc.gnu.org[gcc (multilib)] (>=6.x)
-* http://gcc.gnu.org[gcc-libs (multilib)] (>=6.x)
-* http://libburnia-project.org[libisoburn]
-* http://squashfs.sourceforge.net[squashfs-tools] (>=4.2)
+* https://www.python.org/[Python^] (>=3.5)
+* https://github.com/dosfstools/dosfstools[dosfstools^]
+* http://gcc.gnu.org[gcc (multilib)^] (>=6.x)
+* http://gcc.gnu.org[gcc-libs (multilib)^] (>=6.x)
+* http://libburnia-project.org[libisoburn^]
+* http://squashfs.sourceforge.net[squashfs-tools^] (>=4.2)
 
 These are required Python modules:
 
-* https://pypi.python.org/pypi/humanize[Humanize]
-* http://jinja.pocoo.org/[Jinja2]
-* https://pypi.python.org/pypi/psutil[PSUtil]
-* https://pypi.python.org/pypi/validators[Validators]
+* https://pypi.python.org/pypi/humanize[Humanize^]
+* http://jinja.pocoo.org/[Jinja2^]
+* https://pypi.python.org/pypi/psutil[PSUtil^]
+* https://pypi.python.org/pypi/validators[Validators^]
 
 ==== Optional
 While not strictly necessary, these will greatly enhance your BDisk usage. I've included some reasons why you might want to install them.
 
 NOTE: If you do not wish to install any of these or cannot install them, be sure to disable the relevant options in the `build.ini` file (we'll talk about that later). The default `extra/dist.build.ini` should be sane enough to not require any of these.
 
-* https://git-scm.com/[git]
+* https://git-scm.com/[git^]
 ** For autodetection of version, automatically making commits for your project, etc.
-* https://www.gnupg.org/[gpg/gnupg] (>=2.1.11)
+* https://www.gnupg.org/[gpg/gnupg^] (>=2.1.11)
 ** For automatically signing releases, verifying downloaded files from the Internet as part of the build process, etc. It's okay if you don't have a key set up!
-* https://rsync.samba.org/[rsync]
+* https://rsync.samba.org/[rsync^]
 ** For syncing built ISOs to a fileserver, syncing to a remote iPXE server, syncing to a traditional PXE/TFTP server, etc.
 
 These are optional Python modules:
 
-* https://pypi.python.org/pypi/GitPython[GitPython]
+* https://pypi.python.org/pypi/GitPython[GitPython^]
 ** (Same reasons as _git_)
-* https://pypi.python.org/pypi/pygpgme[PyGPGME]
+* https://pypi.python.org/pypi/pygpgme[PyGPGME^]
 ** (Same reasons as _gpg/gnupg_)
-* https://pypi.python.org/pypi/patch[Patch]
+* https://pypi.python.org/pypi/patch[Patch^]
 ** For branding iPXE environments per your `build.ini`.
-* https://pypi.python.org/pypi/pyOpenSSL[PyOpenSSL]
+* https://pypi.python.org/pypi/pyOpenSSL[PyOpenSSL^]
 ** To set up a PKI when building iPXE; used to create trusted/verified images.
 

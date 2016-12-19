@@ -2,15 +2,41 @@
 If this is your first foray into building live distros, there are some terms and concepts we need to understand first. This will simplify the process later on.
 
 === Terms
-An *operating system* is what your programs (email client, web browser, etc.) run on.
+An *operating system*, or OS, is what your programs (email client, web browser, etc.) run on.
 
-There are two basic types of booting systems that communicate between the *hardware* (the physical computer itself and its components) and the operating system: https://en.wikipedia.org/wiki/BIOS[*BIOS*] (Basic Input/Output System) which has been around for quite some time and the newer https://en.wikipedia.org/wiki/Unified_Extensible_Firmware_Interface[*UEFI*] (Unified Extensible Firmware Interface). Don't worry, you don't need to memorize what they're acronyms for and there won't be an exam -- just remember that BIOS is an older technology and UEFI is the newer one (and that they operate differently).
+There are two basic types of booting systems that communicate between the *hardware* (the physical computer itself and its components) and the operating system: https://en.wikipedia.org/wiki/BIOS[*BIOS*^] (Basic Input/Output System) which has been around for quite some time and the newer https://en.wikipedia.org/wiki/Unified_Extensible_Firmware_Interface[*UEFI*^] (Unified Extensible Firmware Interface). Don't worry, you don't need to memorize what they're acronyms for and there won't be an exam -- just remember that BIOS is an older technology and UEFI is the newer one (and that they operate differently).
 
-*GNU/Linux*, sometimes just referred to as _Linux_ (And there is a difference between the terminologies, but it's nuanced. You are welcome to https://www.gnu.org/gnu/linux-and-gnu.en.html[read up on it] though!), is an example of an operating system. Other examples include _Windows_, _macOS_ (previously _OS X_), _iOS_, _Android_, and a whole slew of others.
+*GNU/Linux*, sometimes just referred to as _Linux_ (And there is a difference between the terminologies, but it's nuanced. You are welcome to https://www.gnu.org/gnu/linux-and-gnu.en.html[read up on it^] though!), is an example of an operating system. Other examples include _Windows_, _macOS_ (previously _OS X_), _iOS_, _Android_, and a whole slew of others. There are many types of GNU/Linux offerings, called _distributions_, _flavors_, or _distros_.
 
 A *live distro*, *live CD*, *live DVD*, *live USB*, and the like are a way of booting an operating system without installing it on the hard drive- this means the computer doesn't even need a hard drive installed, or it doesn't matter if the installed operating system is broken. Typically they are Linux-based, but there are several Windows-based live releases out there (usually they're focused on rescuing broken Windows systems, so they're not very flexible).
 
-=== Why live media is necessary
+*Hybrid ISOs* are ISO files that can be burned to optical media (CDs, DVDs, etc.) and also be _dd_'d directly to a USB thumbdrive (for computers that support booting from USB). That means one file, multiple media types.
+
+*Architectures* are different hardware platforms. This mostly refers to the CPU. Common implementations are *64-bit* (also known as *x86_64* or *AMD64* for ones that support running both 64-bit and 32-bit software, or *IA64* or *Itanium* for processors that only support 64-bit) and *32-bit* (or *i686* and the older *i386* and *i486* implementations). Most consumer PCs on the market today are x86_64.
+
+*Chroots*, *chrooting*, and the like are variants on the word *chroot*. A *chroot* is a way of running a GNU/Linux install "inside" another GNU/Linux distro. It's sort of like a virtual machine, or VM, except that it's a lot more lightweight and it doesn't do any actual virtualization- and uses the host's kernel, memory mapping, etc. It's very useful for development of operating systems.
+
+=== Why live media is necessary/Why you might want BDisk
 "But Brent," I hear you ask in a voice which most likely is nothing close to what you actually sound like and entirely in my head, "Why would I need a live CD/USB/etc.? And why BDisk?"
 
-Elementary, my dear imaginary reader! I touch on some reasons why one might want live media in the beginning of the User Manual, but 
+Elementary, my dear imaginary reader! I touch on some reasons why one might want live media in the beginning of the <<USER.adoc#_user_manual,User Manual>>, but here's why you might want BDisk specifically as opposed to another live distro (or <<FAQ.adoc#_i_don_t_like_bdisk_are_there_any_other_alternatives,live distro creator>>).
+
+* Fully customizable
+* Works with a multitude of GNU/Linux distros -- both for the host build system and as the guest. (Still under development!)
+* It performs optimizations and compression to help you get the smallest ISO possible.
+* In addition to building hybrid ISOs, it supports building iPXE hybrid ISOs (meaning you only need a very small file; the rest of the operating system boots over the Internet).
+* It supports both BIOS and UEFI systems- both the full image and the iPXE images.
+* It supports multiple architectures (x86_64, i686, possibly IA64 -- untested).
+* It supports automatically syncing to a web mirror, PXE boot server, etc. via rsync upon successful build.
+* It supports SecureBoot.
+
+=== Who might want to use BDisk?
+* System builders/hardware testers
+* System Administrators/Engineers/Architects
+* Information Security professionals
+* Computer repair shops
+* Technology Consultants
+* Hobbyists
+* Home GNU/Linux users
+* Technology enthusiasts
+

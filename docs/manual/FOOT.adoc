@@ -2,3 +2,7 @@
 = User Manual
 [appendix]
 = Developer Manual
+[appendix]
+= Netboot
+[appendix]
+= Bug Reports/Feature Requests

@@ -1,11 +1,8 @@
 = FAQ
-
 [partintro]
 .What good is software if nobody understands it?
 --
-Here you will find some answers to Frequently Asked Questions I've received about this project. Please be sure to check this list before opening a bug report or sending a patch!
+Here you will find some answers to Frequently Asked Questions I've received about this project. Please be sure to check this list before <<FURTHER.adoc#_bug_reports_feature_requests, opening a bug report>> or sending a patch!
 --
 
 include::faq/INDEX.adoc[]
-
-

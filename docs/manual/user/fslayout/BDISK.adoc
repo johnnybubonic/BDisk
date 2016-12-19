@@ -1,0 +1,6 @@
+== bdisk/
+This directory contains the "heart" of BDisk. It essentially is a Python module package. It contains several python "subpackages" split into different files that provide different functions for BDisk.
+
+=== bchroot.py
+This file controls creation of the chroots -- the directories in which BDisk builds the actual system that is booted into.
+

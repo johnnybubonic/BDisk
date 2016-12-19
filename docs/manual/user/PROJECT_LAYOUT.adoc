@@ -1,2 +1,4 @@
 == Project Structure
-file tree, explain dirs and files
+
+include::fslayout/BDISK.adoc[]
+

@@ -34,11 +34,11 @@ It’s my hope that by releasing this utility (and documenting it), you can use 
 
 
 === Copyright/Licensing
-The BDisk code is https://www.gnu.org/licenses/gpl-3.0.en.html[GPLv3-licensed]. This means that you can use it for business reasons, personal reasons, modify it, etc. Please be sure to familiarize yourself with the full set of terms. You can find the full license in `docs/LICENSE`.
+The BDisk code is https://www.gnu.org/licenses/gpl-3.0.en.html[GPLv3-licensed^]. This means that you can use it for business reasons, personal reasons, modify it, etc. Please be sure to familiarize yourself with the full set of terms. You can find the full license in `docs/LICENSE`.
 
 image::https://www.gnu.org/graphics/gplv3-127x51.png[GPLv3,align="center"]
 
-This document, and all other associated author-generated documentation, are released under the http://creativecommons.org/licenses/by-sa/4.0/[Creative Commons CC-BY-SA 4.0] copyright. It's essentially the GPL for non-software, so similar terms apply.
+This document, and all other associated author-generated documentation, are released under the http://creativecommons.org/licenses/by-sa/4.0/[Creative Commons CC-BY-SA 4.0^] copyright. It's essentially the GPL for non-software, so similar terms apply.
 
 image::https://i.creativecommons.org/l/by-sa/4.0/88x31.png[CC-BY-SA_4.0,align="center"]
 
