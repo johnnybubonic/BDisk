@@ -58,7 +58,7 @@ These are required Python modules:
 ==== Optional
 While not strictly necessary, these will greatly enhance your BDisk usage. I've included some reasons why you might want to install them.
 
-NOTE: If you do not wish to install any of these or cannot install them, be sure to disable the relevant options in the `build.ini` file (we'll talk about that later).
+NOTE: If you do not wish to install any of these or cannot install them, be sure to disable the relevant options in the `build.ini` file (we'll talk about that later). The default `extra/dist.build.ini` should be sane enough to not require any of these.
 
 * https://git-scm.com/[git]
 ** For autodetection of version, automatically making commits for your project, etc.
@@ -77,3 +77,4 @@ These are optional Python modules:
 ** For branding iPXE environments per your `build.ini`.
 * https://pypi.python.org/pypi/pyOpenSSL[PyOpenSSL]
 ** To set up a PKI when building iPXE; used to create trusted/verified images.
+

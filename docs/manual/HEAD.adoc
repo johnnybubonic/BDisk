@@ -26,7 +26,7 @@ A lot of research went into how low-level boot operations take place when writin
 
 
 === What is BDisk?
-BDisk refers to both a live distribution I use in my own uses (for rescue situations, recovery, etc.) but foremost and most importantly, it also refers to the tool I use for building that distribution. The latter is what this project and documentation refer to when the word “BDisk” is used.
+BDisk refers to both a live distribution I use in my own uses (for rescue situations, recovery, etc.) but foremost and most importantly, it also refers to the tool I use for building that distribution. In other words, it's both a complete GNU/Linux distribution you can run entirely from USB/CD/DVD/etc. (without needing to install it to your hard drive)... and also the name of a tool to create a custom GNU/Linux install. The latter is what this project and documentation refer to when the word “BDisk” is used.
 
 When I rewrote BDisk in Python 3.x (Version 0.x-2.x of BDisk was written in Bash, and horribly inelegant and rigid. I should take the time to note that I am still quite new to Python so expect there to be plenty of optimizations to be made and general WTF-ery from seasoned Python developers), one of my main goals was to make it as easy to use as possible. This is surprisingly hard to do- it’s quite challenging to try to approach software you’ve written with the mindset of someone other than you.
 
@@ -34,11 +34,11 @@ It’s my hope that by releasing this utility (and documenting it), you can use 
 
 
 === Copyright/Licensing
-BDisk is GPLv3-licensed. This means that you can use it for business reasons, personal reasons, modify it, etc. Please be sure to familiarize yourself with the full set of terms. You can find the full license in `docs/LICENSE`.
+The BDisk code is https://www.gnu.org/licenses/gpl-3.0.en.html[GPLv3-licensed]. This means that you can use it for business reasons, personal reasons, modify it, etc. Please be sure to familiarize yourself with the full set of terms. You can find the full license in `docs/LICENSE`.
 
 image::https://www.gnu.org/graphics/gplv3-127x51.png[GPLv3,align="center"]
 
-This document (and all other associated author-generated documentation) are released under the http://creativecommons.org/licenses/by-sa/4.0/[Creative Commons CC-BY-SA 4.0] copyright.
+This document, and all other associated author-generated documentation, are released under the http://creativecommons.org/licenses/by-sa/4.0/[Creative Commons CC-BY-SA 4.0] copyright. It's essentially the GPL for non-software, so similar terms apply.
 
 image::https://i.creativecommons.org/l/by-sa/4.0/88x31.png[CC-BY-SA_4.0,align="center"]
 
