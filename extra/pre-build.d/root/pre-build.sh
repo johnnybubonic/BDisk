@@ -177,8 +177,8 @@ then
 	rm -f /root/pre-build.arch.sh
 fi
 # Cleanup
-#yes | pacman -Scc # doesn't parse yes(1) output correctly, it seems.
 # TODO: look into https://wiki.archlinux.org/index.php/Pacman/Tips_and_tricks#Removing_unused_packages_.28orphans.29
+mkinitcpio -p linux
 paccache -rk0
 localepurge-config
 localepurge

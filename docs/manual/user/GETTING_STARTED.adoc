@@ -7,11 +7,11 @@ image::fig1.1.png[cgit,align="center"]
 
 If you know the tag of the commit you want, you can use curl:
 
-`curl -sL -o bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.11.tar.xz`
+ curl -sL -o bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.11.tar.xz
 
 or wget:
 
-`wget -O bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.11.tar.xz`
+ wget -O bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.11.tar.xz
 
 You can use `https://git.square-r00t.net/BDisk/snapshot/BDisk-master.tar.xz` for the URL if you want the latest working version. If you want a snapshot of a specific commit, you can use e.g. `https://git.square-r00t.net/BDisk/snapshot/BDisk-5ac510762ce00eef213957825de0e6d07186e7f8.tar.xz` and so on.
 
@@ -21,11 +21,11 @@ TIP: If you're new to git and want to learn more, I highly recommend the book ht
 
 You can clone via https:
 
-`git clone https://git.square-r00t.net/BDisk`
+ git clone https://git.square-r00t.net/BDisk
 
 or native git protocol:
 
-`git clone git://git.square-r00t.net/bdisk.git BDisk`
+ git clone git://git.square-r00t.net/bdisk.git BDisk
 
 The git protocol is much faster, but at a cost of lessened security.
 

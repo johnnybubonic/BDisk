@@ -133,8 +133,8 @@ def genISO(conf):
         os.makedirs(os.path.dirname(efiboot_img), exist_ok = True)  # FAT32 embedded EFI dir
         os.makedirs('{0}/EFI/boot'.format(bootdir), exist_ok = True)  # EFI bootloader binary dir
         # Inner dir (miniboot.img file)
-        #sizetotal = 2097152  # 2MB wiggle room. increase this if we add IA64.
-        sizetotal = 34603008  # 33MB wiggle room. increase this if we add IA64.
+        sizetotal = 2097152  # 2MB wiggle room. increase this if we add IA64.
+        #sizetotal = 34603008  # 33MB wiggle room. increase this if we add IA64.
         sizetotal += os.path.getsize(innerefi64)
         sizefiles = ['HashTool', 'PreLoader']
         for f in sizefiles:

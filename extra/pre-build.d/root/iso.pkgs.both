@@ -23,6 +23,7 @@ lz4
 lzo
 lzop
 mkinitcpio-nfs-utils
+mkinitcpio-utils
 ms-sys
 mtools
 net-tools

@@ -12,7 +12,7 @@ Once downloaded, you can follow the appropriate steps based on your operating sy
 Simply put a blank CD/DVD-R (or RW, RW+, etc.) in your optical media drive. Find where you downloaded the above file (it should be named `bdisk-mini.iso`). Right-click and select *Burn disc image*.
 
 ==== USB
-You'll most likely want to https://svwh.dl.sourceforge.net/project/usbwriter/USBWriter-1.3.zip[download] a program caled https://sourceforge.net/projects/usbwriter/[USBWriter]. Unzip it (or just open it via double-clicking) and copy the USBWriter.exe program somewhere you'll remember- your desktop, for instance.
+You'll most likely want to https://svwh.dl.sourceforge.net/project/usbwriter/USBWriter-1.3.zip[download] a program caled https://sourceforge.net/projects/usbwriter/[USBWriter]. Unzip it (or just open it via double-clicking) and copy the `USBWriter.exe` program somewhere you'll remember- your desktop, for instance.
 
 Next, make sure your USB stick is inserted in your computer and https://support.microsoft.com/en-us/help/17418/windows-7-create-format-hard-disk-partition[formatted/"initialized"] already.
 
@@ -29,11 +29,101 @@ Booting differs depending on each and every hardware, but *typically* you should
 
 === Mac OS X/macOS
 ==== CD/DVD
+Unfortunately, the OS X/macOS Disk Utility doesn't work with hybrid ISOs (what `bdisk-mini.iso` is). At all. You're out of luck, I'm afraid, unless you happen have a spare USB thumbdrive handy.
+
 ==== USB
+We'll need to get a little messy with this one.
+
+Open Applications => Utilities => Terminal. A black box should pop up.
+
+Insert your USB stick now (if you haven't already) and run the following command:
+
+ diskutil list
+
+You should see an entry, probably near the bottom, that looks something like this:
+
+ ...
+ /dev/disk42 (external, physical):
+    #:                       TYPE NAME                    SIZE       IDENTIFIER
+    0:                                                   *8.2 GB     disk42
+ ...
+
+CAUTION: *Be sure* to find the disk that matches the size of your thumbdrive! If you use the wrong disk identifier, it will break your OS X/macOS install at best and delete all your data at worst!
+
+Now that you've found which disk your USB device is (the `/dev/disk__#__` part), we can continue. Make sure that it is the disk ID *right above* the line that contains your flash drive size! For our example, I will use `/dev/disk__42__` as an example as it's highly unlikely you'll have that many disk IDs, but be sure to replace this in the following commands with the proper disk ID you found above.
+
+Then we need to unmount the disk, in case it's already mounted.
+
+ diskutil unmountDisk /dev/disk42
+
+Assuming you saved BDisk Mini to your Desktop, you can do:
+
+ sudo dd if=~/Desktop/bdisk-mini.iso of=/dev/disk42
+
+NOTE: the above command may prompt you for a password. This is the same password you use to log into your Mac (and unlock the screensaver, etc.). No characters will show up when you type (for security reasons, in case someone is behind you watching your screen) so it may take you a couple tries.
+
+This will run for a couple seconds. When it finishes, you should see something similar to (but not necessarily the same numbers as) this:
+
+ 0+1 records in
+ 0+1 records out
+ 169 bytes transferred in 0.000530 secs (318865 bytes/sec)
+
+At this point you _may_ get a popup warning you _"The disk you inserted was not readable by this computer."_ If you do, just click the *Ignore* button.
+
+One last step. Still in Terminal:
+
+ diskutil eject /dev/disk42
+
+You can then close Terminal.
+
 ==== Booting
-The instructions here don't differ too much than from Windows, though it's always the same key. For OS X/macOS hardware, I believe it's the *c* key or the *b* key. From it being in a shutdown state, power on your Macbook Pro (or whatever it is you have) and hold the *c* key if it's CD/DVD. The *b* key should bring up a boot menu that will let you select a USB device to boot from.
+The instructions here don't differ too much than from Windows, though it's always the same key. For OS X/macOS hardware, I believe it's the *c* key or the *b* key. From it being in a shutdown state, power on your Macbook Pro (or whatever it is you have) and hold the *c* key if it's CD/DVD. The *b* key should bring up a boot menu that will let you select a USB device to boot from (I believe the *"b" menu* will let you boot from a CD/DVD as well).
+
+Strangely enough, you should still be able to _boot_ a BDisk Mini CD/DVD, you just can't *burn* one. I'm tempted to make a cheap dig at Apple, but I'll refrain.
 
 === GNU/Linux
 ==== CD/DVD
+Easy. Most (if not all) of https://wiki.archlinux.org/index.php/Optical_disc_drive#Burning[these] should support burning `bdisk-mini.iso` to disc (I'm partial to _cdrecord_). If you prefer a GUI, try some of https://wiki.archlinux.org/index.php/Optical_disc_drive#Burning_CD.2FDVD.2FBD_with_a_GUI[these] instead (I like _k3b_).
+
 ==== USB
+Very similar to OS X/macOS in approach. First open a terminal emulator- the ways of navigating to it depends on your window manager/desktop environment, but it's usually under a System or Utilities menu.
+
+Now we need to find which disk our USB thumbdrive is.
+
+ sudo fdisk -l
+
+You should see a device matching your USB thumbdrive's size. In our example, I use */dev/sdz* as it's unlikely you have that many disks attached to a system, but be sure to replace this in the following commands with the proper disk ID you find.
+
+ ...
+
+ Disk /dev/sdz: 7.6 GiB, 8178892800 bytes, 15974400 sectors
+ Units: sectors of 1 * 512 = 512 bytes
+ Sector size (logical/physical): 512 bytes / 512 bytes
+ I/O size (minimum/optimal): 512 bytes / 512 bytes
+
+ ...
+
+CAUTION: *Be sure* to find the disk that matches the size of your thumbdrive! If you use the wrong disk identifier, it will break your GNU/Linux install (or possibly Windows install if you're dual-booting, etc.) at best and delete all your data at worst!
+
+Make sure it isn't mounted:
+
+ umount /dev/sdz
+
+You should get a message that says `umount: /dev/sdz: not mounted`. If it was mounted before, it's unmounted now.
+
+Next, simply dd over the ISO file.
+
+ sudo dd if=~/Desktop/bdisk-mini.iso of=/dev/sdz
+
+NOTE: the above command may prompt you for a password. This is the same password you use to log in (and unlock the screensaver, etc.). No characters will show up when you type (for security reasons, in case someone is behind you watching your screen) so it may take you a couple tries.
+
+This will run for a couple seconds. When it finishes, you should see something similar to (but not necessarily the same numbers as) this:
+
+ 75776+0 records in
+ 75776+0 records out
+ 38797312 bytes (39 MB, 37 MiB) copied, 9.01915 s, 4.3 MB/s
+
+If you get a popup from your desktop environment (assuming you're using one) about not being able to mount a disk, or that it's unformatted, etc. and it prompts you to format, ignore/cancel/close it- do *not* format it! This would erase the BDisk Mini image on it.
+
 ==== Booting
+Exactly the same as those for Windows. (Unless you're running GNU/Linux on Mac hardware, in which case follow the booting instructions for Mac instead.)
