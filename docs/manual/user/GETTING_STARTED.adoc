@@ -45,8 +45,6 @@ These are needed for using BDisk.
 
 * https://www.python.org/[Python^] (>=3.5)
 * https://github.com/dosfstools/dosfstools[dosfstools^]
-* http://gcc.gnu.org[gcc (multilib)^] (>=6.x)
-* http://gcc.gnu.org[gcc-libs (multilib)^] (>=6.x)
 * http://libburnia-project.org[libisoburn^]
 * http://squashfs.sourceforge.net[squashfs-tools^] (>=4.2)
 
@@ -62,6 +60,10 @@ While not strictly necessary, these will greatly enhance your BDisk usage. I've 
 
 NOTE: If you do not wish to install any of these or cannot install them, be sure to disable the relevant options in the `build.ini` file (we'll talk about that later). The default `extra/dist.build.ini` should be sane enough to not require any of these.
 
+* http://gcc.gnu.org[gcc (multilib)^] (>=6.x)
+** Needed for building iPXE.
+* http://gcc.gnu.org[gcc-libs (multilib)^] (>=6.x)
+** (Same as gcc.)
 * https://git-scm.com/[git^]
 ** For autodetection of version, automatically making commits for your project, etc.
 * https://www.gnupg.org/[gpg/gnupg^] (>=2.1.11)

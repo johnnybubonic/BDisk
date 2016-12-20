@@ -1,0 +1,21 @@
+=== extra/
+This directory contains multiple "support files" for BDisk building.
+
+==== bdisk.png
+This file is used for bootloader graphics. If you change the name of the project, this can be named something different -- see <<_uxname,the section on uxname>>.
+
+==== bin/
+This directory contains sample code or extra tools that don't have anything to do with BDisk normal operation but are useful in building a BDisk distribution.
+
+==== dist.build.ini
+This is the "source-provided"/upstream example `build.ini`. It will be sourced for any missing configuration options or the like.
+
+==== external/
+This directory contains external source code for use with extra features in BDisk that would otherwise be inconvenient to fetch and build dynamically.
+
+==== pkg.build.ini
+This is the recommended default `build.ini` file for packagers of distro repositories to use when packaging BDisk for inclusion in a package manager.
+
+include::PREBUILD.adoc[]
+
+include::TEMPLATES.adoc[]

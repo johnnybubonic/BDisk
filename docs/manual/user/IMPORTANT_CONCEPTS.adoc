@@ -16,6 +16,10 @@ A *live distro*, *live CD*, *live DVD*, *live USB*, and the like are a way of bo
 
 *Chroots*, *chrooting*, and the like are variants on the word *chroot*. A *chroot* is a way of running a GNU/Linux install "inside" another GNU/Linux distro. It's sort of like a virtual machine, or VM, except that it's a lot more lightweight and it doesn't do any actual virtualization- and uses the host's kernel, memory mapping, etc. It's very useful for development of operating systems.
 
+*PXE*, or Pre-boot eXecution Environment, is a way of booting operating systems over a local network.
+
+*iPXE* is a http://ipxe.org/[project^] that builds a very small Linux kernel, UNDI (traditional PXE) images, and the like that allow you to essentially use PXE over the Internet. It's very flexible and customizable, and supports a custom scripting engine and such.
+
 === Why live media is necessary/Why you might want BDisk
 "But Brent," I hear you ask in a voice which most likely is nothing close to what you actually sound like and entirely in my head, "Why would I need a live CD/USB/etc.? And why BDisk?"
 
@@ -26,7 +30,7 @@ Elementary, my dear imaginary reader! I touch on some reasons why one might want
 * It performs optimizations and compression to help you get the smallest ISO possible.
 * In addition to building hybrid ISOs, it supports building iPXE hybrid ISOs (meaning you only need a very small file; the rest of the operating system boots over the Internet).
 * It supports both BIOS and UEFI systems- both the full image and the iPXE images.
-* It supports multiple architectures (x86_64, i686, possibly IA64 -- untested).
+* It supports multiple architectures (x86_64, i686, possibly IA64 -- untested) on the same ISO.
 * It supports automatically syncing to a web mirror, PXE boot server, etc. via rsync upon successful build.
 * It supports SecureBoot.
 

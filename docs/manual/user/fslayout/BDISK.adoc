@@ -1,6 +1,30 @@
-== bdisk/
-This directory contains the "heart" of BDisk. It essentially is a Python module package. It contains several python "subpackages" split into different files that provide different functions for BDisk.
+=== bdisk/
+This directory contains the "heart" of BDisk. It essentially is a Python module package. It contains several python "subpackages" split into different files that provide different functions for BDisk. Chances are you won't ever need to touch anything in here.
 
-=== bchroot.py
+==== bchroot.py
 This file controls creation of the chroots -- the directories in which BDisk builds the actual system that is booted into.
+
+==== bdisk.py
+This file is a sort of "wrapper" -- it pulls all the other files in this directory together into a single usable python script. In other words, to build a BDisk distribution, you would simply run `bdisk/bdisk.py` -- that's it!
+
+==== bGPG.py
+This contaions functions having to do with GPG -- signing files, verifying other signatures, generating a key (if one wasn't specified), using a key (if one was specified), etc.
+
+==== bSSL.py
+Functions having to do with OpenSSL are stored here. This is used primarily for "mini" builds (via iPXE), they let you boot your BDisk distribution over the Internet. If an SSL key, CA certificate, etc. weren't defined and you want to build a mini image, this file contains functions that will build an SSL PKI (public key infrastructure) for you automatically.
+
+==== bsync.py
+This file has functions relating to copying your BDisk build to various resources. For instance, if you want your ISO available to download then this file would be used to copy your finished build to an HTTP server/root you specify.
+
+==== build.py
+This is responsible for building the "full" ISO, building UEFI support, etc.
+
+==== host.py
+These functions are used to perform "meta" tasks such as get information about the build host, find the `build.ini` file, and parse your configuration options.
+
+==== ipxe.py
+This file handles building the "mini" ISO via iPXE.
+
+==== prep.py
+This contains functions that download the base tarball releases, preps them for `bchroot.py`, builds necessary directory structures, and performs the overlay preparations.
 

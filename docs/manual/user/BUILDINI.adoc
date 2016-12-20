@@ -1,0 +1,75 @@
+== The `build.ini` file
+This file is where you can specify some of the very basics of BDisk building. It allows you to specify/define certain variables and settings used by the build process. It uses https://docs.python.org/3/library/configparser.html[ConfigParser^] for the parsing engine, and you can do some https://wiki.python.org/moin/ConfigParserExamples[more advanced^] things with it than I demonstrate in the default.
+
+It's single-level, but divided into "sections". This is unfortunately a limitation of ConfigParser, but it should be easy enough to follow.
+
+Blank lines are ignored, as well as any lines beginning with `#` and `;`. There are some restrictions and recommendations for some values, so be sure to note them when they occur. Variables referencing other values in the `build.ini` are allowed in the format of `${value}` if it's in the same section; otherwise, `${section:value}` can be used.
+
+We'll go into more detail for each section below.
+
+=== Example
+ [bdisk]
+ name = BDISK
+ uxname = bdisk
+ pname = BDisk
+ ver =
+ dev = A Developer
+ email = dev@domain.tld
+ desc = A rescue/restore live environment.
+ uri = https://domain.tld
+ root_password =
+ user = yes
+ [user]
+ username = ${bdisk:uxname}
+ name = Default user
+ password = $$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/
+ [build]
+ mirror = mirror.us.leaseweb.net
+ mirrorproto = https
+ mirrorpath = /archlinux/iso/latest/
+ mirrorfile =
+ mirrorchksum = ${mirrorpath}sha1sums.txt
+ mirrorgpgsig =
+ gpgkey = 7F2D434B9741E8AC
+ gpgkeyserver =
+ gpg = no
+ dlpath = /var/tmp/${bdisk:uxname}
+ chrootdir = /var/tmp/chroots
+ basedir = /opt/dev/bdisk
+ isodir = ${dlpath}/iso
+ srcdir = ${dlpath}/src
+ prepdir = ${dlpath}/temp
+ archboot = ${prepdir}/${bdisk:name}
+ mountpt = /mnt/${bdisk:uxname}
+ multiarch = yes
+ ipxe = no
+ i_am_a_racecar = no
+ [gpg]
+ mygpgkey =
+ mygpghome =
+ [sync]
+ http = no
+ tftp = no
+ git = no
+ rsync = no
+ [http]
+ path = ${build:dlpath}/http
+ user = http
+ group = http
+ [tftp]
+ path = ${build:dlpath}/tftpboot
+ user = root
+ group = root
+ [ipxe]
+ iso = no
+ uri = https://domain.tld
+ ssldir = ${build:dlpath}/ssl
+ ssl_ca = ${ssldir}/ca.crt
+ ssl_cakey = ${ssldir}/ca.key
+ ssl_crt = ${ssldir}/main.crt
+ ssl_key = ${ssldir}/main.key
+ [rsync]
+ host =
+ user =
+ path =
+ iso = no

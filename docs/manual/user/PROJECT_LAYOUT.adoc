@@ -1,4 +1,73 @@
 == Project Structure
+The following is a tree of files and directories in a BDisk root directory. Note that yours may not look quite like this, as BDisk supports some directory relocation to aid in packaging for distros. These will be examined in-depth in the coming sections.
+
+ <BDisk root directory>
+ ├── bdisk
+ │   ├── bchroot.py
+ │   ├── bdisk.py
+ │   ├── bGPG.py
+ │   ├── bSSL.py
+ │   ├── bsync.py
+ │   ├── build.py
+ │   ├── host.py
+ │   ├── ipxe.py
+ │   └── prep.py
+ ├── docs
+ │   ├── COPYING
+ │   ├── LICENSE -> COPYING
+ │   ├── manual
+ │   │   └── (...)
+ │   ├── README
+ ├── examples
+ │   └── HTTP
+ │       └── (...)
+ ├── extra
+ │   ├── bdisk.png
+ │   ├── bin
+ │   │   └── (...)
+ │   ├── dist.build.ini
+ │   ├── external
+ │   │   └── (...)
+ │   ├── mirrorlist
+ │   ├── pre-build.d
+ │   │   ├── (...)
+ │   │   ├── i686
+ │   │   │   └── (...)
+ │   │   └── x86_64
+ │   │       └── (...)
+ │   └── templates
+ │       ├── BIOS
+ │       │   ├── isolinux.cfg.arch.j2
+ │       │   └── isolinux.cfg.multi.j2
+ │       ├── EFI
+ │       │   ├── base.conf.j2
+ │       │   ├── loader.conf.j2
+ │       │   ├── ram.conf.j2
+ │       │   ├── uefi1.conf.j2
+ │       │   └── uefi2.conf.j2
+ │       ├── GPG.j2
+ │       ├── iPXE
+ │       │   ├── BIOS
+ │       │   │   └── isolinux.cfg.j2
+ │       │   ├── EFI
+ │       │   │   ├── base.conf.j2
+ │       │   │   └── loader.conf.j2
+ │       │   ├── EMBED.j2
+ │       │   ├── patches
+ │       │   │   ├── 01.git-version.patch.j2
+ │       │   │   └── 02.banner.patch.j2
+ │       │   └── ssl
+ │       │       └── openssl.cnf
+ │       ├── VARS.txt.j2
+ │       └── VERSION_INFO.txt.j2
+ └── overlay
+     ├── (...)
+     ├── i686
+     └── x86_64
 
 include::fslayout/BDISK.adoc[]
+include::fslayout/DOCS.adoc[]
+include::fslayout/EXAMPLES.adoc[]
+include::fslayout/EXTRA.adoc[]
+include::fslayout/OVERLAY.adoc[]
 
