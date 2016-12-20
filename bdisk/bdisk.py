@@ -21,7 +21,7 @@ if __name__ == '__main__':
     prep.buildChroot(conf, keep = False)
     prep.prepChroot(conf)
     arch = conf['build']['arch']
-    #bGPG.killStaleAgent(conf)
+    bGPG.killStaleAgent(conf)
     for a in arch:
         bchroot.chroot(conf['build']['chrootdir'] + '/root.' + a, 'bdisk.square-r00t.net')
         bchroot.chrootUnmount(conf['build']['chrootdir'] + '/root.' + a)

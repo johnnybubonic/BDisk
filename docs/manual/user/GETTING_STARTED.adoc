@@ -63,7 +63,7 @@ NOTE: If you do not wish to install any of these or cannot install them, be sure
 * http://gcc.gnu.org[gcc (multilib)^] (>=6.x)
 ** Needed for building iPXE.
 * http://gcc.gnu.org[gcc-libs (multilib)^] (>=6.x)
-** (Same as gcc.)
+** (Same as _gcc_.)
 * https://git-scm.com/[git^]
 ** For autodetection of version, automatically making commits for your project, etc.
 * https://www.gnupg.org/[gpg/gnupg^] (>=2.1.11)

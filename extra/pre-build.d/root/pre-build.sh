@@ -1,9 +1,14 @@
 #!/bin/bash
 
-source /etc/bash.bashrc
 # needed so we override whatever's set in python
 # alternatively, we can just mkdir -p $GNUPGHOME
-export GNUPGHOME=/root/.gnupg
+#export GNUPGHOME=/root/.gnupg
+unset GNUPGHOME
+mkdir -p /var/empty/.gnupg
+
+
+# set up a shell env
+source /etc/profile
 
 # Import settings.
 source /root/VARS.txt
@@ -67,6 +72,7 @@ cleanPacorigs
 pacman --noconfirm -U /root/apacman*.tar.xz &&\
 	 mkdir /var/tmp/apacman && chmod 0750 /var/tmp/apacman &&\
 	 chown root:aurbuild /var/tmp/apacman
+chown aurbuild:aurbuild /var/empty/.gnupg
 cleanPacorigs
 apacman -Syy
 apacman -S --noconfirm --noedit --skipinteg --needed -S apacman apacman-deps apacman-utils expac

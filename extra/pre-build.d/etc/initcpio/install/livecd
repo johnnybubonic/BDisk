@@ -6,6 +6,11 @@ build()
 	add_module 'loop'
 	add_module 'overlay'
 
+	add_file "/etc/passwd"
+	add_file "/etc/shadow"
+	add_file "/etc/group"
+	add_file "/etc/gshadow"
+
         add_binary "/usr/bin/sed"
         add_binary "/usr/bin/pkill"
         add_binary "/usr/bin/curl"

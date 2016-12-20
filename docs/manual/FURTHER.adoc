@@ -5,6 +5,7 @@
 Here you will find further info, other resources, and such relating to BDisk.
 --
 
+include::further/PASSWORDS.adoc[]
 include::further/BUGS.adoc[]
 include::further/CONTACT.adoc[]
 
