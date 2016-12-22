@@ -4,11 +4,13 @@ arch-install-scripts
 archiso
 bzip2
 coreutils
+customizepkg-scripting
 cronie
 dhclient
 dhcp
 dhcpcd
 dosfstools
+dropbear
 efibootmgr
 efitools
 efivar
@@ -22,8 +24,10 @@ localepurge
 lz4
 lzo
 lzop
+mkinitcpio-nbd
 mkinitcpio-nfs-utils
 mkinitcpio-utils
+nbd
 ms-sys
 mtools
 net-tools

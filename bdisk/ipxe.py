@@ -219,11 +219,12 @@ def genISO(conf):
         shutil.copy2('{0}/src/bin/ipxe.lkrn'.format(ipxe_src), '{0}/boot/ipxe.krn'.format(bootdir))
         isolinux_filelst = ['isolinux.bin',
                             'ldlinux.c32']
+        os.makedirs('{0}/isolinux'.format(bootdir), exist_ok = True)
         for f in isolinux_filelst:
-            shutil.copy2('{0}/root.{1}/usr/lib/syslinux/bios/{2}'.format(chrootdir, arch[0], f), '{0}/{1}'.format(bootdir, f))
+            shutil.copy2('{0}/root.{1}/usr/lib/syslinux/bios/{2}'.format(chrootdir, arch[0], f), '{0}/isolinux/{1}'.format(bootdir, f))
         tpl = env.get_template('BIOS/isolinux.cfg.j2')
         tpl_out = tpl.render(build = build, bdisk = bdisk)
-        with open('{0}/isolinux.cfg'.format(bootdir), "w+") as f:
+        with open('{0}/isolinux/isolinux.cfg'.format(bootdir), "w+") as f:
             f.write(tpl_out)
         print("{0}: [IPXE] Building Mini ISO ({1})...".format(datetime.datetime.now(), isopath))
         if efi:
@@ -235,8 +236,8 @@ def genISO(conf):
                     '-appid', bdisk['desc'],
                     '-publisher', bdisk['dev'],
                     '-preparer', 'prepared by ' + bdisk['dev'],
-                    '-eltorito-boot', 'isolinux.bin',
-                    '-eltorito-catalog', 'boot.cat',
+                    '-eltorito-boot', 'isolinux/isolinux.bin',
+                    '-eltorito-catalog', 'isolinux/boot.cat',
                     '-no-emul-boot',
                     '-boot-load-size', '4',
                     '-boot-info-table',

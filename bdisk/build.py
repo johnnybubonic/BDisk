@@ -66,9 +66,9 @@ def genImg(conf):
                 hashes['sha256'][a].update(stream)
                 hashes['md5'][a].update(stream)
         with open(airoot + 'airootfs.sha256', 'w+') as f:
-            f.write("{0}  airootfs.sfs".format(hashes['sha256'][a].hexdigest()))
+            f.write("{0}  airootfs.sfs\n".format(hashes['sha256'][a].hexdigest()))
         with open(airoot + 'airootfs.md5', 'w+') as f:
-            f.write("{0}  airootfs.sfs".format(hashes['md5'][a].hexdigest()))
+            f.write("{0}  airootfs.sfs\n".format(hashes['md5'][a].hexdigest()))
         squashfses.append('{0}'.format(squashimg))
         print("{0}: [BUILD] Hash checksums complete.".format(datetime.datetime.now()))
         # Logo
@@ -81,8 +81,10 @@ def genImg(conf):
         # We use a dict here so we can use the right filenames...
         # I might change how I handle this in the future.
         bootfiles = {}
-        bootfiles['kernel'] = ['vmlinuz-linux-' + bdisk['name'], '{0}.{1}.kern'.format(bdisk['uxname'], bitness)]
-        bootfiles['initrd'] = ['initramfs-linux-{0}.img'.format(bdisk['name']), '{0}.{1}.img'.format(bdisk['uxname'], bitness)]
+        #bootfiles['kernel'] = ['vmlinuz-linux-' + bdisk['name'], '{0}.{1}.kern'.format(bdisk['uxname'], bitness)]
+        bootfiles['kernel'] = ['vmlinuz-linux', '{0}.{1}.kern'.format(bdisk['uxname'], bitness)]
+        #bootfiles['initrd'] = ['initramfs-linux-{0}.img'.format(bdisk['name']), '{0}.{1}.img'.format(bdisk['uxname'], bitness)]
+        bootfiles['initrd'] = ['initramfs-linux.img', '{0}.{1}.img'.format(bdisk['uxname'], bitness)]
         for x in ('kernel', 'initrd'):
             shutil.copy2('{0}/root.{1}/boot/{2}'.format(chrootdir, a, bootfiles[x][0]), '{0}/boot/{1}'.format(prepdir, bootfiles[x][1]))
     for i in squashfses:
@@ -233,9 +235,11 @@ def genUEFI(build, bdisk):
                 if os.path.isfile(z):
                     os.remove(z)
                 shutil.copy(y, z)
-        shutil.copy2('{0}/root.{1}/boot/vmlinuz-linux-{2}'.format(chrootdir, 'x86_64', bdisk['name']),
+        #shutil.copy2('{0}/root.{1}/boot/vmlinuz-linux-{2}'.format(chrootdir, 'x86_64', bdisk['name']),
+        shutil.copy2('{0}/root.{1}/boot/vmlinuz-linux'.format(chrootdir, 'x86_64'),
                     '{0}/EFI/{1}/{2}.efi'.format(mountpt, bdisk['name'], bdisk['uxname']))
-        shutil.copy2('{0}/root.{1}/boot/initramfs-linux-{2}.img'.format(chrootdir, 'x86_64', bdisk['name']),
+        #shutil.copy2('{0}/root.{1}/boot/initramfs-linux-{2}.img'.format(chrootdir, 'x86_64', bdisk['name']),
+        shutil.copy2('{0}/root.{1}/boot/initramfs-linux.img'.format(chrootdir, 'x86_64'),
                     '{0}/EFI/{1}/{2}.img'.format(mountpt, bdisk['name'], bdisk['uxname']))
         # TODO: support both arch's as EFI bootable instead? Maybe? requires more research. very rare.
         #shutil.copy2('{0}/root.{1}/boot/vmlinuz-linux-{2}'.format(chrootdir, a, bdisk['name']),

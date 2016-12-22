@@ -113,11 +113,11 @@ def parseConfig(confs):
         elif not glob.glob('{0}/*v{1}r*.iso'.format(config_dict['build']['isodir'], config_dict['bdisk']['ver'])):
             config_dict['build']['buildnum'] = 0
     # and build a list of arch(es) we want to build
-    if config_dict['build']['multiarch'] in ('','yes','true','1'):
+    if config_dict['build']['multiarch'] in ('','yes','true','1','no','false','0'):
         config_dict['build']['arch'] = ['x86_64','i686']
-    elif config_dict['build']['multiarch'] == 'x86_64':
+    elif config_dict['build']['multiarch'] in ('x86_64','64','no32'):
         config_dict['build']['arch'] = ['x86_64']
-    elif config_dict['build']['multiarch'] == 'i686':
+    elif config_dict['build']['multiarch'] in ('i686','32','no64'):
         config_dict['build']['arch'] = ['i686']
     else:
         exit(('{0}: ERROR: {1} is not a valid value. Check your configuration.').format(

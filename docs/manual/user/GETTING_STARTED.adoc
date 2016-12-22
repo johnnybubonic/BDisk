@@ -65,7 +65,7 @@ NOTE: If you do not wish to install any of these or cannot install them, be sure
 * http://gcc.gnu.org[gcc-libs (multilib)^] (>=6.x)
 ** (Same as _gcc_.)
 * https://git-scm.com/[git^]
-** For autodetection of version, automatically making commits for your project, etc.
+** For autodetection of version, automatically making commits for your project, checking out source code, etc.
 * https://www.gnupg.org/[gpg/gnupg^] (>=2.1.11)
 ** For automatically signing releases, verifying downloaded files from the Internet as part of the build process, etc. It's okay if you don't have a key set up!
 * https://rsync.samba.org/[rsync^]

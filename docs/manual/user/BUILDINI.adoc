@@ -247,6 +247,267 @@ Should we sign our release files? See the gpg section.
 ==== `dlpath`
 Where should the release files be saved? Note that many other files are created here as well.
 
+WARNING: If you manage your project in git, this should not be checked in as it has many large files that are automatically generated!
+
 . No whitespace
 . Will be created if it doesn't exist
 
+==== `chrootdir`
+Where the bootstrap tarball(s) extract to, where the chroots are built and prepped for filesystems on the live media.
+
+WARNING: If you manage your project in git, this should not be checked in as it has many large files that are automatically generated!
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `basedir`
+Where your <<_extra,`extra/`>> and <<_overlay,`overlay/`>> directories are located. If you checked out from git, this would be your git worktree directory.
+
+. No whitespace
+. Must exist and contain the above directories populated with necessary files
+
+==== `isodir`
+This is the output directory of ISO files when they're created (as well as GPG signatures if you <<__code_gpg_code,enabled them>>).
+
+WARNING: If you manage your project in git, this should not be checked in as it has many large files that are automatically generated!
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `srcdir`
+This is where we save and compile source code if we need to dynamically build components (such as iPXE for mini ISOs).
+
+. No whitespace
+. Will be created if it doesn't exist (and is needed)
+
+==== `prepdir`
+This is the directory we use for staging.
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `archboot`
+This directory is used to stage boot files.
+
+WARNING: This directory should not be the exact same path as other directives! If so, you will cause your ISO to be much larger than necessary. A subdirectory of another directive's path, however, is okay.
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `mountpt`
+The path to use as a mountpoint.
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `multiarch`
+*default: yes*
+
+Whether or not to build a "multiarch" image- that is, building support for both x86_64 and i686 in the same ISO.
+
+[options="header"]
+|======================
+s|In order to... 3+^|Accepts (case-insensitive) one of:
+s|build a multiarch ISO ^m|yes ^m|true ^m|1
+s|build a separate ISO for each architecture ^m|no ^m|false ^m|0
+s|only build an i686-architecture ISO ^m|i686 ^m|32 ^m|no64
+s|only build an x86_64-architecture ISO ^m|x86_64 ^m|64 ^m|no32
+|======================
+
+==== `ipxe`
+*default: no*
+
+Enable iPXE ("mini ISO") functionality.
+
+NOTE: This has no bearing on the <<__code_sync_code,`[sync]`>> section, so you can create an iPXE HTTP preparation for instance without needing to sync it anywhere (in case you're building on the webserver itself).
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `i_am_a_racecar`
+*default: no*
+
+This option should only be enabled if you are on a fairly powerful, multicore system with plenty of RAM. It will speed the build process along, but will have some seriously adverse effects if your system can't handle it. Most modern systems should be fine with enabling it.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+=== `[gpg]`
+This section controls settings for signing our release files. This is only used if <<__code_gpg_code,`build:gpg`>> is enabled.
+
+==== `mygpgkey`
+A valid key ID that BDisk should use to _sign_ release files.
+
+. You will be prompted for a passphrase if your key has one/you don't have an open and authorized gpg-agent session. Make sure you have a working pinentry configuration set up!
+. If you leave this blank we will use the key we generate automatically earlier in the build process.
+. We will generate one if this is blank and you have selected sign as yes.
+
+==== `mygpghome`
+The directory should be used for the above GPG key if specified. Make sure it contains your private key. (e.g. `/home/username/.gnupg`)
+
+=== `[sync]`
+This section controls what we should do with the resulting build and how to handle uploads, if we choose to use those features.
+
+==== `http`
+*default: no*
+
+If enabled, BDisk will generate/prepare HTTP files. This is mostly only useful if you plan on using iPXE.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `tftp`
+*default: no*
+
+If enabled, BDisk will generate/prepare TFTP files. This is mostly only useful if you plan on using more traditional (non-iPXE) setups and regualar PXE bootstrapping into iPXE.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `git`
+*default: no*
+
+Enable automatic Git pushing for any changes done to the project itself. If you don't have upstream write/push access, you'll want to disable this.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `rsync`
+*default: no*
+
+Enable rsync pushing for the ISO (and other files, if you choose- useful for iPXE over HTTP(S)).
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+=== `[http]`
+This section controls details about HTTP file preparation/generation. Only used if <<__code_http_code,`sync:http`>> is enabled.
+
+==== `path`
+This directory is where to build an HTTP webroot.
+
+WARNING: MAKE SURE you do not store files here that you want to keep! They will be deleted!
+
+. No whitespace
+. If blank, HTTP preparation/generation will not be done
+. If specified, it will be created if it doesn't exist
+. Will be deleted first
+
+==== `user`
+What user the HTTP files should be owned as. This is most likely going to be either 'http', 'nginx', or 'apache'.
+
+. No whitespace
+. User must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|username ^.^m|http://www.linfo.org/uid.html[UID]
+|======================
+
+==== `group`
+What group the HTTP files should be owned as. This is most likely going to be either 'http', 'nginx', or 'apache'.
+
+. No whitespace
+. Group must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|group name ^.^m|https://linux.die.net/man/5/group[UID]
+|======================
+
+=== `[tftp]`
+This section controls details about TFTP file preparation/generation. Only used if <<__code_tftp_code,`sync:tftp`>> is enabled.
+
+==== `path`
+The directory where we want to build a TFTP root.
+
+WARNING: MAKE SURE you do not store files here that you want to keep! They will be deleted!
+
+. No whitespace
+. Will be created if it doesn't exist
+. Will be deleted first
+
+==== `user`
+What user the TFTP files should be owned as. This is most likely going to be either 'tftp', 'root', or 'nobody'.
+
+. No whitespace
+. User must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|username ^.^m|http://www.linfo.org/uid.html[UID]
+|======================
+
+==== `group`
+What group the TFTP files should be owned as. This is most likely going to be either 'tftp', 'root', or 'nobody'.
+
+. No whitespace
+. Group must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|group name ^.^m|https://linux.die.net/man/5/group[UID]
+|======================
+
+=== `[ipxe]`
+This section controls aspects of iPXE building. Only used if <<__code_ipxe_code,`build:ipxe`>> is enabled.
+
+==== `iso`
+*default: no* +
+*requires: <<_optional,_git_>>*
+
+Build a "mini-ISO"; that is, an ISO file that can be used to bootstrap an iPXE environment (so you don't need to set up a traditional PXE environment on your LAN). We'll still build a full standalone ISO no matter what.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `uri`
+What URI iPXE's EMBED script should use. This would be where you host an iPXE chainloading script on a webserver, for instance. See iPXE's example of http://ipxe.org/scripting#dynamic_scripts[dynamic scripts^] for an example of the script that would be placed at this URI.
+
+NOTE: If you require HTTP BASIC Authentication or HTTP Digest Authentication (untested), you can format it via `https://user:password@bdisk.square-r00t.net/boot.php`.
+
+NOTE: This currently does not work for HTTPS with self-signed certificates.
+
+. *Required* if <<__code_iso_code,`iso`>> is enabled
+
+==== `ssldir`
+Directory to hold SSL results, if we are generating keys, certificates, etc.
+
+. No whitespace
+. Will be created if it does not exist
+
+==== `ssl_ca`
+Path to the (root) CA certificate file iPXE should use. See http://ipxe.org/crypto[iPXE's crypto page^] for more information.
+
+NOTE: You can use your own CA to sign existing certs.

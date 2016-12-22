@@ -19,7 +19,7 @@ trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>/var/log/chroot_install.log 2>&1
 
 # we need this fix before anything.
-dirmngr </dev/null > /dev/null 2>&1
+dirmngr </dev/null
 
 cleanPacorigs()
 {
@@ -53,8 +53,10 @@ pacman -Syy
 cleanPacorigs
 # Install some prereqs
 pacman -S --noconfirm --needed sed
+pacman -S --noconfirm --needed grep
 sed -i.bak -e 's/^CheckSpace/#CheckSpace/g' /etc/pacman.conf
 pacman -S --noconfirm --needed filesystem
+pacman -S --noconfirm --needed core
 mv /etc/pacman.conf.bak /etc/pacman.conf
 pacman -S --noconfirm --needed base syslinux wget rsync unzip jshon sudo abs xmlto bc docbook-xsl git
 locale-gen
@@ -73,6 +75,7 @@ pacman --noconfirm -U /root/apacman*.tar.xz &&\
 	 mkdir /var/tmp/apacman && chmod 0750 /var/tmp/apacman &&\
 	 chown root:aurbuild /var/tmp/apacman
 chown aurbuild:aurbuild /var/empty/.gnupg
+chmod 700 /var/empty/.gnupg
 cleanPacorigs
 apacman -Syy
 apacman -S --noconfirm --noedit --skipinteg --needed -S apacman apacman-deps apacman-utils expac
@@ -112,7 +115,7 @@ ln -s /usr/lib/libdialog.so.1.2 /usr/lib/libdialog.so
 cleanPacorigs
 apacman --noconfirm --noedit --skipinteg -S --needed linux
 apacman --gendb
-mv -f /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
+#mv -f /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
 cleanPacorigs
 
 # And install EXTRA functionality packages, if there are any.
