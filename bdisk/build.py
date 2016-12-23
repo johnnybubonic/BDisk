@@ -136,14 +136,20 @@ def genUEFI(build, bdisk):
                 fname = 'bootx64.efi'
             else:
                 fname = f
-            if not os.path.isfile(prepdir + '/EFI/boot/' + fname):
-                shutil.copy2('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(chrootdir, f),
-                            '{0}/EFI/boot/{1}'.format(prepdir, fname))
+            with open('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(
+                                                            chrootdir,
+                                                            f),
+                                                            'rb') as r:
+                with open('{0}/EFI/boot/{1}'.format(prepdir, fname), 'wb') as file:
+                    file.write(r.read())
         # And we also need the systemd efi bootloader.
         if os.path.isfile(prepdir + '/EFI/boot/loader.efi'):
             os.remove(prepdir + '/EFI/boot/loader.efi')
-        shutil.copy2(chrootdir + '/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi',
-                    prepdir + '/EFI/boot/loader.efi')
+        with open('{0}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi'.format(
+                                                            chrootdir),
+                                                            'rb') as r:
+            with open('{0}/EFI/boot/loader.efi'.format(prepdir), 'wb') as file:
+                file.write(r.read())
         # And the accompanying configs for the systemd efi bootloader, too.
         tpl_loader = jinja2.FileSystemLoader(templates_dir)
         env = jinja2.Environment(loader = tpl_loader)
@@ -166,9 +172,9 @@ def genUEFI(build, bdisk):
                 f.write(tpl_out)
         # And we need to get filesizes (in bytes) for everything we need to include in the ESP.
         # This is more important than it looks.
-        #sizetotal = 33553920  # The spec'd EFI binary size (32MB). It's okay to go over this though (and we do)
+        sizetotal = 33553920  # The spec'd EFI binary size (32MB). It's okay to go over this though (and we do)
         # because xorriso sees it as a filesystem image and adjusts the ISO automagically.
-        sizetotal = 2097152  # we start with 2MB and add to it for wiggle room
+        #sizetotal = 2097152  # we start with 2MB and add to it for wiggle room
         sizefiles = ['/boot/' + bdisk['uxname'] + '.64.img',
                     '/boot/' + bdisk['uxname'] + '.64.kern',
                     '/EFI/boot/bootx64.efi',
@@ -235,10 +241,8 @@ def genUEFI(build, bdisk):
                 if os.path.isfile(z):
                     os.remove(z)
                 shutil.copy(y, z)
-        #shutil.copy2('{0}/root.{1}/boot/vmlinuz-linux-{2}'.format(chrootdir, 'x86_64', bdisk['name']),
         shutil.copy2('{0}/root.{1}/boot/vmlinuz-linux'.format(chrootdir, 'x86_64'),
                     '{0}/EFI/{1}/{2}.efi'.format(mountpt, bdisk['name'], bdisk['uxname']))
-        #shutil.copy2('{0}/root.{1}/boot/initramfs-linux-{2}.img'.format(chrootdir, 'x86_64', bdisk['name']),
         shutil.copy2('{0}/root.{1}/boot/initramfs-linux.img'.format(chrootdir, 'x86_64'),
                     '{0}/EFI/{1}/{2}.img'.format(mountpt, bdisk['name'], bdisk['uxname']))
         # TODO: support both arch's as EFI bootable instead? Maybe? requires more research. very rare.

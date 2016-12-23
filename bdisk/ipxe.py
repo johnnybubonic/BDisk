@@ -133,8 +133,8 @@ def genISO(conf):
         os.makedirs(os.path.dirname(efiboot_img), exist_ok = True)  # FAT32 embedded EFI dir
         os.makedirs('{0}/EFI/boot'.format(bootdir), exist_ok = True)  # EFI bootloader binary dir
         # Inner dir (miniboot.img file)
-        sizetotal = 2097152  # 2MB wiggle room. increase this if we add IA64.
-        #sizetotal = 34603008  # 33MB wiggle room. increase this if we add IA64.
+        #sizetotal = 2097152  # 2MB wiggle room. increase this if we add IA64.
+        sizetotal = 34603008  # 33MB wiggle room. increase this if we add IA64.
         sizetotal += os.path.getsize(innerefi64)
         sizefiles = ['HashTool', 'PreLoader']
         for f in sizefiles:
@@ -161,7 +161,7 @@ def genISO(conf):
         cmd = ['/bin/mount', efiboot_img, mountpt]
         subprocess.call(cmd)
         os.makedirs(mountpt + '/EFI/boot', exist_ok = True)  # "Inner" (EFI image)
-        os.makedirs('{0}/EFI/{1}'.format(mountpt, bdisk['name']), exist_ok = True)  # "Inner" (EFI image)
+        #os.makedirs('{0}/EFI/{1}'.format(mountpt, bdisk['name']), exist_ok = True)  # "Inner" (EFI image)
         os.makedirs('{0}/boot'.format(bootdir), exist_ok = True)  # kernel(s)
         os.makedirs('{0}/loader/entries'.format(bootdir), exist_ok = True)  # EFI
         for d in (mountpt, bootdir):
@@ -171,19 +171,24 @@ def genISO(conf):
                 fname = 'bootx64.efi'
             else:
                 fname = f
-            if not os.path.isfile('{0}/EFI/boot/{1}'.format(mountpt, fname)):
-                shutil.copy2('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(chrootdir, f),
-                    '{0}/EFI/boot/{1}'.format(mountpt, fname))
-                if not os.path.isfile('{0}/EFI/boot/{1}'.format(bootdir, f)):
-                    shutil.copy2('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(chrootdir, f),
-                        '{0}/EFI/boot/{1}'.format(bootdir, fname))
-                # And the systemd efi bootloader.
-                if not os.path.isfile('{0}/EFI/boot/loader.efi'.format(mountpt)):
-                    shutil.copy2('{0}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi'.format(chrootdir),
-                                    '{0}/EFI/boot/loader.efi'.format(mountpt))
-                    if not os.path.isfile('{0}/EFI/boot/loader.efi'.format(bootdir)):
-                        shutil.copy2('{0}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi'.format(chrootdir),
-                                        '{0}/EFI/boot/loader.efi'.format(bootdir))
+
+            with open('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(
+                                                                chrootdir,f),
+                                                                'rb') as r:
+                with open('{0}/EFI/boot/{1}'.format(mountpt, fname), 'wb') as file:
+                    file.write(r.read())
+            with open('{0}/root.x86_64/usr/share/efitools/efi/{1}'.format(
+                                                                chrootdir, f),
+                                                                'rb') as r:
+                with open('{0}/EFI/boot/{1}'.format(bootdir, fname), 'wb+') as file:
+                    file.write(r.read())
+        # And the systemd efi bootloader.
+        with open('{0}/root.x86_64/usr/lib/systemd/boot/efi/systemd-bootx64.efi'.format(
+                                                                chrootdir),
+                                                                'rb') as r:
+            with open('{0}/EFI/boot/loader.efi'.format(mountpt), 'wb+') as f:
+                f.write(r.read())
+
         # And loader entries.
         os.makedirs('{0}/loader/entries'.format(mountpt, exist_ok = True))
         for t in ('loader', 'base'):
@@ -202,7 +207,7 @@ def genISO(conf):
         # Outer dir
         outerdir = True
         os.makedirs('{0}/isolinux'.format(bootdir), exist_ok = True)  # BIOS
-        # and we create the loader entries (outer)
+        # Loader entries (outer)
         for t in ('loader','base'):
             if t == 'base':
                 name = bdisk['uxname']

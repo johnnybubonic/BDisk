@@ -1,4 +1,4 @@
-== The `build.ini` file
+== The `build.ini` File
 This file is where you can specify some of the very basics of BDisk building. It allows you to specify/define certain variables and settings used by the build process. It uses https://docs.python.org/3/library/configparser.html[ConfigParser^] for the parsing engine, and you can do some https://wiki.python.org/moin/ConfigParserExamples[more advanced^] things with it than I demonstrate in the default.
 
 It's single-level, but divided into "sections". This is unfortunately a limitation of ConfigParser, but it should be easy enough to follow.
@@ -510,4 +510,75 @@ Directory to hold SSL results, if we are generating keys, certificates, etc.
 ==== `ssl_ca`
 Path to the (root) CA certificate file iPXE should use. See http://ipxe.org/crypto[iPXE's crypto page^] for more information.
 
-NOTE: You can use your own CA to sign existing certs.
+NOTE: You can use your own CA to sign existing certs. This is handy if you run a third-party/"Trusted" root-CA-signed certificate for the HTTPS target.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<__code_iso_code,`iso`>> is enabled
+. If it exists, a matching key (ssl_cakey) *must* be specified
+.. However, if left blank/doesn't exist, one will be automatically generated
+
+==== `ssl_cakey`
+Path to the (root) CA key file iPXE should use.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<__code_iso_code,`iso`>> is enabled
+. If left blank or it doesn't exist (and <<__code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
+. *Must* match/pair to <<__code_ssl_ca_code,`ssl_ca`>> if specified/exists
+. MUST NOT be passphrase-protected/DES-encrypted
+
+==== `ssl_crt`
+Path to the _client_ certificate iPXE should use.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<__code_iso_code,`iso`>> is enabled
+. If specified/existent, a matching CA cert (<<__code_ssl_ca_code,`ssl_ca`>>) and key (<<__code_ssl_cakey_code,`ssl_cakey`>>) *must* be specified
+.. However, if left blank/doesn't exist, one will be automatically generated
+. *Must* be signed by <<__code_ssl_ca_code,`ssl_ca`>>/<<__code_ssl_cakey_code,`ssl_cakey`>> if specified and already exists
+
+==== `ssl_key`
+Path to the _client_ key iPXE should use.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<__code_iso_code,`iso`>> is enabled
+. If left blank/nonexistent (and <<__code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
+
+=== `[rsync]`
+This section controls aspects of rsync pushing. Only used if <<__code_rsync_code,`sync:rsync`>> is enabled.
+
+==== `host`
+The rsync destination host.
+
+. Must resolve from the build server
+. Can be host, FQDN, or IP address
+
+==== `user`
+This is the remote user we should use when performing the rsync push.
+
+. User must exist on remote system
+. SSH pubkey authorization must be configured
+. The destination's hostkey must be added to your local build user's known hosts
+
+==== `path`
+This is the remote destination path we should use for pushing via rsync.
+
+
+NOTE: You'll probably want to set *`http:user`* and *`group`* to what it'll need to be on the destination.
+
+. No whitespace
+. The path *must* exist on the remote host
+. The path MUST be writable by <<__code_user_code_5,`user`>>
+
+==== `iso`
+Should we rsync over the ISO files too, or just the boot files?
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================

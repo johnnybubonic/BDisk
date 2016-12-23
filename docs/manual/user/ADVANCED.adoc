@@ -1,0 +1,2 @@
+== Advanced Customization
+If the <<_the_code_build_ini_code_file,`build.ini` file>> doesn't provide enough customization to your liking, I don't blame you! It was designed only to provide the most basic control and is primarily only used to control the build process itself.

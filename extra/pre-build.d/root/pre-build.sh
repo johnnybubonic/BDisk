@@ -115,7 +115,6 @@ ln -s /usr/lib/libdialog.so.1.2 /usr/lib/libdialog.so
 cleanPacorigs
 apacman --noconfirm --noedit --skipinteg -S --needed linux
 apacman --gendb
-#mv -f /boot/vmlinuz-linux /boot/vmlinuz-linux-${DISTNAME}
 cleanPacorigs
 
 # And install EXTRA functionality packages, if there are any.
@@ -161,7 +160,6 @@ else
 	usermod -L root
 fi
 cleanPacorigs
-mv -f /boot/initramfs-linux.img /boot/initramfs-linux-${DISTNAME}.img
 # And install arch-specific extra packages, if there are any.
 #PKGLIST=$(sed -re '/^[[:space:]]*(#|$)/d' /root/packages.arch | tr '\n' ' ')
 PKGLIST=$(getPkgList /root/packages.arch)
