@@ -14,5 +14,5 @@ If you have any suggestions on how to improve *this documentation* or feel it's 
 === Patches
 I gladly welcome https://www.gnu.org/software/diffutils/manual/html_node/Unified-Format.html[patches^], but I deplore using GitHub (even though I https://github.com/johnnybubonic/BDisk[have a mirror there^]). For this reason, please follow the same https://www.kernel.org/doc/Documentation/SubmittingPatches[patch/pull request process] for the Linux kernel and email it to bts@square-r00t.net.
 
-Alternatively, you may attach a patch to a <<_bugs,bug report>>/<<_feature_requests,feature request>>.
+Alternatively, you may attach a patch to a <<bugs,bug report>>/<<feature_requests,feature request>>.
 

@@ -6,7 +6,8 @@
 -sizes of build iso files
 -GPG sigs on built files
 -fix the branding, etc. on ipxe. :(
--convert docs to asciidoc, turn up instead of RTD (https://github.com/rtfd/readthedocs.org/issues/17#issuecomment-3752702)
+-fix links in docs. see the password generation section for bug :/ http://asciidoctor.org/docs/asciidoc-writers-guide/#cross-references
+--http://asciidoctor.org/docs/asciidoc-syntax-quick-reference/#links
 -add ipxe to full iso maybe?
 
 ## General ##

@@ -32,6 +32,7 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
                         '/usr/share/bdisk/build.ini',
                         '/usr/share/bdisk/extra/build.ini',
                         '/usr/share/docs/bdisk/build.ini',  # this is the preferred installation path for packagers
+                        '/usr/local/etc/bdisk/build.ini',
                         '/usr/local/share/docs/bdisk/build.ini',
                         '/opt/dev/bdisk/build.ini',
                         '/opt/dev/bdisk/extra/build.ini',

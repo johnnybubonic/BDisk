@@ -129,35 +129,37 @@ def buildChroot(conf, keep = False):
         for y in ['files', 'dirs']:
             prebuild_overlay[y] = []
             prebuild_arch_overlay[x][y] = []
-    for path, dirs, files in os.walk(extradir + '/pre-build.d/'):
-        prebuild_overlay['dirs'].append(path + '/')
+    for path, dirs, files in os.walk('{0}/pre-build.d/'.format(extradir)):
+        prebuild_overlay['dirs'].append('{0}/'.format(path))
         for file in files:
             prebuild_overlay['files'].append(os.path.join(path, file))
     for x in prebuild_overlay.keys():
-        prebuild_overlay[x][:] = [re.sub('^' + extradir + '/pre-build.d/', '', s) for s in prebuild_overlay[x]]
+        prebuild_overlay[x][:] = [re.sub('^{0}/pre-build.d/'.format(extradir), '', s) for s in prebuild_overlay[x]]
         prebuild_overlay[x] = list(filter(None, prebuild_overlay[x]))
         for y in prebuild_arch_overlay.keys():
             prebuild_arch_overlay[y][x][:] = [i for i in prebuild_overlay[x] if i.startswith(y)]
-            prebuild_arch_overlay[y][x][:] = [re.sub('^' + y + '/', '', s) for s in prebuild_arch_overlay[y][x]]
+            prebuild_arch_overlay[y][x][:] = [re.sub('^{0}/'.format(y), '', s) for s in prebuild_arch_overlay[y][x]]
             prebuild_arch_overlay[y][x] = list(filter(None, prebuild_arch_overlay[y][x]))
         prebuild_overlay[x][:] = [y for y in prebuild_overlay[x] if not y.startswith(('x86_64','i686'))]
     prebuild_overlay['dirs'].remove('/')
     # create the dir structure. these should almost definitely be owned by root.
     for a in arch:
         for dir in prebuild_overlay['dirs']:
-            os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
-            os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0)
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0)
         # and copy over the files. again, chown to root.
         for file in prebuild_overlay['files']:
-            shutil.copy2(extradir + '/pre-build.d/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
-            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
+            shutil.copy2('{0}/pre-build.d/{1}'.format(extradir, file),
+                        '{0}/root.{1}/{2}'.format(chrootdir, a, file), follow_symlinks = False)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)
         # do the same for arch-specific stuff.
         for dir in prebuild_arch_overlay[a]['dirs']:
-            os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
-            os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0)
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0)
         for file in prebuild_arch_overlay[a]['files']:
-            shutil.copy2(extradir + '/pre-build.d/' + a + '/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
-            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
+            shutil.copy2('{0}/pre-build.d/{1}/{2}'.format(extradir, a, file),
+                        '{0}/root.{1}/{2}'.format(chrootdir, a, file), follow_symlinks = False)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)
 
 def prepChroot(conf):
     build = conf['build']
@@ -187,22 +189,79 @@ def prepChroot(conf):
     tpl = env.get_template('VERSION_INFO.txt.j2')
     tpl_out = tpl.render(build = build, bdisk = bdisk, hostname = host.getHostname(), distro = host.getOS())
     for a in arch:
+        # Copy the GPG pubkey
+        shutil.copy2('{0}/gpgkey.pub'.format(dlpath), '{0}/root.{1}/root/pubkey.gpg'.format(chrootdir, a))
+        # Write the VERSION_INFO.txt from template
         with open('{0}/root.{1}/root/VERSION_INFO.txt'.format(chrootdir, a), 'w+') as f:
             f.write(tpl_out)
-        with open(prepdir + '/VERSION_INFO.txt', 'w+') as f:
+        with open('{0}/VERSION_INFO.txt'.format(prepdir), 'w+') as f:
             f.write(tpl_out)
-    tpl = env.get_template('VARS.txt.j2')
-    tpl_out = tpl.render(bdisk = bdisk, user = user)
+    # And perform the templating overlays
+    templates_overlay = {}
+    templates_arch_overlay = {}
+    for x in arch:
+        templates_arch_overlay[x] = {}
+        for y in ['files', 'dirs']:
+            templates_overlay[y] = []
+            templates_arch_overlay[x][y] = []
+    for path, dirs, files in os.walk('{0}/pre-build.d'.format(templates_dir)):
+        for dir in dirs:
+            templates_overlay['dirs'].append('{0}/'.format(dir))
+        for file in files:
+            templates_overlay['files'].append(os.path.join(path, file))
+    for x in templates_overlay.keys():
+        templates_overlay[x][:] = [re.sub('^{0}/pre-build.d/(.*)(\.j2)'.format(templates_dir), '\g<1>', s) for s in templates_overlay[x]]
+        templates_overlay[x] = list(filter(None, templates_overlay[x]))
+        for y in templates_arch_overlay.keys():
+            templates_arch_overlay[y][x][:] = [i for i in templates_overlay[x] if i.startswith(y)]
+            templates_arch_overlay[y][x][:] = [re.sub('^{0}/(.*)(\.j2)'.format(y), '\g<1>', s) for s in templates_arch_overlay[y][x]]
+            templates_arch_overlay[y][x][:] = [re.sub('^{0}/'.format(y), '', s) for s in templates_arch_overlay[y][x]]
+            templates_arch_overlay[y][x] = list(filter(None, templates_arch_overlay[y][x]))
+        templates_overlay[x][:] = [y for y in templates_overlay[x] if not y.startswith(('x86_64','i686'))]
+    if '/' in templates_overlay['dirs']:
+        templates_overlay['dirs'].remove('/')
+    # create the dir structure. these should almost definitely be owned by root.
+    if build['gpg']:
+        gpg = conf['gpgobj']
+        if conf['gpg']['mygpgkey']:
+            signkey = conf['gpg']['mygpgkey']
+        else:
+            signkey = str(gpg.signers[0].subkeys[0].fpr)
     for a in arch:
-        with open('{0}/root.{1}/root/VARS.txt'.format(chrootdir, a), 'w+') as f:
-            f.write(tpl_out)
+        for dir in templates_overlay['dirs']:
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0)
+        # and write the files. again, chown to root.
+        for file in templates_overlay['files']:
+            tplname = 'pre-build.d/{0}.j2'.format(file)
+            tpl = env.get_template(tplname)
+            tpl_out = tpl.render(build = build, bdisk = bdisk, mygpgkey = signkey, user = user)
+            with open('{0}/root.{1}/{2}'.format(chrootdir, a, file), 'w') as f:
+                f.write(tpl_out)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)
+        # do the same for arch-specific stuff.
+        for dir in templates_arch_overlay[a]['dirs']:
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0)
+        for file in templates_arch_overlay[a]['files']:
+            tplname = 'pre-build.d/{0}/{1}.j2'.format(a, file)
+            tpl = env.get_template('{0}'.format(tplname))
+            tpl_out = tpl.render(build = build, bdisk = bdisk, mygpgkey = signkey)
+            with open('{0}/root.{1}/{2}'.format(chrootdir, a, file), 'w') as f:
+                f.write(tpl_out)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)
     return(build)
 
-def postChroot(build):
+def postChroot(conf):
+    build = conf['build']
+    bdisk = conf['bdisk']
     dlpath = build['dlpath']
     chrootdir = build['chrootdir']
     arch = build['arch']
     overdir = build['basedir'] + '/overlay/'
+    templates_dir = '{0}/extra/templates'.format(build['basedir'])
+    loader = jinja2.FileSystemLoader(templates_dir)
+    env = jinja2.Environment(loader = loader)
     postbuild_overlay = {}
     postbuild_arch_overlay = {}
     for x in arch:
@@ -212,7 +271,7 @@ def postChroot(build):
             postbuild_overlay[y] = []
             postbuild_arch_overlay[x][y] = []
     for path, dirs, files in os.walk(overdir):
-        postbuild_overlay['dirs'].append(path + '/')
+        postbuild_overlay['dirs'].append('{0}/'.format(path))
         for file in files:
             postbuild_overlay['files'].append(os.path.join(path, file))
     for x in postbuild_overlay.keys():
@@ -227,16 +286,72 @@ def postChroot(build):
     # create the dir structure. these should almost definitely be owned by root.
     for a in arch:
         for dir in postbuild_overlay['dirs']:
-            os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
-            os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0, follow_symlinks = False)
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0, follow_symlinks = False)
         # and copy over the files. again, chown to root.
         for file in postbuild_overlay['files']:
-            shutil.copy2(overdir + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
-            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
+            shutil.copy2(overdir + file, '{0}/root.{1}/{2}'.format(chrootdir, a, file), follow_symlinks = False)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)
         # do the same for arch-specific stuff.
         for dir in postbuild_arch_overlay[a]['dirs']:
-            os.makedirs(chrootdir + '/root.' + a + '/' + dir, exist_ok = True)
-            os.chown(chrootdir + '/root.' + a + '/' + dir, 0, 0, follow_symlinks = False)
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0, follow_symlinks = False)
         for file in postbuild_arch_overlay[a]['files']:
-            shutil.copy2(overdir + a + '/' + file, chrootdir + '/root.' + a + '/' + file, follow_symlinks = False)
-            os.chown(chrootdir + '/root.' + a + '/' + file, 0, 0, follow_symlinks = False)
+            shutil.copy2('{0}{1}/{2}'.format(overdir, a, file),
+                            '{0}/root.{1}/{2}'.format(chrootdir, a, file),
+                            follow_symlinks = False)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)
+    # And perform the templating overlays
+    templates_overlay = {}
+    templates_arch_overlay = {}
+    for x in arch:
+        templates_arch_overlay[x] = {}
+        for y in ['files', 'dirs']:
+            templates_overlay[y] = []
+            templates_arch_overlay[x][y] = []
+    for path, dirs, files in os.walk('{0}/overlay'.format(templates_dir)):
+        for dir in dirs:
+            templates_overlay['dirs'].append('{0}/'.format(dir))
+        for file in files:
+            templates_overlay['files'].append(os.path.join(path, file))
+    for x in templates_overlay.keys():
+        templates_overlay[x][:] = [re.sub('^{0}/overlay/(.*)(\.j2)'.format(templates_dir), '\g<1>', s) for s in templates_overlay[x]]
+        templates_overlay[x] = list(filter(None, templates_overlay[x]))
+        for y in templates_arch_overlay.keys():
+            templates_arch_overlay[y][x][:] = [i for i in templates_overlay[x] if i.startswith(y)]
+            templates_arch_overlay[y][x][:] = [re.sub('^{0}/(.*)(\.j2)'.format(y), '\g<1>', s) for s in templates_arch_overlay[y][x]]
+            templates_arch_overlay[y][x][:] = [re.sub('^{0}/'.format(y), '', s) for s in templates_arch_overlay[y][x]]
+            templates_arch_overlay[y][x] = list(filter(None, templates_arch_overlay[y][x]))
+        templates_overlay[x][:] = [y for y in templates_overlay[x] if not y.startswith(('x86_64','i686'))]
+    if '/' in templates_overlay['dirs']:
+        templates_overlay['dirs'].remove('/')
+    # create the dir structure. these should almost definitely be owned by root.
+    if build['gpg']:
+        gpg = conf['gpgobj']
+        if conf['gpg']['mygpgkey']:
+            signkey = conf['gpg']['mygpgkey']
+        else:
+            signkey = str(gpg.signers[0].subkeys[0].fpr)
+    for a in arch:
+        for dir in templates_overlay['dirs']:
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0)
+        # and write the files. again, chown to root.
+        for file in templates_overlay['files']:
+            tplname = 'overlay/{0}.j2'.format(file)
+            tpl = env.get_template(tplname)
+            tpl_out = tpl.render(build = build, bdisk = bdisk, mygpgkey = signkey)
+            with open('{0}/root.{1}/{2}'.format(chrootdir, a, file), 'w') as f:
+                f.write(tpl_out)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)
+        # do the same for arch-specific stuff.
+        for dir in templates_arch_overlay[a]['dirs']:
+            os.makedirs('{0}/root.{1}/{2}'.format(chrootdir, a, dir), exist_ok = True)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, dir), 0, 0)
+        for file in templates_arch_overlay[a]['files']:
+            tplname = 'overlay/{0}/{1}.j2'.format(a, file)
+            tpl = env.get_template(tplname)
+            tpl_out = tpl.render(build = build, bdisk = bdisk, mygpgkey = signkey)
+            with open('{0}/root.{1}/{2}'.format(chrootdir, a, file), 'w') as f:
+                f.write(tpl_out)
+            os.chown('{0}/root.{1}/{2}'.format(chrootdir, a, file), 0, 0, follow_symlinks = False)

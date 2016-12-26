@@ -25,7 +25,7 @@ if __name__ == '__main__':
     for a in arch:
         bchroot.chroot(conf['build']['chrootdir'] + '/root.' + a, 'bdisk.square-r00t.net')
         bchroot.chrootUnmount(conf['build']['chrootdir'] + '/root.' + a)
-    prep.postChroot(conf['build'])
+    prep.postChroot(conf)
     bchroot.chrootTrim(conf['build'])
     build.genImg(conf)
     build.genUEFI(conf['build'], conf['bdisk'])

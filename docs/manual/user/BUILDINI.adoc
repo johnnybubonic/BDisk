@@ -5,6 +5,18 @@ It's single-level, but divided into "sections". This is unfortunately a limitati
 
 Blank lines are ignored, as well as any lines beginning with `#` and `;`. There are some restrictions and recommendations for some values, so be sure to note them when they occur. Variables referencing other values in the `build.ini` are allowed in the format of `${value}` if it's in the same section; otherwise, `${section:value}` can be used.
 
+If you want to use your own `build.ini` file (and you should!), the following paths are searched in order. The first one found will be used.
+
+* `/etc/bdisk/build.ini`
+* `/usr/share/bdisk/build.ini`
+* `/usr/share/bdisk/extra/build.ini`
+* `/usr/share/docs/bdisk/build.ini`
+* `/usr/local/etc/bdisk/build.ini`
+* `/usr/local/share/docs/bdisk/build.ini`
+* `/opt/dev/bdisk/build.ini`
+* `/opt/dev/bdisk/extra/build.ini`
+* `/opt/dev/bdisk/extra/dist.build.ini`
+
 We'll go into more detail for each section below.
 
 === Example
@@ -87,7 +99,7 @@ This value is a "basic" name of your project. It's not really shown anywhere end
 . Will be converted to uppercase if it isn't already
 
 ==== `uxname`
-This value is used for filenames and the like. I highly recommend it be the same as `<<__code_name_code,name>>` (in lowercase) but it doesn't need to be. It also has some rules:
+This value is used for filenames and the like. I highly recommend it be the same as `<<code_name_code,name>>` (in lowercase) but it doesn't need to be. It also has some rules:
 
 . Alphanumeric only
 . No whitespace
@@ -102,12 +114,12 @@ This string is used for "pretty-printing" of the project name; it should be a mo
 . ASCII only
 
 ==== `ver`
-The version string. If this isn't specified, we'll try to guess based on the current git commit and tags in `<<__code_basedir_code,build:basedir>>`.
+The version string. If this isn't specified, we'll try to guess based on the current git commit and tags in `<<code_basedir_code,build:basedir>>`.
 
 . No whitespace
 
 ==== `dev`
-The name of the developer or publisher of the ISO, be it an individual or organization. For example, if you are using BDisk to build an install CD for your distro, this would be the name of your distro. The same rules as `<<__code_pname_code,pname>>` apply.
+The name of the developer or publisher of the ISO, be it an individual or organization. For example, if you are using BDisk to build an install CD for your distro, this would be the name of your distro. The same rules as `<<code_pname_code,pname>>` apply.
 
 . *Can* contain whitespace
 . *Can* be mixed-case, uppercase, or lowercase
@@ -132,7 +144,7 @@ What is this project's URI (website, etc.)? Alternatively, your personal site, y
 ==== `root_password`
 The escaped, salted, hashed string to use for the root user.
 
-Please see <<_passwords,the section on passwords>> for information on this value. In the <<_example,example above>>, the string `$$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/` is created from the password `test`. I cannot stress this enough, do not use a plaintext password here nor just use a regular `/etc/shadow` file/`crypt(3)` hash here. Read the section. I promise it's short.
+Please see <<passwords,the section on passwords>> for information on this value. In the <<example,example above>>, the string `$$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/` is created from the password `test`. I cannot stress this enough, do not use a plaintext password here nor just use a regular `/etc/shadow` file/`crypt(3)` hash here. Read the section. I promise it's short.
 
 ==== `user`
 *Default: no*
@@ -150,7 +162,7 @@ NOTE: If enabled, this user has full sudo access.
 |======================
 
 === `[user]`
-This section of `build.ini` controls aspects about `bdisk:user`. It is only used if <<__code_user_code,`bdisk:user`>> is enabled.
+This section of `build.ini` controls aspects about `bdisk:user`. It is only used if <<code_user_code,`bdisk:user`>> is enabled.
 
 ==== `username`
 What username should the user have? Standard *nix username rules apply:
@@ -170,33 +182,33 @@ What comment/description/real name should be used for the user? For more informa
 ==== `password`
 The escaped, salted, hashed string to use for the non-root user.
 
-Please see <<_passwords,the section on passwords>> for information on this value. In the <<_example,example above>>, the string `$$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/` is created from the password `test`. I cannot stress this enough, do not use a plaintext password here nor just use a regular `/etc/shadow` file/`crypt(3)` hash here. Read the section. I promise it's short.
+Please see <<passwords,the section on passwords>> for information on this value. In the <<example,example above>>, the string `$$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/` is created from the password `test`. I cannot stress this enough, do not use a plaintext password here nor just use a regular `/etc/shadow` file/`crypt(3)` hash here. Read the section. I promise it's short.
 
 === `[build]`
 This section controls some aspects about the host and things like filesystem paths, etc.
 
 ==== `mirror`
-A mirror that hosts the bootstrap tarball. It is *highly* recommended you use an Arch Linux https://wiki.archlinux.org/index.php/Install_from_existing_Linux#Method_A:_Using_the_bootstrap_image_.28recommended.29[bootstrap tarball^] as the build process is highly specialized to this (but <<_bug_reports_feature_requests,patches/feature requests>> are welcome for other built distros). You can find a list of mirrors at the bottom of Arch's https://www.archlinux.org/download/[download page^].
+A mirror that hosts the bootstrap tarball. It is *highly* recommended you use an Arch Linux https://wiki.archlinux.org/index.php/Install_from_existing_Linux#Method_A:_Using_the_bootstrap_image_.28recommended.29[bootstrap tarball^] as the build process is highly specialized to this (but <<bug_reports_feature_requests,patches/feature requests>> are welcome for other built distros). You can find a list of mirrors at the bottom of Arch's https://www.archlinux.org/download/[download page^].
 
 . No whitespace
 . Must be accessible remotely/via a WAN-recognized address
 . Must be a domain/FQDN only; no paths (those come later!)
 
 ==== `mirrorproto`
-What protocol should we use for <<_mirror,the mirror>>?
+What protocol should we use for the <<code_mirror_code,`mirror`>>?
 
 |======================
 ^s|Must be (case-insensitive) one of: ^.^m|http ^.^m|https ^.^m|ftp
 |======================
 
 ==== `mirrorpath`
-What is the path to the tarball directory on the <<__code_mirror_code,`mirror`>>?
+What is the path to the tarball directory on the <<code_mirror_code,`mirror`>>?
 
 . Must be a complete path (e.g. `/dir1/subdir1/subdir2`)
 . No whitespace
 
 ==== `mirrorfile`
-What is the filename for the tarball found in the path specified in <<__code_mirrorpath_code,`mirrorpath`>> ? If left blank, we will use the sha1 <<__code_mirrorchksum_code,checksum>> file to try to guess the most recent file.
+What is the filename for the tarball found in the path specified in <<code_mirrorpath_code,`mirrorpath`>> ? If left blank, we will use the sha1 <<code_mirrorchksum_code,checksum>> file to try to guess the most recent file.
 
 ==== `mirrorchksum`
 The path to a sha1 checksum file of the bootstrap tarball.
@@ -208,33 +220,33 @@ The path to a sha1 checksum file of the bootstrap tarball.
 ==== `mirrorgpgsig`
 *[optional]* +
 *default: (no GPG checking done)* +
-*requires: <<_optional,_gpg/gnupg_>>* +
-*requires: <<__code_gpgkey_code,`gpgkey`>>*
+*requires: <<optional,_gpg/gnupg_>>* +
+*requires: <<code_gpgkey_code,`gpgkey`>>*
 
 If the bootstrap tarball file has a GPG signature, we can use it for extra checking. If it's blank, GPG checking will be disabled.
 
-If you specify just `.sig` (or use the default and don't specify a <<__code_mirrorfile_code,`mirrorfile`>>), BDisk will try to guess based on the file from the sha1 <<__code_mirrorchksum_code,checksum>> file. Note that this must evaluate to a full URL. (e.g. `${mirrorproto}://${mirror}${mirrorpath}somefile.sig`)
+If you specify just `.sig` (or use the default and don't specify a <<code_mirrorfile_code,`mirrorfile`>>), BDisk will try to guess based on the file from the sha1 <<code_mirrorchksum_code,checksum>> file. Note that this must evaluate to a full URL. (e.g. `${mirrorproto}://${mirror}${mirrorpath}somefile.sig`)
 
 ==== `gpgkey`
-*requires: <<_optional,_gpg/gnupg_>>*
+*requires: <<optional,_gpg/gnupg_>>*
 
-What is a key ID that should be used to verify/validate the <<__code_mirrorgpgsig_code,`mirrorgpgsig`>>?
+What is a key ID that should be used to verify/validate the <<code_mirrorgpgsig_code,`mirrorgpgsig`>>?
 
-. Only used if <<__code_mirrorgpgsig_code,`mirrorgpgsig`>> is set
+. Only used if <<code_mirrorgpgsig_code,`mirrorgpgsig`>> is set
 . Can be in "short" form (e.g. _7F2D434B9741E8AC_) or "full" form (_4AA4767BBC9C4B1D18AE28B77F2D434B9741E8AC_), with or without the _0x_ prefix.
 
 ==== `gpgkeyserver`
 *default: blank (GNUPG-bundled keyservers)* +
-*requires: <<_optional,_gpg/gnupg_>>*
+*requires: <<optional,_gpg/gnupg_>>*
 
-What is a valid keyserver we should use to fetch <<__code_gpgkey_code,`gpgkey`>>?
+What is a valid keyserver we should use to fetch <<code_gpgkey_code,`gpgkey`>>?
 
-. Only used if <<__code_mirrorgpgsig_code,`mirrorgpgsig`>> is set
+. Only used if <<code_mirrorgpgsig_code,`mirrorgpgsig`>> is set
 . The default (blank) is probably fine. If you don't specify a personal GPG config, then you'll most likely want to leave this blank.
 . If set, make sure it is a valid keyserver URI (e.g. `hkp://keys.gnupg.net`)
 
 ==== `gpg`
-Should we sign our release files? See the gpg section.
+Should we sign our release files? See the <<code_gpg_code_2,`[gpg]`>> section.
 
 [options="header"]
 |======================
@@ -261,13 +273,13 @@ WARNING: If you manage your project in git, this should not be checked in as it 
 . Will be created if it doesn't exist
 
 ==== `basedir`
-Where your <<_extra,`extra/`>> and <<_overlay,`overlay/`>> directories are located. If you checked out from git, this would be your git worktree directory.
+Where your <<extra,`extra/`>> and <<overlay,`overlay/`>> directories are located. If you checked out from git, this would be your git worktree directory.
 
 . No whitespace
 . Must exist and contain the above directories populated with necessary files
 
 ==== `isodir`
-This is the output directory of ISO files when they're created (as well as GPG signatures if you <<__code_gpg_code,enabled them>>).
+This is the output directory of ISO files when they're created (as well as GPG signatures if you <<code_gpg_code,enabled them>>).
 
 WARNING: If you manage your project in git, this should not be checked in as it has many large files that are automatically generated!
 
@@ -319,7 +331,7 @@ s|only build an x86_64-architecture ISO ^m|x86_64 ^m|64 ^m|no32
 
 Enable iPXE ("mini ISO") functionality.
 
-NOTE: This has no bearing on the <<__code_sync_code,`[sync]`>> section, so you can create an iPXE HTTP preparation for instance without needing to sync it anywhere (in case you're building on the webserver itself).
+NOTE: This has no bearing on the <<code_sync_code,`[sync]`>> section, so you can create an iPXE HTTP preparation for instance without needing to sync it anywhere (in case you're building on the webserver itself).
 
 [options="header"]
 |======================
@@ -343,7 +355,7 @@ This option should only be enabled if you are on a fairly powerful, multicore sy
 |======================
 
 === `[gpg]`
-This section controls settings for signing our release files. This is only used if <<__code_gpg_code,`build:gpg`>> is enabled.
+This section controls settings for signing our release files. This is only used if <<code_gpg_code,`build:gpg`>> is enabled.
 
 ==== `mygpgkey`
 A valid key ID that BDisk should use to _sign_ release files.
@@ -353,7 +365,7 @@ A valid key ID that BDisk should use to _sign_ release files.
 . We will generate one if this is blank and you have selected sign as yes.
 
 ==== `mygpghome`
-The directory should be used for the above GPG key if specified. Make sure it contains your private key. (e.g. `/home/username/.gnupg`)
+The directory should be used for the above GPG key if specified. Make sure it contains a keybox (`.kbx`) your private key. (e.g. `/home/username/.gnupg`)
 
 === `[sync]`
 This section controls what we should do with the resulting build and how to handle uploads, if we choose to use those features.
@@ -361,7 +373,7 @@ This section controls what we should do with the resulting build and how to hand
 ==== `http`
 *default: no*
 
-If enabled, BDisk will generate/prepare HTTP files. This is mostly only useful if you plan on using iPXE.
+If enabled, BDisk will generate/prepare HTTP files. This is mostly only useful if you plan on using iPXE. See the <<code_http_code_2,`[http]`>> section.
 
 [options="header"]
 |======================
@@ -385,6 +397,7 @@ If enabled, BDisk will generate/prepare TFTP files. This is mostly only useful i
 |======================
 
 ==== `git`
+*requires: <<optional,git>>* +
 *default: no*
 
 Enable automatic Git pushing for any changes done to the project itself. If you don't have upstream write/push access, you'll want to disable this.
@@ -398,6 +411,7 @@ Enable automatic Git pushing for any changes done to the project itself. If you 
 |======================
 
 ==== `rsync`
+*requires: <<optional,rsync>>* +
 *default: no*
 
 Enable rsync pushing for the ISO (and other files, if you choose- useful for iPXE over HTTP(S)).
@@ -411,7 +425,7 @@ Enable rsync pushing for the ISO (and other files, if you choose- useful for iPX
 |======================
 
 === `[http]`
-This section controls details about HTTP file preparation/generation. Only used if <<__code_http_code,`sync:http`>> is enabled.
+This section controls details about HTTP file preparation/generation. Only used if <<code_http_code,`sync:http`>> is enabled.
 
 ==== `path`
 This directory is where to build an HTTP webroot.
@@ -444,7 +458,7 @@ What group the HTTP files should be owned as. This is most likely going to be ei
 |======================
 
 === `[tftp]`
-This section controls details about TFTP file preparation/generation. Only used if <<__code_tftp_code,`sync:tftp`>> is enabled.
+This section controls details about TFTP file preparation/generation. Only used if <<code_tftp_code,`sync:tftp`>> is enabled.
 
 ==== `path`
 The directory where we want to build a TFTP root.
@@ -476,11 +490,11 @@ What group the TFTP files should be owned as. This is most likely going to be ei
 |======================
 
 === `[ipxe]`
-This section controls aspects of iPXE building. Only used if <<__code_ipxe_code,`build:ipxe`>> is enabled.
+This section controls aspects of iPXE building. Only used if <<code_ipxe_code,`build:ipxe`>> is enabled.
 
 ==== `iso`
 *default: no* +
-*requires: <<_optional,_git_>>*
+*requires: <<optional,_git_>>*
 
 Build a "mini-ISO"; that is, an ISO file that can be used to bootstrap an iPXE environment (so you don't need to set up a traditional PXE environment on your LAN). We'll still build a full standalone ISO no matter what.
 
@@ -499,7 +513,7 @@ NOTE: If you require HTTP BASIC Authentication or HTTP Digest Authentication (un
 
 NOTE: This currently does not work for HTTPS with self-signed certificates.
 
-. *Required* if <<__code_iso_code,`iso`>> is enabled
+. *Required* if <<code_iso_code,`iso`>> is enabled
 
 ==== `ssldir`
 Directory to hold SSL results, if we are generating keys, certificates, etc.
@@ -514,7 +528,7 @@ NOTE: You can use your own CA to sign existing certs. This is handy if you run a
 
 . No whitespace
 . Must be in PEM/X509 format
-. *Required* if <<__code_iso_code,`iso`>> is enabled
+. *Required* if <<code_iso_code,`iso`>> is enabled
 . If it exists, a matching key (ssl_cakey) *must* be specified
 .. However, if left blank/doesn't exist, one will be automatically generated
 
@@ -523,9 +537,9 @@ Path to the (root) CA key file iPXE should use.
 
 . No whitespace
 . Must be in PEM/X509 format
-. *Required* if <<__code_iso_code,`iso`>> is enabled
-. If left blank or it doesn't exist (and <<__code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
-. *Must* match/pair to <<__code_ssl_ca_code,`ssl_ca`>> if specified/exists
+. *Required* if <<code_iso_code,`iso`>> is enabled
+. If left blank or it doesn't exist (and <<code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
+. *Must* match/pair to <<code_ssl_ca_code,`ssl_ca`>> if specified/exists
 . MUST NOT be passphrase-protected/DES-encrypted
 
 ==== `ssl_crt`
@@ -533,21 +547,21 @@ Path to the _client_ certificate iPXE should use.
 
 . No whitespace
 . Must be in PEM/X509 format
-. *Required* if <<__code_iso_code,`iso`>> is enabled
-. If specified/existent, a matching CA cert (<<__code_ssl_ca_code,`ssl_ca`>>) and key (<<__code_ssl_cakey_code,`ssl_cakey`>>) *must* be specified
+. *Required* if <<code_iso_code,`iso`>> is enabled
+. If specified/existent, a matching CA cert (<<code_ssl_ca_code,`ssl_ca`>>) and key (<<code_ssl_cakey_code,`ssl_cakey`>>) *must* be specified
 .. However, if left blank/doesn't exist, one will be automatically generated
-. *Must* be signed by <<__code_ssl_ca_code,`ssl_ca`>>/<<__code_ssl_cakey_code,`ssl_cakey`>> if specified and already exists
+. *Must* be signed by <<code_ssl_ca_code,`ssl_ca`>>/<<code_ssl_cakey_code,`ssl_cakey`>> if specified and already exists
 
 ==== `ssl_key`
 Path to the _client_ key iPXE should use.
 
 . No whitespace
 . Must be in PEM/X509 format
-. *Required* if <<__code_iso_code,`iso`>> is enabled
-. If left blank/nonexistent (and <<__code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
+. *Required* if <<code_iso_code,`iso`>> is enabled
+. If left blank/nonexistent (and <<code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
 
 === `[rsync]`
-This section controls aspects of rsync pushing. Only used if <<__code_rsync_code,`sync:rsync`>> is enabled.
+This section controls aspects of rsync pushing. Only used if <<code_rsync_code,`sync:rsync`>> is enabled.
 
 ==== `host`
 The rsync destination host.
@@ -566,11 +580,11 @@ This is the remote user we should use when performing the rsync push.
 This is the remote destination path we should use for pushing via rsync.
 
 
-NOTE: You'll probably want to set *`http:user`* and *`group`* to what it'll need to be on the destination.
+NOTE: You'll probably want to set <<code_user_code_3,`http:user`>> and <<code_group_code,`http:group`>> to what it'll need to be on the destination.
 
 . No whitespace
 . The path *must* exist on the remote host
-. The path MUST be writable by <<__code_user_code_5,`user`>>
+. The path MUST be writable by <<code_user_code_5,`user`>>
 
 ==== `iso`
 Should we rsync over the ISO files too, or just the boot files?

@@ -1,5 +1,5 @@
 ==== pre-build.d/
-This file contains a "core" overlay. Generally these files shouldn't be modified unless you know what you're doing, but there are some interesting things you can do in here. Generally speaking, though, you'll want to place your modifications in the `overlay/` directory.
+This file contains a "core" overlay. Generally these files shouldn't be modified unless you know what you're doing, but there are some interesting things you can do in here. Generally speaking, though, you'll want to place your modifications in the <<overlay_2,`overlay/`>> directory.
 
 For files that should be included in both chroots, simply recreate the path with the desired file. For instance, if you want a file `/etc/foo/bar.conf` to exist in both i686 and x86_64 versions, it would exist as the path `pre-build.d/etc/foo/bar.conf`.
 

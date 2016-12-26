@@ -23,7 +23,7 @@ A *live distro*, *live CD*, *live DVD*, *live USB*, and the like are a way of bo
 === Why live media is necessary/Why you might want BDisk
 "But Brent," I hear you ask in a voice which most likely is nothing close to what you actually sound like and entirely in my head, "Why would I need a live CD/USB/etc.? And why BDisk?"
 
-Elementary, my dear imaginary reader! I touch on some reasons why one might want live media in the beginning of the <<USER.adoc#_user_manual,User Manual>>, but here's why you might want BDisk specifically as opposed to another live distro (or <<FAQ.adoc#_i_don_t_like_bdisk_are_there_any_other_alternatives,live distro creator>>).
+Elementary, my dear imaginary reader! I touch on some reasons why one might want live media in the beginning of the <<USER.adoc#user_manual,User Manual>>, but here's why you might want BDisk specifically as opposed to another live distro (or <<FAQ.adoc#i_don_t_like_bdisk_are_there_any_other_alternatives,live distro creator>>).
 
 * Fully customizable
 * Works with a multitude of GNU/Linux distros -- both for the host build system and as the guest. (Still under development!)

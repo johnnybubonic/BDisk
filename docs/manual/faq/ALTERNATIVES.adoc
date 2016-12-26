@@ -1,5 +1,5 @@
 == I don't like BDisk. Are there any other alternatives?
-First, I'm sorry to hear that BDisk doesn't suit your needs. If you want any features you think are missing or encounter any <<FURTHER.adoc#_bug_reports_feature_requests, bugs>>, please report them!
+First, I'm sorry to hear that BDisk doesn't suit your needs. If you want any features you think are missing or encounter any <<FURTHER.adoc#bug_reports_feature_requests, bugs>>, please report them!
 
 But yes; there are plenty of alternatives!
 

@@ -58,6 +58,14 @@ The following is a tree of files and directories in a BDisk root directory. Note
  │       │   │   └── 02.banner.patch.j2
  │       │   └── ssl
  │       │       └── openssl.cnf
+ │       ├── overlay
+ │       │   ├── (...)
+ │       │   ├── i686
+ │       │   ├── x86_64
+ │       ├── pre-build.d
+ │       │   ├── (...)
+ │       │   ├── i686
+ │       │   ├── x86_64
  │       ├── VARS.txt.j2
  │       └── VERSION_INFO.txt.j2
  └── overlay

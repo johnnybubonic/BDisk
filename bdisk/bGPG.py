@@ -9,6 +9,7 @@ import psutil
 def genGPG(conf):
     # https://media.readthedocs.org/pdf/pygpgme/latest/pygpgme.pdf
     build = conf['build']
+    dlpath = build['dlpath']
     bdisk = conf['bdisk']
     gpghome = conf['gpg']['mygpghome']
     distkey = build['gpgkey']
@@ -101,6 +102,9 @@ def genGPG(conf):
             '--lsign-key',
             '0x{0}'.format(importkey)]
     subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
+    # We need to expose this key to the chroots, too, so we need to export it.
+    with open('{0}/gpgkey.pub'.format(dlpath), 'wb') as f:
+        gpg.export(pkeys[0].subkeys[0].keyid, f)
     return(gpg)
 
 def killStaleAgent(conf):

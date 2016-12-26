@@ -20,6 +20,11 @@ exec 1>/var/log/chroot_install.log 2>&1
 
 # we need this fix before anything.
 dirmngr </dev/null
+gpg --batch --yes --import /root/pubkey.gpg 
+# This is unnecessary as we have no private key
+#gpg --batch --yes --lsign-key 0x${SIGKEY}
+
+exec 17<>/root/pubkey.gpg
 
 cleanPacorigs()
 {
@@ -78,7 +83,10 @@ chown aurbuild:aurbuild /var/empty/.gnupg
 chmod 700 /var/empty/.gnupg
 cleanPacorigs
 apacman -Syy
-apacman -S --noconfirm --noedit --skipinteg --needed -S apacman apacman-deps apacman-utils expac
+for p in apacman apacman-deps apacman-utils expac;
+do
+	apacman -S --noconfirm --noedit --skipinteg --needed -S "${p}"
+done
 apacman --gendb
 cleanPacorigs
 # Install multilib-devel if we're in an x86_64 chroot.
@@ -132,7 +140,7 @@ then
 	cleanPacorigs
 fi
 # Add the regular user
-useradd -m -s /bin/bash -c "Default user" ${REGUSR}
+useradd -m -s /bin/bash -c "${USERCOMMENT}" ${REGUSR}
 usermod -aG users,games,video,audio ${REGUSR}
 passwd -d ${REGUSR}
 # Add them to sudoers

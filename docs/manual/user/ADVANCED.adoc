@@ -1,2 +1,4 @@
 == Advanced Customization
-If the <<_the_code_build_ini_code_file,`build.ini` file>> doesn't provide enough customization to your liking, I don't blame you! It was designed only to provide the most basic control and is primarily only used to control the build process itself.
+If the <<the_code_build_ini_code_file,`build.ini`>> file doesn't provide enough customization to your liking, I don't blame you! It was designed only to provide the most basic control and is primarily only used to control the build process itself.
+
+Luckily, there are a lot of changes you can make. For all of these, you'll want to make a copy of the <<code_basedir_code,`basedir`>> directory somewhere and change the basedir configuration option in the <<the_code_build_ini_code_file,`build.ini`>> file to point to the parent directory.

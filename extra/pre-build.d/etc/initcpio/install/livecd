@@ -19,11 +19,19 @@ build()
 
         add_runscript
 
+	# Normally, archiso does this for us. But we don't want to use the build.sh they provide, so we perform it in a more minimal version here.
+	if [ -f /root/pubkey.gpg ];
+	then
+		add_binary "/usr/bin/gpg"
+		mkdir -p "${BUILDROOT}${dest}"/gpg
+		gpg --homedir "${BUILDROOT}${dest}"/gpg --import /root/pubkey.gpg
+	fi
+
 }
  
 help() 
 {
         cat <<HELPEOF
-Mount a squashed flat-file directory with OverlayFS on /, add SSL support
+Mount a squashed flat-file directory with OverlayFS on /, add SSL support, and add GPG support (if needed) for BDisk.
 HELPEOF
 }
