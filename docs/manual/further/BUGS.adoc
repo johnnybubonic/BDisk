@@ -1,5 +1,5 @@
 == Bug Reports/Feature Requests
-NOTE: It is possible to submit a bug or feature request without registering in my bugtracker. One of my pet peeves is needing to create an account/register on a bugtracker simply to report a bug! The following links only require an email address to file a bug (which is necessary in case I need any further clarification from you or to keep you updated on the stats of the bug/feature request -- so please be sure to use a valid email address).
+NOTE: It is possible to submit a bug or feature request without registering in my bugtracker. One of my pet peeves is needing to create an account/register on a bugtracker simply to report a bug! The following links only require an email address to file a bug (which is necessary in case I need any further clarification from you or to keep you updated on the status of the bug/feature request -- so please be sure to use a valid email address).
 
 === Bugs
 If you encounter any bugs in *BDisk*, you can file a bug report https://bugs.square-r00t.net/index.php?do=newtask&project=2&task_type=1[here^].

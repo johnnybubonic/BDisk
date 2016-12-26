@@ -60,7 +60,7 @@ Assuming you saved BDisk Mini to your Desktop, you can do:
 
  sudo dd if=~/Desktop/bdisk-mini.iso of=/dev/disk42
 
-NOTE: the above command may prompt you for a password. This is the same password you use to log into your Mac (and unlock the screensaver, etc.). No characters will show up when you type (for security reasons, in case someone is behind you watching your screen) so it may take you a couple tries.
+NOTE: The above command may prompt you for a password. This is the same password you use to log into your Mac (and unlock the screensaver, etc.). No characters will show up when you type (for security reasons, in case someone is behind you watching your screen) so it may take you a couple tries.
 
 This will run for a couple seconds. When it finishes, you should see something similar to (but not necessarily the same numbers as) this:
 
@@ -113,7 +113,7 @@ Next, simply dd over the ISO file.
 
  sudo dd if=~/Desktop/bdisk-mini.iso of=/dev/sdz
 
-NOTE: the above command may prompt you for a password. This is the same password you use to log in (and unlock the screensaver, etc.). No characters will show up when you type (for security reasons, in case someone is behind you watching your screen) so it may take you a couple tries.
+NOTE: The above command may prompt you for a password. This is the same password you use to log in (and unlock the screensaver, etc.). No characters will show up when you type (for security reasons, in case someone is behind you watching your screen) so it may take you a couple tries.
 
 This will run for a couple seconds. When it finishes, you should see something similar to (but not necessarily the same numbers as) this:
 

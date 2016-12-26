@@ -196,7 +196,7 @@ What is the path to the tarball directory on the <<__code_mirror_code,`mirror`>>
 . No whitespace
 
 ==== `mirrorfile`
-What is the filename for the tarball found in the path specified in <<__code_mirrorpath_code,`mirrorpath`>>? If left blank, we will use the sha1 <<__code_mirrorchksum_code,checksum>> file to try to guess the most recent file.
+What is the filename for the tarball found in the path specified in <<__code_mirrorpath_code,`mirrorpath`>> ? If left blank, we will use the sha1 <<__code_mirrorchksum_code,checksum>> file to try to guess the most recent file.
 
 ==== `mirrorchksum`
 The path to a sha1 checksum file of the bootstrap tarball.
