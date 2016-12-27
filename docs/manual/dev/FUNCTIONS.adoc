@@ -1,8 +1,8 @@
 == Layout of BDisk functions
-text
+TODO.
 
 == Moar Functions
-and more text.
+TODO.
 
 
 

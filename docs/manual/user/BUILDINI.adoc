@@ -149,7 +149,7 @@ Please see <<passwords,the section on passwords>> for information on this value.
 ==== `user`
 *Default: no*
 
-This setting specifies if we should create a regular (non-root) user in the live environment.
+This setting specifies if we should create a regular (non-root) user in the live environment. See the section <<code_user_code_2,`[user]`>> for more options.
 
 NOTE: If enabled, this user has full sudo access.
 

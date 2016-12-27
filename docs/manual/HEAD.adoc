@@ -21,7 +21,7 @@ See CREDITS in the project source for a list of thanks.
 [preface]
 = Preface
 === About the Author
-I (Brent Saner) am a GNU/Linux Systems/Network Administrator/Engineer- I wear a lot of hats. I have a lot of side projects to keep me busy when I’m not working at _${dayjob}_, mostly to assist in other side projects and become more efficient and proficient at those tasks. “Shaving the yak,” footnote:[See http://catb.org/jargon/html/Y/yak-shaving.html] indeed.
+I am a GNU/Linux Systems/Network Administrator/Engineer- I wear a lot of hats. I have a lot of side projects to keep me busy when I’m not working at _${dayjob}_, mostly to assist in other side projects and become more efficient and proficient at those tasks. “Shaving the yak,” footnote:[See http://catb.org/jargon/html/Y/yak-shaving.html] indeed.
 
 A lot of research went into how low-level boot operations take place when writing BDisk, both in BIOS and UEFI footnote:[*Unified Extensible Firmware Interface.* UEFI is not BIOS, and BIOS is not UEFI.] (and corresponding concepts such as Secureboot, etc.) which is no easy task to understand and very commonly misunderstood. (For instance, a common misconception is that UEFI necessarily implies Secureboot. This is quite far from the truth and UEFI by itself is quite a useful replacement for BIOS). I invite you to do research into the specifications yourself; it's rather fascinating.
 

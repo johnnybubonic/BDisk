@@ -2,9 +2,7 @@
 [partintro]
 .What good is software if nobody changes it?
 --
-Text.
-
-More text.
+TODO.
 --
 
 include::dev/FUNCTIONS.adoc[]
