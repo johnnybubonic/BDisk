@@ -22,4 +22,5 @@ include::user/IMPORTANT_CONCEPTS.adoc[]
 include::user/PROJECT_LAYOUT.adoc[]
 include::user/BUILDINI.adoc[]
 include::user/ADVANCED.adoc[]
+include::user/BUILDING.adoc[]
 

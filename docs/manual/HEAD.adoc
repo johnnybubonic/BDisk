@@ -33,6 +33,8 @@ This documentation was started when I rewrote BDisk in Python 3.x; versions 0.x-
 
 It’s my hope that by releasing this utility (and documenting it), you can use it and save some time for yourself as well (and hopefully get the chance to learn a bit more in the process!). 
 
+It of course is not the <<i_don_t_like_bdisk_are_there_any_other_alternatives,only live media creator>> out there, but most others only focus on remastering an existing ISO, or creating an installer ISO -- not creating a custom live-centric environment.
+
 
 === Copyright/Licensing
 The BDisk code is https://www.gnu.org/licenses/gpl-3.0.en.html[GPLv3-licensed^]. This means that you can use it for business reasons, personal reasons, modify it, etc. Please be sure to familiarize yourself with the full set of terms. You can find the full license in `docs/LICENSE`.

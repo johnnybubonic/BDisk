@@ -3,7 +3,7 @@ I update this server with images and iPXE images you can use to netboot my perso
 
 You can https://bdisk.square-r00t.net/download/bdisk-mini.iso[download] a demo of the iPXE functionality. Note that your computer needs to be connected to a valid Internet connection via ethernet and be able to get a DHCP lease for it to work.
 
-NOTE: Advanced users, you can https://www.gnupg.org/gph/en/manual/x135.html[verify^] it against the GPG signature (https://bdisk.square-r00t.net/download/bdisk-mini.iso.asc[ASC], https://bdisk.square-r00t.net/download/bdisk-mini.iso.gpg[BIN]). Please see https://devblog.square-r00t.net/about/my-gpg-public-key-verification-of-identity[this blog post^] for information on fetching my keys and such. Note that while this project is in flux, I may be signing with temporarily-generated throwaway keys.
+NOTE: Advanced users, you can https://www.gnupg.org/gph/en/manual/x135.html[verify^] it against the GPG signature (https://bdisk.square-r00t.net/download/bdisk-mini.iso.asc[ASC], https://bdisk.square-r00t.net/download/bdisk-mini.iso.sig[BIN]). Please see https://devblog.square-r00t.net/about/my-gpg-public-key-verification-of-identity[this blog post^] for information on fetching my keys and such. Note that while this project is in flux, I may be signing with temporarily-generated throwaway keys.
 
 Once downloaded, you can follow the appropriate steps based on your operating system:
 
