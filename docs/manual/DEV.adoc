@@ -2,7 +2,7 @@
 [partintro]
 .What good is software if nobody changes it?
 --
-TODO.
+BDisk can be sourced for other projects, as it's written in a modular manner. Future versions may support installation as a normal Python module. This will also provide information you may need to change parts of BDisk -- it *is* opensource, after all!
 --
 
 include::dev/FUNCTIONS.adoc[]

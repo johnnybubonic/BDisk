@@ -39,8 +39,8 @@ We'll want to create our own moduli. This can take a long time, but only needs t
 
 Then we generate hostkeys. This isn't strictly necessary as the live media will create them automatically when starting SSH if they're missing, but this does provide some verification that the host you're SSHing to is, in fact, running the BDisk instance that you yourself built. The following commands should be run in `<basedir>/overlay/etc/ssh/`:
 
- ssh-keygen -t ed25519 -f ssh_host_ed25519_key < /dev/null
- ssh-keygen -t rsa -b 4096 -f ssh_host_rsa_key < /dev/null
+ ssh-keygen -t ed25519 -f ssh_host_ed25519_key -N "" < /dev/null
+ ssh-keygen -t rsa -b 4096 -f ssh_host_rsa_key -N "" < /dev/null
 
 Make sure you have keys on your host workstation generated so you can SSH into BDisk. If you don't have any ED25519 or RSA SSH keys, this will create them for you. The following should be run as the host (build machine, or what have you) user you want to be able to SSH into BDisk as:
 

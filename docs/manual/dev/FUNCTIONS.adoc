@@ -1,8 +1,32 @@
 == Layout of BDisk functions
-TODO.
+These functions exist in <<_bdisk_,`bdisk/`>>
 
-== Moar Functions
-TODO.
+include::functions/BCHROOT.adoc[]
+
+=== `bdisk.py`
+This file is a sort of "wrapper" -- it pulls all the other files in this directory together into a single usable Python script. In other words, to build a BDisk distribution, you would simply run `bdisk/bdisk.py` -- that's it! See <<building_a_bdisk_iso>>.
+
+It contains no functions, it just contains minimal logic to tie all the other functions together.
+
+include::functions/BGPG.adoc[]
+
+=== `bSSL.py`
+Functions having to do with OpenSSL are stored here. This is used primarily for "mini" builds (via iPXE), they let you boot your BDisk distribution over the Internet. If an SSL key, CA certificate, etc. weren't defined and you want to build a mini image, this file contains functions that will build an SSL PKI (public key infrastructure) for you automatically.
+
+=== `bsync.py`
+This file has functions relating to copying your BDisk build to various resources. For instance, if you want your ISO available to download then this file would be used to copy your finished build to an HTTP server/root you specify.
+
+=== `build.py`
+This is responsible for building the "full" ISO, building UEFI support, etc.
+
+=== `host.py`
+These functions are used to perform "meta" tasks such as get information about the build host, find the `build.ini` file, and parse your configuration options.
+
+=== `ipxe.py`
+This file handles building the "mini" ISO via iPXE.
+
+=== `prep.py`
+This contains functions that download the base tarball releases, preps them for `bchroot.py`, builds necessary directory structures, and performs the overlay preparations.
 
 
 
