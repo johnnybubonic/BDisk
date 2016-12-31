@@ -35,7 +35,6 @@
 **/etc/systemd/system/multi-user.target.wants/openvpn@*
 **/etc/ssh
 **/home
-**/root
 **ssl/
 !**ssl/.keepme
 !**ssl/openssl.cnf
