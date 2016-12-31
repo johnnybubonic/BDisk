@@ -7,13 +7,13 @@ image::fig1.1.png[cgit,align="center"]
 
 If you know the tag of the commit you want, you can use curl:
 
- curl -sL -o bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.11.tar.xz
+ curl -sL -o bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.00-BETA.tar.xz
 
 or wget:
 
- wget -O bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.11.tar.xz
+ wget -O bdisk.tar.xz https://git.square-r00t.net/BDisk/snapshot/BDisk-3.00-BETA.tar.xz
 
-You can use `https://git.square-r00t.net/BDisk/snapshot/BDisk-master.tar.xz` for the URL if you want the latest working version. If you want a snapshot of a specific commit, you can use e.g. `https://git.square-r00t.net/BDisk/snapshot/BDisk-5ac510762ce00eef213957825de0e6d07186e7f8.tar.xz` and so on.
+You can use `https://git.square-r00t.net/BDisk/snapshot/BDisk-master.tar.xz` for the URL if you want the latest working version. If you want a snapshot of a specific commit, you can use e.g. `https://git.square-r00t.net/BDisk/snapshot/BDisk-a1fe1dbc0a0ce2b2a5d1b470d30b60636f9b2efa.tar.xz` and so on.
 
 Alternatively, you can use https://git-scm.com/[git^]. Git most definitely _should_ be in your distro's repositories.
 
