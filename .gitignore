@@ -5,7 +5,7 @@
 *.bak
 
 # These are user-controlled.
-#/overlay/*
+/overlay
 !/overlay/x86_64
 !/overlay/i686
 !/overlay/etc/
