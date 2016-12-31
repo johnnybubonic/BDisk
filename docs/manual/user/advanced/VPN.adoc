@@ -5,9 +5,9 @@ Setting up an OpenVPN server is outside the scope of this section, but there are
 
 However, once you have your client .ovpn file (in our example, we'll call it `client.ovpn`) you can add it to the build relatively easily.
 
-Copy `client.ovpn` as `<basedir>/overlay/etc/openvpn/client.conf` -- note the changed file extension. Then, in the `<basedir>/overlay/etc/systemd/system/multi-user.target.wants/` directory, issue these commands:
+Copy `client.ovpn` as `<basedir>/overlay/etc/openvpn/client/client.conf` -- note the changed file extension. Then, in the `<basedir>/overlay/etc/systemd/system/multi-user.target.wants/` directory, issue these commands:
 
- ln -s /usr/lib/systemd/system/openvpn\@.service openvpn\@client.service
+ ln -s /usr/lib/systemd/system/openvpn-client\@.service openvpn-client\@client.service
 
 OpenVPN will then start on boot in the built BDisk instance.
 

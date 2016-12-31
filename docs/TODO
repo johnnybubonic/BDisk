@@ -1,17 +1,9 @@
 ## Missing v2.x functionality ##
 -i_am_a_racecar optimizations
--see also: grep -HnR bdisk/*.py
--TFTP, HTTP, RSYNC, git
--UPDATE THE README!
--sizes of build iso files
--GPG sigs on built files
+-incorporate this into the manual?
+-TFTP configs generated for pxelinux
 -fix the branding, etc. on ipxe. :(
--fix links in docs. see the password generation section for bug :/ http://asciidoctor.org/docs/asciidoc-writers-guide/#cross-references
---http://asciidoctor.org/docs/asciidoc-syntax-quick-reference/#links
 -add ipxe to full iso maybe?
-
-## General ##
-
 -include benchmarking
 -- http://sourceforge.net/projects/unixbench/
 -- https://code.google.com/p/byte-unixbench/
@@ -24,25 +16,14 @@
 -maybe remove lxde, firefox, chrome and replace with enlightenment/midori?
 -custom repo? https://brainwreckedtech.wordpress.com/2013/01/27/making-your-own-arch-linux-repository/
 --https://wiki.archlinux.org/index.php/Building_32-bit_packages_on_a_64-bit_system
---include arch repo clone script
 -implement better "additional" packages list. specify for path in build.ini- these should be more easily changed by end users. DON'T TOUCH iso.pkgs.lst since those are necessary for booting.
-
-
-## NETWORKING ##
-
 -shorewall/some other firewall?
--WISH: locked-down VPN?
 -autodetection/configuration of network. DHCP is currently running by default, but does it need to support IPv6? if so, how would the user configure their network?
--SECURE SSH: https://stribika.github.io/2015/01/04/secure-secure-shell.html
 -DISABLE NETWORKMANAGER AND "fi.w1.wpa_supplicant1"??? keeps spawning wpa_supplicant (and thusly killing networking proper)
--for netboot, custom user agent (should be defined by build.conf)
+-for netboot, custom user agent (should be defined by build.ini)
 --iPXE's curl
 --initrd's curl
-
-
-## Building ##
-
--WISH: Better logging[0]
+-WISH: Better logging/debugging
 -WISH: signing for secureboot releases (PreLoader and loader.efi handle this okay, but require manual intervention)
 -does loader.efi support splash backgrounds? can i implement that differently somehow?
 --yes, see e.g. https://www.reddit.com/r/archlinux/comments/3bwgf0/where_put_the_splasharchbmp_to_splash_screen_boot/
@@ -63,16 +44,8 @@
 --if it has mirror_SIG-X, set signature options e.g. _SIG-N would be "SigLevel = Never"
 -iPXE background support. sed -rf "${BASEDIR}/src/ipxe_local/script.sed" ${SRCDIR}/ipxe/src/config/general.h ; sed -rf "${BASEDIR}/src/ipxe_local/script2.sed" ${SRCDIR}/ipxe/src/config/console.h
 --note that iPXE VESAFB console is not (yet) supported in EFI, so this is on hold. check into this to see if it has changed.
-
-## Split into Separate Tools CD ##
-
 -include WinMTR, build Mac OS X MTR for dist/tools on CD
 -include pre-compiled LibreCrypt for opening LUKS parts on Windows (https://github.com/t-d-k/LibreCrypt)
 --curl -s https://raw.githubusercontent.com/t-d-k/LibreCrypt/master/README.md | egrep 'InstallLibreCrypt_v[A-Za-z0-9\.]*.exe' | cut -f2 -d'"'
 
 
-__________________________________________________________
-FOOTNOTES:
-
-
-[0] Debugging mode would probably suffice for logging? Maybe? There are plenty of pythonic ways to do logging too.

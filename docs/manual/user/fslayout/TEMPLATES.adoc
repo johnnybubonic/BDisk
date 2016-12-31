@@ -43,6 +43,6 @@ This directory contains *templated* overlays. These are intended to be templated
 ===== pre-build.d/
 This directory contains *templated* overlays. These are intended to not be managed by the user, as they handle configuration necessary for building an ISO. See <<pre_build_d, the pre-build.d section>> for more information on this.
 
-===== VERSION.txt.j2
-This template specifies a VERSION.txt file placed in various locations throughout the builds to help identify which version, build, etc. the ISO is.
+===== VERSION_INFO.txt.j2
+This template specifies a VERSION_INFO.txt file placed in various locations throughout the builds to help identify which version, build, etc. the ISO is.
 

@@ -25,5 +25,5 @@ See <<chrootdir>>.
 This function performs some cleanup and optimizations to the chroot(s).
 
 ===== build
-A dictionary of <<code_build_code>>'s values (with some additional keys/values added). See (TODO: link to host.py's config parser).
+A dictionary of <<code_build_code>>'s values (with some additional keys/values added). See <<parseconfig_em_confs_em,parseConfig()>>.
 

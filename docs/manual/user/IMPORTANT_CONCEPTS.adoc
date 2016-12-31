@@ -32,7 +32,12 @@ Elementary, my dear imaginary reader! I touch on some reasons why one might want
 * It supports both BIOS and UEFI systems- both the full image and the iPXE images.
 * It supports multiple architectures (x86_64, i686, possibly IA64 -- untested) on the same ISO.
 * It supports automatically syncing to a web mirror, PXE boot server, etc. via rsync upon successful build.
-* It supports SecureBoot.
+* It supports SecureBoot (untested!).
+* It is 100% compatible with both the https://wiki.archlinux.org/index.php/installation_guide[Arch installation guide^] and the https://wiki.gentoo.org/wiki/Handbook:AMD64#Installing_Gentoo[Gentoo installation guide^].
+* It allows for non-interactive/automated building (i.e. nightly images).
+* It supports arbitrary file inclusion in a defined path on the ISO itself, not via some arbitrary directory as a separate partition on the media.
+* It can automatically build an accompanying "mini" ISO using iPXE -- which is also a hybrid, UEFI-supported ISO.
+* Automatic versioning based on git tags (optional).
 
 === Who might want to use BDisk?
 * System builders/hardware testers

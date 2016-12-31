@@ -36,3 +36,6 @@ See <<conf>>.
 
 ==== delTempKeys(_conf_)
 Delete automatically-generated keys (if we generated them) as well as the automatically imported verification key (<<code_gpgkey_code>>).
+
+===== conf
+See <<conf>>.

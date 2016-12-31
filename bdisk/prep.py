@@ -13,14 +13,14 @@ import host  # bdisk.host
 import bGPG  # bdisk.bGPG
 
 
-def dirChk(config_dict):
+def dirChk(conf):
     # Make dirs if they don't exist
     for d in ('archboot', 'isodir', 'mountpt', 'srcdir', 'prepdir'):
-        os.makedirs(config_dict['build'][d], exist_ok = True)
+        os.makedirs(conf['build'][d], exist_ok = True)
     # Make dirs for sync staging if we need to
     for x in ('http', 'tftp'):
-        if config_dict['sync'][x]:
-            os.makedirs(config_dict[x]['path'], exist_ok = True)
+        if conf['sync'][x]:
+            os.makedirs(conf[x]['path'], exist_ok = True)
 
 def downloadTarball(conf):
     build = conf['build']
