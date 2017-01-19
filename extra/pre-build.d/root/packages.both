@@ -110,6 +110,7 @@ gst-libav
 gst-plugins-ugly
 hashcat
 hashdeep
+haveged
 hddtemp
 hdparm
 hexcurse
@@ -289,6 +290,7 @@ thttpd
 tmon
 tmux
 tre
+tree
 truecrack-git
 truecrypt
 tor

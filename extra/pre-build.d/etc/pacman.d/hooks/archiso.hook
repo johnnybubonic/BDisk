@@ -1,0 +1,10 @@
+[Trigger]
+Type = File
+Operation = Install
+Operation = Upgrade
+Target = usr/lib/initcpio/hooks/archiso
+
+[Action]
+Description = Modifying archiso usable space...
+When = PostTransaction
+Exec = /usr/bin/sed -i -e 's/"size=${cow_spacesize}",//g' -e 's@^[[:space:]]*if\ !\ cp\ "${img}"\ "/run/archiso/copytoram/${img_fullname}"\ ;\ then@if ! pv -pterabT "${img}" > "/run/archiso/copytoram/${img_fullname}" ; then@g' /usr/lib/initcpio/hooks/archiso

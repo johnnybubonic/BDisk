@@ -14,6 +14,7 @@ build()
         add_binary "/usr/bin/sed"
         add_binary "/usr/bin/pkill"
         add_binary "/usr/bin/curl"
+        add_binary "/usr/bin/pv"
 	add_full_dir /etc/ssl
     	add_full_dir /etc/ca-certificates
 
