@@ -50,9 +50,13 @@ These are needed for using BDisk.
 
 These are required Python modules:
 
+* https://pypi.python.org/pypi/GitPython[GitPython^]
 * https://pypi.python.org/pypi/humanize[Humanize^]
 * http://jinja.pocoo.org/[Jinja2^]
 * https://pypi.python.org/pypi/psutil[PSUtil^]
+* https://pypi.python.org/pypi/patch[Patch^]
+* https://pypi.python.org/pypi/pygpgme[PyGPGME^]
+* https://pypi.python.org/pypi/pyOpenSSL[PyOpenSSL^]
 * https://pypi.python.org/pypi/validators[Validators^]
 
 ==== Optional
@@ -71,14 +75,4 @@ NOTE: If you do not wish to install any of these or cannot install them, be sure
 * https://rsync.samba.org/[rsync^]
 ** For syncing built ISOs to a fileserver, syncing to a remote iPXE server, syncing to a traditional PXE/TFTP server, etc.
 
-These are optional Python modules:
-
-* https://pypi.python.org/pypi/GitPython[GitPython^]
-** (Same reasons as _git_)
-* https://pypi.python.org/pypi/pygpgme[PyGPGME^]
-** (Same reasons as _gpg/gnupg_)
-* https://pypi.python.org/pypi/patch[Patch^]
-** For branding iPXE environments per your `build.ini`.
-* https://pypi.python.org/pypi/pyOpenSSL[PyOpenSSL^]
-** To set up a PKI when building iPXE; used to create trusted/verified images.
 
