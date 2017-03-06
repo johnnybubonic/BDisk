@@ -25,27 +25,36 @@ def dirChk(conf):
 def downloadTarball(conf):
     build = conf['build']
     dlpath = build['dlpath']
+    src = conf['src']
     arch = build['arch']
-    #mirror = 'http://mirrors.kernel.org/archlinux'
-    mirror = build['mirrorproto'] + '://' + build['mirror']
-    rlsdir = mirror + build['mirrorpath']
-    sha_in = urlopen(mirror + build['mirrorchksum'])
-    # returns path/filename e.g. /some/path/to/file.tar.gz
-    # we use .gnupg since we'll need it later.
-    os.makedirs(dlpath + '/.gnupg', exist_ok = True)
     tarball_path = {}
-    for x in arch:
-        tarball_path[x] = dlpath + '/.latest.' + x + '.tar'
-    sha1sums = sha_in.read()
-    sha_in.close()
-    sha_raw = sha1sums.decode("utf-8")
-    sha_list = list(filter(None, sha_raw.split('\n')))
-    sha_dict = {x.split()[1]: x.split()[0] for x in sha_list}
-    # all that lousy work just to get a sha1 sum. okay. so.
     for a in arch:
+        locsrc = conf['source_' + a]
+        mirror = locsrc['mirrorproto'] + '://' + locsrc['mirror']
+        rlsdir = mirror + locsrc['mirrorpath']
+        if locsrc['mirrorchksum'] != '':
+            if not locsrc['chksumtype']:
+                exit(("{0}: source_{1}:chksumtype is unset!".format(
+                                                        datetime.datetime.now(),
+                                                        a))
+            hash_type = locsrc['chksumtype']
+            hash_in = urlopen(mirror + locsrc['mirrorchksum'])
+            hashsums = hash_in.read()
+            hash_in.close()
+            hash_raw = hashsums.decode("utf-8")
+            hash_list = list(filter(None, hash_raw.split('\n')))
+            hash_dict = {x.split()[1]: x.split()[0] for x in hash_list}
+        # returns path/filename e.g. /some/path/to/file.tar.gz
+        # we use .gnupg since we'll need it later.
+        os.makedirs(dlpath + '/.gnupg', exist_ok = True)
+        tarball_path[a] = dlpath + '/.latest.' + a + '.tar'
         pattern = re.compile('^.*' + a + '\.tar(\.(gz|bz2|xz))?$')
-        tarball = [filename.group(0) for l in list(sha_dict.keys()) for filename in [pattern.search(l)] if filename][0]
-        sha1 = sha_dict[tarball]
+        if locsrc['mirrorfile'] != '':
+            tarball = locsrc['mirrorfile']
+        else:
+            tarball = [filename.group(0) for l in list(hash_dict.keys()) for filename in [pattern.search(l)] if filename][0]
+        if locsrc['mirrorchksum'] != '':
+            hashsum = hash_dict[tarball]
         if os.path.isfile(tarball_path[a]):
             pass
         else:
@@ -53,7 +62,6 @@ def downloadTarball(conf):
             print("{0}: [PREP] Fetching tarball ({1} architecture)...".format(
                                                             datetime.datetime.now(),
                                                             a))
-            #dl_file = urllib.URLopener()
             tarball_dl = urlopen(rlsdir + tarball)
             with open(tarball_path[a], 'wb') as f:
                 f.write(tarball_dl.read())
@@ -63,20 +71,32 @@ def downloadTarball(conf):
                                                     tarball_path[a],
                                                     humanize.naturalsize(
                                                         os.path.getsize(tarball_path[a]))))
-        print("{0}: [PREP] Checking hash checksum {1} against {2}...".format(
-                                                    datetime.datetime.now(),
-                                                    sha1,
-                                                    tarball_path[a]))
-        tarball_hash = hashlib.sha1(open(tarball_path[a], 'rb').read()).hexdigest()
-        if tarball_hash != sha1:
-            exit(("{0}: {1} either did not download correctly\n\t\t\t    or a wrong (probably old) version exists on the filesystem.\n\t\t\t    " +
-                                "Please delete it and try again.").format(datetime.datetime.now(), tarball))
-        elif build['mirrorgpgsig'] != '':
-            # okay, so the sha1 matches. let's verify the signature.
-            if build['mirrorgpgsig'] == '.sig':
+        if locsrc['mirrorchksum'] != '':
+            print("{0}: [PREP] Checking hash checksum {1} against {2}...".format(
+                                                        datetime.datetime.now(),
+                                                        hashsum,
+                                                        tarball_path[a]))
+            # Calculate the checksum according to type specified.
+            tarball_hash = False
+            for i in hashlib.algorithms_available:
+                if hash_type == i:
+                    hashfunc = getattr(hashlib, i)
+                    tarball_hash = hashfunc(open(tarball_path[a], 'rb').read()).hexdigest()
+                    break
+            if not tarball_hash:
+                exit(("{0}: source_{1}:chksumtype '{2}' is not supported on this machine!".format(
+                                                            datetime.datetime.now(),
+                                                            a,
+                                                            hash_type))
+            if tarball_hash != hashsum:
+                exit(("{0}: {1} either did not download correctly\n\t\t\t    or a wrong (probably old) version exists on the filesystem.\n\t\t\t    " +
+                                    "Please delete it and try again.").format(datetime.datetime.now(), tarball))
+        if locsrc['mirrorgpgsig'] != '':
+            # let's verify the signature.
+            if locsrc['mirrorgpgsig'] == '.sig':
                 gpgsig_remote = rlsdir + tarball + '.sig'
             else:
-                gpgsig_remote = build['mirrorgpgsig']
+                gpgsig_remote = locsrc['mirrorgpgsig']
             sig_dl = urlopen(gpgsig_remote)
             sig = tarball_path[a] + '.sig'
             with open(sig, 'wb+') as f:

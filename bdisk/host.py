@@ -68,9 +68,9 @@ def parseConfig(confs):
     config_dict = {s:dict(config.items(s)) for s in config.sections()}
     # Convert the booleans to pythonic booleans in the dict...
     config_dict['bdisk']['user'] = config['bdisk'].getboolean('user')
-    config_dict['build']['gpg'] = config['build'].getboolean('gpg')
     config_dict['build']['i_am_a_racecar'] = config['build'].getboolean('i_am_a_racecar')
     config_dict['build']['ipxe'] = config['build'].getboolean('ipxe')
+    config_dict['build']['sign'] = config['build'].getboolean('sign')
     config_dict['build']['multiarch'] = (config_dict['build']['multiarch']).lower()
     config_dict['ipxe']['iso'] = config['ipxe'].getboolean('iso')
     config_dict['ipxe']['usb'] = config['ipxe'].getboolean('usb')
@@ -126,16 +126,21 @@ def parseConfig(confs):
                                         config_dict['build']['multiarch']))
     ## VALIDATORS ##
     # Validate bootstrap mirror
-    if (validators.domain(config_dict['build']['mirror']) or validators.ipv4(
-                                config_dict['build']['mirror']) or validatords.ipv6(
-                                config_dict['build']['mirror'])):
-        try:
-            getaddrinfo(config_dict['build']['mirror'], None)
-        except:
-            exit(('{0}: ERROR: {1} does not resolve and cannot be used as a ' + 
-                'mirror for the bootstrap tarballs. Check your configuration.').format(
-                                        datetime.datetime.now(),
-                                        config_dict['build']['host']))
+    config_dict['src'] = {}
+    for a in config_dict['build']['arch']:
+        config_dict['src'][a] = config_dict['source_' + a]
+        if config_dict['src'][a]['enabled']:
+            if (validators.domain(config_dict['src'][a]['mirror']) or validators.ipv4(
+                                        config_dict['src'][a]['mirror']) or validatords.ipv6(
+                                        config_dict['src'][a]['mirror'])):
+                try:
+                    getaddrinfo(config_dict['src'][a]['mirror'], None)
+                except:
+                    exit(('{0}: ERROR: {1} does not resolve and cannot be used as a ' + 
+                        'mirror for the bootstrap tarballs. Check your configuration.').format(
+                                                datetime.datetime.now(),
+                                                config_dict['src'][a]['host']))
+        config_dict['src'][a]['gpg'] = config['source_' + a].getboolean('gpg')
     # Are we rsyncing? If so, validate the rsync host.
     # Works for IP address too. It does NOT check to see if we can
     # actually *rsync* to it; that'll come later.

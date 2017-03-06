@@ -13,7 +13,11 @@ def genGPG(conf):
     bdisk = conf['bdisk']
     gpghome = conf['gpg']['mygpghome']
     distkey = build['gpgkey']
-    gpgkeyserver = build['gpgkeyserver']
+    gpgkeyserver = []
+    for a in conf['build']['arch']:
+        keysrv = conf['src'][a]['gpgkeyserver']
+        if keysrv and (keysrv not in gpgkeyserver):
+            gpgkeyserver.append(keysrv)
     templates_dir = '{0}/extra/templates'.format(build['basedir'])
     mykey = False
     pkeys = []
@@ -31,16 +35,17 @@ def genGPG(conf):
     os.environ['GNUPGHOME'] = gpghome
     gpg = gpgme.Context()
     # do we need to add a keyserver?
-    if gpgkeyserver != '':
+    if len(gpgkeyserver) != 0:
         dirmgr = '{0}/dirmngr.conf'.format(gpghome)
-        if os.path.isfile(dirmgr):
-            with open(dirmgr, 'r+') as f:
-                findme = any(gpgkeyserver in line for line in f)
-                if not findme:
-                    f.seek(0, os.SEEK_END)
-                    f.write("\n# Added by {0}.\nkeyserver {1}\n".format(
-                                                        bdisk['pname'],
-                                                        gpgkeyserver))
+        for s in gpgkeyserver:
+            if os.path.isfile(dirmgr):
+                with open(dirmgr, 'r+') as f:
+                    findme = any(s in line for line in f)
+                    if not findme:
+                        f.seek(0, os.SEEK_END)
+                        f.write("\n# Added by {0}.\nkeyserver {1}\n".format(
+                                                            bdisk['pname'],
+                                                            s))
     if mykey:
         try:
             privkey = gpg.get_key(mykey, True)
@@ -62,15 +67,16 @@ def genGPG(conf):
             privkey = gpg.get_key(gpg.genkey(tpl_out).fpr, True)
             pkeys.append(privkey)
             # do we need to add a keyserver? this is for the freshly-generated GNUPGHOME
-            if build['gpgkeyserver'] != '':
+            if len(gpgkeyserver) != 0:
                 dirmgr = '{0}/dirmngr.conf'.format(gpghome)
-                with open(dirmgr, 'r+') as f:
-                    findme = any(gpgkeyserver in line for line in f)
-                    if not findme:
-                        f.seek(0, os.SEEK_END)
-                        f.write("\n# Added by {0}.\nkeyserver {1}\n".format(
-                                                            bdisk['pname'],
-                                                            build['gpgkeyserver']))
+                for s in gpgkeyserver:
+                    with open(dirmgr, 'r+') as f:
+                        findme = any(s in line for line in f)
+                        if not findme:
+                            f.seek(0, os.SEEK_END)
+                            f.write("\n# Added by {0}.\nkeyserver {1}\n".format(
+                                                                bdisk['pname'],
+                                                                s))
     gpg.signers = pkeys
     # Now we try to find and add the key for the base image.
     gpg.keylist_mode = gpgme.KEYLIST_MODE_EXTERN  # remote (keyserver)
@@ -125,7 +131,7 @@ def killStaleAgent(conf):
             psutil.Process(p).terminate()
 
 def signIMG(path, conf):
-    if conf['build']['gpg']:
+    if conf['build']['sign']:
         # Do we want to kill off any stale gpg-agents? (So we spawn a new one)
         # Requires further testing.
         #killStaleAgent()

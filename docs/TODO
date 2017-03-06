@@ -9,15 +9,15 @@
 -- https://code.google.com/p/byte-unixbench/
 -- https://github.com/akopytov/sysbench
 -- (http://blog.due.io/2014/linode-digitalocean-and-vultr-comparison/ etc.)
--implement pyalpm to decreate dependency on chroot pacman-ing?
+-There *has* to be a better way of handling package installation in the chroots.
+--implement pyalpm to decreate dependency on chroot pacman-ing?
 --or even maybe https://wiki.archlinux.org/index.php/offline_installation_of_packages in pure python!
 -set up automatic exporting to PDF of the user manual server-side. https://pypi.python.org/pypi/unoconv/0.6
--There *has* to be a better way of handling package installation in the chroots.
 -maybe remove lxde, firefox, chrome and replace with enlightenment/midori?
 -custom repo? https://brainwreckedtech.wordpress.com/2013/01/27/making-your-own-arch-linux-repository/
---https://wiki.archlinux.org/index.php/Building_32-bit_packages_on_a_64-bit_system
+--https://wiki.archlinux.org/index.php/Building_32-bit_packages_on_a_64-bit_system # NOTE: arch has dropped i686, now continued as archlinux32
 -implement better "additional" packages list. specify for path in build.ini- these should be more easily changed by end users. DON'T TOUCH iso.pkgs.lst since those are necessary for booting.
--shorewall/some other firewall?
+-automatic shorewall/some other firewall?
 -autodetection/configuration of network. DHCP is currently running by default, but does it need to support IPv6? if so, how would the user configure their network?
 -DISABLE NETWORKMANAGER AND "fi.w1.wpa_supplicant1"??? keeps spawning wpa_supplicant (and thusly killing networking proper)
 -for netboot, custom user agent (should be defined by build.ini)
@@ -27,7 +27,7 @@
 -WISH: signing for secureboot releases (PreLoader and loader.efi handle this okay, but require manual intervention)
 -does loader.efi support splash backgrounds? can i implement that differently somehow?
 --yes, see e.g. https://www.reddit.com/r/archlinux/comments/3bwgf0/where_put_the_splasharchbmp_to_splash_screen_boot/
--strip out/remove unnecessary and orphan packages (e.g. gcc, make, automake, etc.)
+-strip out/remove unnecessary and orphan packages (e.g. gcc, make, automake, etc.) before building ISO
 -incorporate iPXE tweaks:
 --http://ipxe.org/crypto 
 --http://ipxe.org/cmd/imgtrust
@@ -39,6 +39,7 @@
 ---#imgverify initrd path/to/initrd.sig
 ---DONE, partially. need to incorporate codesign certs/keys. routines, conf variables
 -enable mirror= kernel commandline.
+-NOTE: Following should be implemented via AIF-NG (https://git.square-r00t.net/AIF-NG, work pending for fix to BDisk for i686/x86_64 split) 
 --if mirror_(NAME) is present, use that as repo name.
 --if it starts with /, treat as mirrorlist (Include); otherwise use Server = 
 --if it has mirror_SIG-X, set signature options e.g. _SIG-N would be "SigLevel = Never"
@@ -47,5 +48,3 @@
 -include WinMTR, build Mac OS X MTR for dist/tools on CD
 -include pre-compiled LibreCrypt for opening LUKS parts on Windows (https://github.com/t-d-k/LibreCrypt)
 --curl -s https://raw.githubusercontent.com/t-d-k/LibreCrypt/master/README.md | egrep 'InstallLibreCrypt_v[A-Za-z0-9\.]*.exe' | cut -f2 -d'"'
-
-

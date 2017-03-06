@@ -24,7 +24,7 @@ We'll go into more detail for each section below.
  name = BDISK
  uxname = bdisk
  pname = BDisk
- ver =
+ ver = 
  dev = A Developer
  email = dev@domain.tld
  desc = A rescue/restore live environment.
@@ -35,16 +35,27 @@ We'll go into more detail for each section below.
  username = ${bdisk:uxname}
  name = Default user
  password = $$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/
- [build]
+ [source_x86_64]
  mirror = mirror.us.leaseweb.net
  mirrorproto = https
  mirrorpath = /archlinux/iso/latest/
- mirrorfile =
+ mirrorfile = .sig
  mirrorchksum = ${mirrorpath}sha1sums.txt
+ chksumtype = sha1
  mirrorgpgsig =
  gpgkey = 7F2D434B9741E8AC
  gpgkeyserver =
- gpg = no
+ [source_i686]
+ mirror = mirror.us.leaseweb.net
+ mirrorproto = https
+ mirrorpath = /archlinux/iso/latest/
+ mirrorfile = 
+ mirrorchksum = ${mirrorpath}sha1sums.txt
+ chksumtype = sha1
+ mirrorgpgsig =
+ gpgkey =
+ gpgkeyserver =
+ [build]
  dlpath = /var/tmp/${bdisk:uxname}
  chrootdir = /var/tmp/chroots
  basedir = /opt/dev/bdisk
@@ -54,6 +65,7 @@ We'll go into more detail for each section below.
  archboot = ${prepdir}/${bdisk:name}
  mountpt = /mnt/${bdisk:uxname}
  multiarch = yes
+ sign = yes
  ipxe = no
  i_am_a_racecar = no
  [gpg]
@@ -71,7 +83,7 @@ We'll go into more detail for each section below.
  [tftp]
  path = ${build:dlpath}/tftpboot
  user = root
- group = root
+ group = root 
  [ipxe]
  iso = no
  uri = https://domain.tld
@@ -81,9 +93,9 @@ We'll go into more detail for each section below.
  ssl_crt = ${ssldir}/main.crt
  ssl_key = ${ssldir}/main.key
  [rsync]
- host =
- user =
- path =
+ host = 
+ user = 
+ path = 
  iso = no
 
 === `[bdisk]`
@@ -184,15 +196,23 @@ The escaped, salted, hashed string to use for the non-root user.
 
 Please see <<passwords,the section on passwords>> for information on this value. In the <<example,example above>>, the string `$$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/` is created from the password `test`. I cannot stress this enough, do not use a plaintext password here nor just use a regular `/etc/shadow` file/`crypt(3)` hash here. Read the section. I promise it's short.
 
-=== `[build]`
-This section controls some aspects about the host and things like filesystem paths, etc.
+=== `[source_<arch>]`
+This section controls where to fetch the "base" tarballs.
+
+NOTE: Previously, these settings were *not* architecture-specific, and included in the <<code_build_code,`build`>> section.
+
+It was necessary to create this section per architecture, because https://www.archlinux.org/news/phasing-out-i686-support/[Arch Linux has dropped i686 support^]. However, plenty of other distros also have removed support and other third-party projects have ported. (You can find the Arch Linux 32-bit/i686 port project http://archlinux32.org/[here^].)
+
+The directives here are only covered once, however, since both sections are identical- they just allow you to specify different mirrors. Note that the two settings are `[source_i686]` (for 32-bit) and `[source_x86_64]` (for 64-bit/multilib).
+
+Which section is used (or both) depends on what <<code_multiarch_code, architectures you have enabled>> for the build.
 
 ==== `mirror`
 A mirror that hosts the bootstrap tarball. It is *highly* recommended you use an Arch Linux https://wiki.archlinux.org/index.php/Install_from_existing_Linux#Method_A:_Using_the_bootstrap_image_.28recommended.29[bootstrap tarball^] as the build process is highly specialized to this (but <<bug_reports_feature_requests,patches/feature requests>> are welcome for other built distros). You can find a list of mirrors at the bottom of Arch's https://www.archlinux.org/download/[download page^].
 
 . No whitespace
 . Must be accessible remotely/via a WAN-recognized address
-. Must be a domain/FQDN only; no paths (those come later!)
+. Must be a domain/FQDN (or IP address) only; no paths (those come later!)
 
 ==== `mirrorproto`
 What protocol should we use for the <<code_mirror_code,`mirror`>>?
@@ -208,14 +228,42 @@ What is the path to the tarball directory on the <<code_mirror_code,`mirror`>>?
 . No whitespace
 
 ==== `mirrorfile`
-What is the filename for the tarball found in the path specified in <<code_mirrorpath_code,`mirrorpath`>> ? If left blank, we will use the sha1 <<code_mirrorchksum_code,checksum>> file to try to guess the most recent file.
+What is the filename for the tarball found in the path specified in <<code_mirrorpath_code,`mirrorpath`>> ? If left blank, we will use the hash <<code_mirrorchksum_code,checksum>> file to try to guess the most recent file.
 
 ==== `mirrorchksum`
-The path to a sha1 checksum file of the bootstrap tarball.
+*[optional]* +
+*default: (no hash checking done)* +
+*requires: <<code_chksumtype_code,`chksumtype`>>*
+
+The path to a checksum file of the bootstrap tarball.
 
 . No whitespace
 . Must be the full path
-. Don't include the mirror domain or protocol
+. Don't include the <<code_mirror_code,mirror domain>> or <<code_mirrorproto_code,protocol>>
+
+==== `chksumtype`
+The algorithm that <<code_mirrorchksum_code,`mirrorchksum`>>'s hashes are in.
+
+[options="header"]
+|======================
+7+^|Accepts one of:
+^m|blake2b
+^m|blake2s
+^m|md5
+^m|sha1
+^m|sha224
+^m|sha256
+^m|sha384
+^m|sha512
+^m|sha3_224
+^m|sha3_256
+^m|sha3_384
+^m|sha3_512
+^m|shake_128
+^m|shake_256
+|======================
+
+TIP: You may have support for additional hashing algorithms, but these are the ones gauranteed to be supported by Python's https://docs.python.org/3/library/hashlib.html[hashlib module^]. To get a full list of algorithms the computer you're building on supports, you can run `python3 -c 'import hashlib;print(hashlib.algorithms_available)'`. Most likely, however, <<code_mirrorchksum_code,`mirrorchksum`>> is going to be hashes of one of the above.
 
 ==== `mirrorgpgsig`
 *[optional]* +
@@ -225,7 +273,7 @@ The path to a sha1 checksum file of the bootstrap tarball.
 
 If the bootstrap tarball file has a GPG signature, we can use it for extra checking. If it's blank, GPG checking will be disabled.
 
-If you specify just `.sig` (or use the default and don't specify a <<code_mirrorfile_code,`mirrorfile`>>), BDisk will try to guess based on the file from the sha1 <<code_mirrorchksum_code,checksum>> file. Note that this must evaluate to a full URL. (e.g. `${mirrorproto}://${mirror}${mirrorpath}somefile.sig`)
+If you specify just `.sig` (or use the default and don't specify a <<code_mirrorfile_code,`mirrorfile`>>), BDisk will try to guess based on the file from the hash <<code_mirrorchksum_code,checksum>> file. Note that unless you're using the `.sig` "autodetection", this must evaluate to a full URL. (e.g. `${mirrorproto}://${mirror}${mirrorpath}somefile.sig`)
 
 ==== `gpgkey`
 *requires: <<optional,_gpg/gnupg_>>*
@@ -244,6 +292,18 @@ What is a valid keyserver we should use to fetch <<code_gpgkey_code,`gpgkey`>>?
 . Only used if <<code_mirrorgpgsig_code,`mirrorgpgsig`>> is set
 . The default (blank) is probably fine. If you don't specify a personal GPG config, then you'll most likely want to leave this blank.
 . If set, make sure it is a valid keyserver URI (e.g. `hkp://keys.gnupg.net`)
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+=== `[build]`
+This section controls some aspects about the host and things like filesystem paths, etc.
+
 
 ==== `gpg`
 Should we sign our release files? See the <<code_gpg_code_2,`[gpg]`>> section.
