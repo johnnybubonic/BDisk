@@ -33,10 +33,8 @@ def downloadTarball(conf):
         mirror = locsrc['mirrorproto'] + '://' + locsrc['mirror']
         rlsdir = mirror + locsrc['mirrorpath']
         if locsrc['mirrorchksum'] != '':
-            if not locsrc['chksumtype']:
-                exit(("{0}: source_{1}:chksumtype is unset!".format(
-                                                        datetime.datetime.now(),
-                                                        a))
+            if locsrc['chksumtype'] == '':
+                exit("{0}: source_{1}:chksumtype is unset!".format(datetime.datetime.now(), a))
             hash_type = locsrc['chksumtype']
             hash_in = urlopen(mirror + locsrc['mirrorchksum'])
             hashsums = hash_in.read()
@@ -84,7 +82,7 @@ def downloadTarball(conf):
                     tarball_hash = hashfunc(open(tarball_path[a], 'rb').read()).hexdigest()
                     break
             if not tarball_hash:
-                exit(("{0}: source_{1}:chksumtype '{2}' is not supported on this machine!".format(
+                exit("{0}: source_{1}:chksumtype '{2}' is not supported on this machine!".format(
                                                             datetime.datetime.now(),
                                                             a,
                                                             hash_type))

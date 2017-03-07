@@ -129,17 +129,16 @@ def parseConfig(confs):
     config_dict['src'] = {}
     for a in config_dict['build']['arch']:
         config_dict['src'][a] = config_dict['source_' + a]
-        if config_dict['src'][a]['enabled']:
-            if (validators.domain(config_dict['src'][a]['mirror']) or validators.ipv4(
-                                        config_dict['src'][a]['mirror']) or validatords.ipv6(
-                                        config_dict['src'][a]['mirror'])):
-                try:
-                    getaddrinfo(config_dict['src'][a]['mirror'], None)
-                except:
-                    exit(('{0}: ERROR: {1} does not resolve and cannot be used as a ' + 
-                        'mirror for the bootstrap tarballs. Check your configuration.').format(
-                                                datetime.datetime.now(),
-                                                config_dict['src'][a]['host']))
+        if (validators.domain(config_dict['src'][a]['mirror']) or validators.ipv4(
+                                    config_dict['src'][a]['mirror']) or validatords.ipv6(
+                                    config_dict['src'][a]['mirror'])):
+            try:
+                getaddrinfo(config_dict['src'][a]['mirror'], None)
+            except:
+                exit(('{0}: ERROR: {1} does not resolve and cannot be used as a ' + 
+                    'mirror for the bootstrap tarballs. Check your configuration.').format(
+                                            datetime.datetime.now(),
+                                            config_dict['src'][a]['host']))
         config_dict['src'][a]['gpg'] = config['source_' + a].getboolean('gpg')
     # Are we rsyncing? If so, validate the rsync host.
     # Works for IP address too. It does NOT check to see if we can

@@ -514,7 +514,7 @@ What group the HTTP files should be owned as. This is most likely going to be ei
 . Group must exist on build system
 
 |======================
-^s|Can be one of: ^.^m|group name ^.^m|https://linux.die.net/man/5/group[UID]
+^s|Can be one of: ^.^m|groupname ^.^m|https://linux.die.net/man/5/group[GID]
 |======================
 
 === `[tftp]`
@@ -546,7 +546,7 @@ What group the TFTP files should be owned as. This is most likely going to be ei
 . Group must exist on build system
 
 |======================
-^s|Can be one of: ^.^m|group name ^.^m|https://linux.die.net/man/5/group[UID]
+^s|Can be one of: ^.^m|groupname ^.^m|https://linux.die.net/man/5/group[GID]
 |======================
 
 === `[ipxe]`

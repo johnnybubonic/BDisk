@@ -12,12 +12,15 @@ def genGPG(conf):
     dlpath = build['dlpath']
     bdisk = conf['bdisk']
     gpghome = conf['gpg']['mygpghome']
-    distkey = build['gpgkey']
+    distkeys = []
     gpgkeyserver = []
     for a in conf['build']['arch']:
         keysrv = conf['src'][a]['gpgkeyserver']
+        distkey = conf['src'][a]['gpgkey']
         if keysrv and (keysrv not in gpgkeyserver):
             gpgkeyserver.append(keysrv)
+        if distkey not in distkeys:
+            distkeys.append(distkey)
     templates_dir = '{0}/extra/templates'.format(build['basedir'])
     mykey = False
     pkeys = []
@@ -80,34 +83,30 @@ def genGPG(conf):
     gpg.signers = pkeys
     # Now we try to find and add the key for the base image.
     gpg.keylist_mode = gpgme.KEYLIST_MODE_EXTERN  # remote (keyserver)
-    if distkey: # testing
-    #try:
-        key = gpg.get_key(distkey)
-    #except:
-    #    exit('{0}: ERROR: We cannot find key ID {1}!'.format(
-    #                                datetime.datetime.now(),
-    #                                distkey))
-    importkey = key.subkeys[0].fpr
-    gpg.keylist_mode = gpgme.KEYLIST_MODE_LOCAL # local keyring (default)
-    DEVNULL = open(os.devnull, 'w')
-    print('{0}: [GPG] Importing {1} and signing it for verification purposes...'.format(
-                                    datetime.datetime.now(),
-                                    distkey))
-    cmd = ['/usr/bin/gpg',
-            '--recv-keys',
-            '--batch',
-            '--yes',
-            '0x{0}'.format(importkey)]
-    subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
-    sigkeys = []
-    for k in gpg.get_key(importkey).subkeys:
-        sigkeys.append(k.fpr)
-    cmd = ['/usr/bin/gpg',
-            '--batch',
-            '--yes',
-            '--lsign-key',
-            '0x{0}'.format(importkey)]
-    subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
+    if len(distkeys) > 0: # testing
+        for k in distkeys:
+            key = gpg.get_key(k)
+            importkey = key.subkeys[0].fpr
+            gpg.keylist_mode = gpgme.KEYLIST_MODE_LOCAL # local keyring (default)
+            DEVNULL = open(os.devnull, 'w')
+            print('{0}: [GPG] Importing {1} and signing it for verification purposes...'.format(
+                                            datetime.datetime.now(),
+                                            distkey))
+            cmd = ['/usr/bin/gpg',
+                    '--recv-keys',
+                    '--batch',
+                    '--yes',
+                    '0x{0}'.format(importkey)]
+            subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
+            sigkeys = []
+            for i in gpg.get_key(importkey).subkeys:
+                sigkeys.append(i.fpr)
+            cmd = ['/usr/bin/gpg',
+                    '--batch',
+                    '--yes',
+                    '--lsign-key',
+                    '0x{0}'.format(importkey)]
+            subprocess.call(cmd, stdout = DEVNULL, stderr = subprocess.STDOUT)
     # We need to expose this key to the chroots, too, so we need to export it.
     with open('{0}/gpgkey.pub'.format(dlpath), 'wb') as f:
         gpg.export(pkeys[0].subkeys[0].keyid, f)
