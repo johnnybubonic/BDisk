@@ -1,5 +1,6 @@
 ## Missing v2.x functionality ##
 -i_am_a_racecar optimizations
+- different distro guests (debian, etc.)- https://stackoverflow.com/questions/2349991/python-how-to-import-other-python-files/20749411#20749411
 -incorporate this into the manual?
 -TFTP configs generated for pxelinux
 -fix the branding, etc. on ipxe. :(

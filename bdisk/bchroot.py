@@ -138,11 +138,12 @@ def chrootTrim(build):
                                                         humanize.naturalsize(
                                                             os.path.getsize(tarball)),
                                                         dbdir))
-        for d in ('etc/pacman.d/gnupg', 'var/empty/.gnupg'):
-            if os.path.isdir('{0}/root.{1}/{2}'.format(chrootdir, a, d)):
-                shutil.rmtree('{0}/root.{1}/{2}'.format(chrootdir, a, d))
+        #for d in ('etc/pacman.d/gnupg', 'var/empty/.gnupg'):  # actually, we should probably keep these.
+        # they don't take much space, and it's a PITA to pacman-key --init && pacman-key --populate again on boot.
+        #    if os.path.isdir('{0}/root.{1}/{2}'.format(chrootdir, a, d)):
+        #        shutil.rmtree('{0}/root.{1}/{2}'.format(chrootdir, a, d))
         # TODO: move the self-cleanup in pre-build.sh to here.
-        delme = ['/root/.gnupg',
+        delme = [#'/root/.gnupg',  # see above
                 '/root/.bash_history',
                 #'/var/log/chroot_install.log',  # disable for now. maybe always disable if debug is enabled? TODO.
                 '/.git',
