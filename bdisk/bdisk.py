@@ -8,12 +8,15 @@ import bSSL
 import ipxe
 import bsync
 import bGPG
+import os
 
 # we need to:
 # we also need to figure out how to implement "mentos" (old bdisk) like functionality, letting us reuse an existing chroot install if possible to save time for future builds.
 #   if not, though, it's no big deal.
 # still on the todo: iPXE
 if __name__ == '__main__':
+    if os.getuid() != 0:
+        exit('{0}: ERROR: BDisk *must* be run as the root user or with sudo!'.format(datetime.datetime.now()))
     print('{0}: Starting.'.format(datetime.datetime.now()))
     conf = host.parseConfig(host.getConfig())[1]
     prep.dirChk(conf)
