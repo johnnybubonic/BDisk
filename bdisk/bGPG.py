@@ -19,7 +19,7 @@ def genGPG(conf):
         distkey = conf['src'][a]['gpgkey']
         if keysrv and (keysrv not in gpgkeyserver):
             gpgkeyserver.append(keysrv)
-        if distkey not in distkeys:
+        if distkey and(distkey not in distkeys):
             distkeys.append(distkey)
     templates_dir = '{0}/extra/templates'.format(build['basedir'])
     mykey = False
@@ -35,6 +35,7 @@ def genGPG(conf):
         if gpghome == '':
             # We'll generate a key if we can't find one here.
             gpghome = build['dlpath'] + '/.gnupg'
+    killStaleAgent(conf)
     os.environ['GNUPGHOME'] = gpghome
     gpg = gpgme.Context()
     # do we need to add a keyserver?
@@ -116,13 +117,13 @@ def killStaleAgent(conf):
     # Kill off any stale GPG agents running.
     # Probably not even needed, but good to have.
     chrootdir = conf['build']['chrootdir']
-    dlpath = conf['build']['dlpath']
+    gpgpath = conf['gpg']['mygpghome']
     procs = psutil.process_iter()
     plst = []
     for p in procs:
         if (p.name() in ('gpg-agent', 'dirmngr') and p.uids()[0] == os.getuid()):
             pd = psutil.Process(p.pid).as_dict()
-            for d in (chrootdir, dlpath):
+            for d in (chrootdir, gpgpath):
                 if pd['cwd'].startswith('{0}'.format(d)):
                     plst.append(p.pid)
     if len(plst) >= 1:
