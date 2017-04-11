@@ -28,6 +28,7 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
     conf = False
     # define some defailt conf paths in case we're installed by
     # a package manager. in order of the paths we should search.
+    currentdir = os.path.abspath('{0}/../extra/dist.build.ini'.format(os.path.dirname(os.path.realpath(__file__))))
     default_conf_paths = ['/etc/bdisk/build.ini',
                         '/usr/share/bdisk/build.ini',
                         '/usr/share/bdisk/extra/build.ini',
@@ -36,7 +37,8 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
                         '/usr/local/share/docs/bdisk/build.ini',
                         '/opt/dev/bdisk/build.ini',
                         '/opt/dev/bdisk/extra/build.ini',
-                        '/opt/dev/bdisk/extra/dist.build.ini']
+                        '/opt/dev/bdisk/extra/dist.build.ini',
+                        currentdir]
         # if we weren't given one/using the default...
     if conf_file == '/etc/bdisk/build.ini':
         if not os.path.isfile(conf_file):
