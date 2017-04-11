@@ -29,7 +29,7 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
     # define some defailt conf paths in case we're installed by
     # a package manager. in order of the paths we should search.
     currentdir = os.path.dirname(os.path.realpath(__file__))
-    currentdir_user = os.path.abspath('{0}/../dist.build.ini'.format(currentdir))
+    currentdir_user = os.path.abspath('{0}/../build.ini'.format(currentdir))
     currentdir_def = os.path.abspath('{0}/../extra/dist.build.ini'.format(currentdir))
     default_conf_paths = ['/etc/bdisk/build.ini',
                         '/usr/share/bdisk/build.ini',
