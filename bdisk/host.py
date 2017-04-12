@@ -24,7 +24,7 @@ def getHostname():
     hostname = platform.node()
     return(hostname)
 
-def getConfig(conf_file='/etc/bdisk/build.ini'):
+def getConfig(conf_file = '/etc/bdisk/build.ini'):
     conf = False
     # define some defailt conf paths in case we're installed by
     # a package manager. in order of the paths we should search.
@@ -48,6 +48,8 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
                 if os.path.isfile(p):
                     conf = p
                     break
+        else:
+            conf = conf_file
     else:
         conf = conf_file
     defconf = os.path.abspath('{0}/../extra/dist.build.ini'.format(os.path.dirname(os.path.realpath(__file__))))
