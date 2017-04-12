@@ -28,7 +28,9 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
     conf = False
     # define some defailt conf paths in case we're installed by
     # a package manager. in order of the paths we should search.
-    currentdir = os.path.abspath('{0}/../extra/dist.build.ini'.format(os.path.dirname(os.path.realpath(__file__))))
+    currentdir = os.path.dirname(os.path.realpath(__file__))
+    currentdir_user = os.path.abspath('{0}/../build.ini'.format(currentdir))
+    currentdir_def = os.path.abspath('{0}/../extra/dist.build.ini'.format(currentdir))
     default_conf_paths = ['/etc/bdisk/build.ini',
                         '/usr/share/bdisk/build.ini',
                         '/usr/share/bdisk/extra/build.ini',
@@ -38,7 +40,7 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
                         '/opt/dev/bdisk/build.ini',
                         '/opt/dev/bdisk/extra/build.ini',
                         '/opt/dev/bdisk/extra/dist.build.ini',
-                        currentdir]
+                        currentdir_user]
         # if we weren't given one/using the default...
     if conf_file == '/etc/bdisk/build.ini':
         if not os.path.isfile(conf_file):
@@ -48,7 +50,7 @@ def getConfig(conf_file='/etc/bdisk/build.ini'):
                     break
     else:
         conf = conf_file
-    defconf = '{0}/../extra/dist.build.ini'.format(os.path.dirname(os.path.realpath(__file__)))
+    defconf = os.path.abspath('{0}/../extra/dist.build.ini'.format(os.path.dirname(os.path.realpath(__file__))))
     if not conf:
         # okay, so let's check for distributed/"blank" ini's
         # since we can't seem to find one.
