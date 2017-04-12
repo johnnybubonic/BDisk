@@ -16,6 +16,7 @@ If you want to use your own `build.ini` file (and you should!), the following pa
 * `/opt/dev/bdisk/build.ini`
 * `/opt/dev/bdisk/extra/build.ini`
 * `/opt/dev/bdisk/extra/dist.build.ini`
+* `<bdisk.py directory>/../build.ini`
 
 We'll go into more detail for each section below.
 
@@ -64,7 +65,7 @@ We'll go into more detail for each section below.
  prepdir = ${dlpath}/temp
  archboot = ${prepdir}/${bdisk:name}
  mountpt = /mnt/${bdisk:uxname}
- multiarch = yes
+ multiarch = x86_64
  sign = yes
  ipxe = no
  i_am_a_racecar = no
@@ -126,7 +127,7 @@ This string is used for "pretty-printing" of the project name; it should be a mo
 . ASCII only
 
 ==== `ver`
-The version string. If this isn't specified, we'll try to guess based on the current git commit and tags in `<<code_basedir_code,build:basedir>>`.
+The version string. If this isn't specified, we'll try to guess based on the current git commit and tags in `<<code_basedir_code,build:basedir>>`. If `<<code_basedir_code,build:basedir>>` is *not* a git repository (i.e. you installed BDisk from a package manager), you MUST specify a version number.
 
 . No whitespace
 

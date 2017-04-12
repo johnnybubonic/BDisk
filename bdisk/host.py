@@ -93,12 +93,17 @@ def parseConfig(confs):
     # commits on top of a new tagged release). e.g. for build Y:
     # v#.##-Y or v#.##rX-Y
     if config_dict['bdisk']['ver'] == '':
-        repo = git.Repo(config_dict['build']['basedir'])
-        refs = repo.git.describe(repo.head.commit).split('-')
-        if len(refs) >= 2:
-            config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[1]
-        else:
-            config_dict['bdisk']['ver'] = refs[0]
+        try:
+            repo = git.Repo(config_dict['build']['basedir'])
+            refs = repo.git.describe(repo.head.commit).split('-')
+            if len(refs) >= 2:
+                config_dict['bdisk']['ver'] = refs[0] + 'r' + refs[1]
+            else:
+                config_dict['bdisk']['ver'] = refs[0]
+        except:
+            exit(('{0}: ERROR: {1} is NOT a valid git repository, and you did not specify bdisk:ver in your build.ini! ' +
+                  'Did you perhaps install from a package manager? Please refer to the documentation.').format(datetime.datetime.now(),
+                                                                                                               config_dict['build']['basedir']))
     # And the build number.
     # TODO: support tracking builds per version. i.e. in buildnum:
     # v2.51r13:0
