@@ -48,7 +48,8 @@ def http(conf):
             fulldest = '{0}/{1}'.format(httpdir, destpath)
             parentdir = os.path.split(fulldest)[0]
             os.makedirs(parentdir, exist_ok = True)
-            shutil.copy2('{0}/{1}'.format(prepdir, k), '{0}/{1}'.format(httpdir, httpfiles[k]))
+            if os.path.lexists('{0}/{1}'.format(prepdir, k)):
+                shutil.copy2('{0}/{1}'.format(prepdir, k), '{0}/{1}'.format(httpdir, httpfiles[k]))
         for root, dirs, files in os.walk(httpdir):
             for d in dirs:
                 os.chown(os.path.join(root, d), uid, gid)
