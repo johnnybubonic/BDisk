@@ -37,7 +37,7 @@ def http(conf):
         httpfiles['VERSION_INFO.txt'] = 'VERSION_INFO.txt'
         if 'x86_64' in arch:
             httpfiles['boot/{0}.64.kern'.format(bdisk['uxname'])] = '{0}.64.kern'.format(bdisk['uxname'])
-            httpfiles['boot/{0}.64.img'.format(bdisk['uxname'])] = '{0}.32.img'.format(bdisk['uxname'])
+            httpfiles['boot/{0}.64.img'.format(bdisk['uxname'])] = '{0}.64.img'.format(bdisk['uxname'])
         if 'i686' in arch:
             httpfiles['boot/{0}.32.kern'.format(bdisk['uxname'])] = '{0}.32.kern'.format(bdisk['uxname'])
             httpfiles['boot/{0}.32.img'.format(bdisk['uxname'])] = '{0}.32.img'.format(bdisk['uxname'])
