@@ -52,13 +52,13 @@ def genGPG(conf):
                                                             s))
     if mykey:
         try:
-            privkey = gpg.get_key(mykey, True)
+            pkeys.append(gpg.get_key(mykey, True))
         except:
             exit('{0}: ERROR: You specified using {1} but we have no secret key for that ID!'.format(
                                                         datetime.datetime.now(),
                                                         mykey))
     else:
-        for key in gpg.keylist(None,True):
+        for key in gpg.keylist(None, True):
             if key.can_sign:
                 pkeys.append(key)
                 break
