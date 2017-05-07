@@ -329,7 +329,7 @@ def genISO(conf):
     tpl_loader = jinja2.FileSystemLoader(templates_dir)
     env = jinja2.Environment(loader = tpl_loader)
     tpl = env.get_template(isolinux_cfg)
-    tpl_out = tpl.render(build = build, bdisk = bdisk)
+    tpl_out = tpl.render(build = build, bdisk = bdisk, bitness = bitness)
     with open(sysl_tmp + '/isolinux.cfg', "w+") as f:
         f.write(tpl_out)
     # And we need to build the ISO!
