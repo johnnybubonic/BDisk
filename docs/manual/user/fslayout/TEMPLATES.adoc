@@ -38,7 +38,7 @@ The `EFI/` directory is similar to <<efi, EFI/>> above also, but needs fewer con
 The `patches/` directory largely control branding of the mini ISO. They are in https://www.gnu.org/software/diffutils/manual/html_node/Unified-Format.html[unified diff^] (or "patch") format.
 
 ===== overlay/
-This directory contains *templated* overlays. These are intended to be templated by the user. See <<overlay, the overlay section>> for more information on how to use this. Remember to suffix your template files with the `.j2` extension.
+This directory contains *templated* overlays. These are intended to be templated by the user. See <<overlay_2, the overlay section>> for more information on how to use this. Remember to suffix your template files with the `.j2` extension.
 
 ===== pre-build.d/
 This directory contains *templated* overlays. These are intended to not be managed by the user, as they handle configuration necessary for building an ISO. See <<pre_build_d, the pre-build.d section>> for more information on this.

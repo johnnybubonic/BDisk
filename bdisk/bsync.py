@@ -37,7 +37,7 @@ def http(conf):
         httpfiles['VERSION_INFO.txt'] = 'VERSION_INFO.txt'
         if 'x86_64' in arch:
             httpfiles['boot/{0}.64.kern'.format(bdisk['uxname'])] = '{0}.64.kern'.format(bdisk['uxname'])
-            httpfiles['boot/{0}.64.img'.format(bdisk['uxname'])] = '{0}.32.img'.format(bdisk['uxname'])
+            httpfiles['boot/{0}.64.img'.format(bdisk['uxname'])] = '{0}.64.img'.format(bdisk['uxname'])
         if 'i686' in arch:
             httpfiles['boot/{0}.32.kern'.format(bdisk['uxname'])] = '{0}.32.kern'.format(bdisk['uxname'])
             httpfiles['boot/{0}.32.img'.format(bdisk['uxname'])] = '{0}.32.img'.format(bdisk['uxname'])
@@ -48,7 +48,8 @@ def http(conf):
             fulldest = '{0}/{1}'.format(httpdir, destpath)
             parentdir = os.path.split(fulldest)[0]
             os.makedirs(parentdir, exist_ok = True)
-            shutil.copy2('{0}/{1}'.format(prepdir, k), '{0}/{1}'.format(httpdir, httpfiles[k]))
+            if os.path.lexists('{0}/{1}'.format(prepdir, k)):
+                shutil.copy2('{0}/{1}'.format(prepdir, k), '{0}/{1}'.format(httpdir, httpfiles[k]))
         for root, dirs, files in os.walk(httpdir):
             for d in dirs:
                 os.chown(os.path.join(root, d), uid, gid)
