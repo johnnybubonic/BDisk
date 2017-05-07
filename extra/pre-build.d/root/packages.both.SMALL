@@ -1,4 +1,4 @@
 # Commented lines are supported (via a preceding # only).
 # Packages from the AUR can be specified.
 # We need to install all X drivers.
-mtree
+mtree-git
