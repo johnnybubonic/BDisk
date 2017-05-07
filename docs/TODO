@@ -1,3 +1,5 @@
+-investigate weird signing issue- if you specify a key to sign with, it appears that the squashed images (at least in the http dir) doesn't have a sig/asc. do they need to copy it over? or is it not even signing them?
+
 ## Missing v2.x functionality ##
 -i_am_a_racecar optimizations
 - different distro guests (debian, etc.)- https://stackoverflow.com/questions/2349991/python-how-to-import-other-python-files/20749411#20749411
