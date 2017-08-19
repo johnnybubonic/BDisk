@@ -280,6 +280,7 @@ stress
 sucrack
 symlinks
 sysstat
+systemd-sysvcompat
 tcpdump
 tcpslice
 tcptraceroute
