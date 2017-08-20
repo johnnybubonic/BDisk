@@ -21,7 +21,8 @@ def buildIPXE(conf):
     srcdir = build['srcdir']
     embedscript = build['dlpath'] + '/EMBED'
     ipxe_src = srcdir + '/ipxe'
-    ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
+    #ipxe_git_uri = 'git://git.ipxe.org/ipxe.git'
+    ipxe_git_uri = 'http://git.ipxe.org/ipxe.git'
     print('{0}: [IPXE] Prep/fetch sources...'.format(
                                         datetime.datetime.now()))
     # Get the source
