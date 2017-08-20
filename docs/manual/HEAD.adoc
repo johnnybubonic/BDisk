@@ -1,6 +1,6 @@
 = BDisk User and Developer Manual
 Brent Saner <bts@square-r00t.net>
-v1.2, 2017-05-11
+v1.3, 2017-08-20
 :doctype: book
 :data-uri:
 :imagesdir: images

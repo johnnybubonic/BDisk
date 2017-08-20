@@ -3,7 +3,7 @@ This file is where you can specify some of the very basics of BDisk building. It
 
 It's single-level, but divided into "sections". This is unfortunately a limitation of ConfigParser, but it should be easy enough to follow.
 
-Blank lines are ignored, as well as any lines beginning with `#` and `;`. There are some restrictions and recommendations for some values, so be sure to note them when they occur. Variables referencing other values in the `build.ini` are allowed in the format of `${value}` if it's in the same section; otherwise, `${section:value}` can be used.
+Blank lines are ignored, as well as any lines beginning with `#` and `;`. There are some restrictions and recommendations for some values, so be sure to note them when they occur. Variables referencing other values in the `build.ini` are allowed in the format of `${keyname}` if it's in the same section; otherwise, `${section:keyname}` can be used.
 
 If you want to use your own `build.ini` file (and you should!), the following paths are searched in order. The first one found will be used.
 
