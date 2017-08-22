@@ -1,5 +1,7 @@
 #/bin/sh -
 
+locale-gen
+
 #chmod 4755 /opt/google/chrome-beta/chrome-sandbox
 chmod 4755 /usr/bin/sudo
 

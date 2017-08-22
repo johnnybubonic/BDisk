@@ -198,7 +198,7 @@ net-snmp
 netselect
 nettle
 networkmanager-pptp
-nginx-devel
+nginx-mainline
 ngrep
 nmap
 nmon
