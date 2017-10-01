@@ -64,6 +64,8 @@ While not strictly necessary, these will greatly enhance your BDisk usage. I've 
 
 NOTE: If you do not wish to install any of these or cannot install them, be sure to disable the relevant options in the `build.ini` file (we'll talk about that later). The default `extra/dist.build.ini` should be sane enough to not require any of these.
 
+* http://cdrtools.sourceforge.net/private/cdrecord.html[cdrtools^]
+** Needed for building iPXE.
 * http://gcc.gnu.org[gcc (multilib)^] (>=6.x)
 ** Needed for building iPXE.
 * http://gcc.gnu.org[gcc-libs (multilib)^] (>=6.x)
