@@ -32,7 +32,7 @@ def http(conf):
                                                     datetime.datetime.now(),
                                                     httpdir))
         for a in arch:
-            for i in ('md5', 'sfs', 'sha256'):
+            for i in ('md5', 'sfs', 'sha256', 'sha512'):
                 httpfiles['{0}/{1}/airootfs.{2}'.format(bdisk['name'], a, i)] = '{0}/{1}/airootfs.{2}'.format(bdisk['name'], a, i)
         httpfiles['VERSION_INFO.txt'] = 'VERSION_INFO.txt'
         if 'x86_64' in arch:
@@ -81,7 +81,7 @@ def tftp(conf):
                                                 datetime.datetime.now(),
                                                 tftpdir))
         for a in arch:
-            for i in ('md5', 'sfs', 'sha256'):
+            for i in ('md5', 'sfs', 'sha256', 'sha512'):
                 tftpfiles['{0}/{1}/airootfs.{2}'.format(bdisk['name'], a, i)] = '{0}/{1}/airootfs.{2}'.format(bdisk['name'], a, i)
         tftpfiles['VERSION_INFO.txt'] = 'VERSION_INFO.txt'
         if 'x86_64' in arch:

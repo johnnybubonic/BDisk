@@ -21,6 +21,7 @@ def genImg(conf):
     basedir = build['basedir']
     prepdir = build['prepdir']
     hashes = {}
+    hashes['sha512'] = {}
     hashes['sha256'] = {}
     hashes['md5'] = {}
     squashfses = []
@@ -52,9 +53,10 @@ def genImg(conf):
                                             humanize.naturalsize(
                                                 os.path.getsize(squashimg))))
         # Generate the checksum files
-        print("{0}: [BUILD] Generating SHA256, MD5 checksums ({1})...".format(
-                                                datetime.datetime.now(),
+        print("{0}: [BUILD] Generating SHA512 SHA256, MD5 checksums ({1})...".format(
+                                                                datetime.datetime.now(),
                                                 squashimg))
+        hashes['sha512'][a] = hashlib.sha512()
         hashes['sha256'][a] = hashlib.sha256()
         hashes['md5'][a] = hashlib.md5()
         with open(squashimg, 'rb') as f:
@@ -63,8 +65,11 @@ def genImg(conf):
                 if not stream:
                     break
                 # NOTE: these items are hashlib objects, NOT strings!
+                hashes['sha512'][a].update(stream)
                 hashes['sha256'][a].update(stream)
                 hashes['md5'][a].update(stream)
+        with open(airoot + 'airootfs.sha512', 'w+') as f:
+            f.write("{0}  airootfs.sfs\n".format(hashes['sha512'][a].hexdigest()))
         with open(airoot + 'airootfs.sha256', 'w+') as f:
             f.write("{0}  airootfs.sfs\n".format(hashes['sha256'][a].hexdigest()))
         with open(airoot + 'airootfs.md5', 'w+') as f:
