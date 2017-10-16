@@ -1,5 +1,7 @@
 -investigate weird signing issue- if you specify a key to sign with, it appears that the squashed images (at least in the http dir) doesn't have a sig/asc. do they need to copy it over? or is it not even signing them?
 -switch from python-pygpgme to python-gpgme for better performance. also clean up bGPG in general; reference KANT.
+-more pythonic! classes (because inits help), use list or tuple constant for checksums, try vars-ing the configparser stuff (and move defaults to in-code?),
+   change path combinations to use os.path.join etc.
 
 -i_am_a_racecar optimizations
 - different distro guests (debian, etc.)- https://stackoverflow.com/questions/2349991/python-how-to-import-other-python-files/20749411#20749411
