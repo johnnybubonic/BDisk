@@ -7,6 +7,8 @@ NOTE: Due to requiring various mounting and chrooting, BDisk must be run as the 
 
 To initiate a build, simply run `<basedir>/bdisk/bdisk.py`. That's it! Everything should continue automatically.
 
+If you'd like to specify a path to a specific build configuration, you can use `<basedir>/bdisk/bdisk.py path/to/build.ini`. The default is _/etc/bdisk/build.ini_ (plus <<the_code_build_ini_code_,other locations>>).
+
 If you're using a packaged version you installed from your distro's package manager, you instead should run wherever it installs to. Most likely this is going to be `/usr/sbin/bdisk`. (On systemd build hosts that have done the https://www.freedesktop.org/wiki/Software/systemd/TheCaseForTheUsrMerge/[/usr merge^], you can use `/usr/sbin/bdisk` or `/sbin/bdisk`.)
 
 If you encounter any issues during the process, make sure you read the documentation -- if your issue still isn't addressed, please be sure to file a <<bug_reports_feature_requests,bug report>>!

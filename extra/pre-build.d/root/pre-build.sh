@@ -141,7 +141,12 @@ then
 fi
 # Add the regular user
 useradd -m -s /bin/bash -c "${USERCOMMENT}" ${REGUSR}
-usermod -aG users,games,video,audio ${REGUSR}
+usermod -aG users,games,video,audio ${REGUSR}  # TODO: remove this in lieu of $REGUSR_GRPS? these are all kind of required, though, for regular users anyways
+for g in $(echo ${REGUSR_GRPS} | sed 's/,[[:space:]]*/ /g');
+do
+	getent group ${g} > /dev/null 2>&1 || groupadd ${g}
+	usermod -aG ${g} ${REGUSR}
+done
 passwd -d ${REGUSR}
 # Add them to sudoers
 mkdir -p /etc/sudoers.d

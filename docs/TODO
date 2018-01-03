@@ -2,6 +2,9 @@
 -switch from python-pygpgme to python-gpgme for better performance. also clean up bGPG in general; reference KANT.
 -more pythonic! classes (because inits help), use list or tuple constant for checksums, try vars-ing the configparser stuff (and move defaults to in-code?),
    change path combinations to use os.path.join etc.
+-modularity: https://stackoverflow.com/a/8719100
+
+-mtree-like functionality; if mtree spec is found, apply that to files in overlay (or chroot even); otherwise copy from overlay and don't touch chroot 
 
 -i_am_a_racecar optimizations
 - different distro guests (debian, etc.)- https://stackoverflow.com/questions/2349991/python-how-to-import-other-python-files/20749411#20749411
@@ -29,6 +32,8 @@
 --iPXE's curl
 --initrd's curl
 -WISH: Better logging/debugging
+https://web.archive.org/web/20170726052946/http://www.lexev.org/en/2013/python-logging-every-day/
+
 -WISH: signing for secureboot releases (PreLoader and loader.efi handle this okay, but require manual intervention)
 -does loader.efi support splash backgrounds? can i implement that differently somehow?
 --yes, see e.g. https://www.reddit.com/r/archlinux/comments/3bwgf0/where_put_the_splasharchbmp_to_splash_screen_boot/

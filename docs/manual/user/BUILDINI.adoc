@@ -35,6 +35,7 @@ We'll go into more detail for each section below.
  [user]
  username = ${bdisk:uxname}
  name = Default user
+ groups = ${bdisk:uxname},admin
  password = $$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/
  [source_x86_64]
  mirror = mirror.us.leaseweb.net
@@ -191,6 +192,15 @@ What username should the user have? Standard *nix username rules apply:
 What comment/description/real name should be used for the user? For more information on this, see the https://linux.die.net/man/5/passwd[passwd(5) man page^]'s section on *GECOS*.
 
 . ASCII only
+
+==== `groups`
+What groups this user should be added to, comma-separated. They will be created if they don't exist yet. Standard *nix group names rules apply:
+
+. ASCII only
+. 32 characters or less
+. Can only contain lower-case letters, numeric digits, underscores, or dashes (and can end with a dollar sign)
+. Must start with a (lower-case) letter or underscore
+. No whitespace
 
 ==== `password`
 The escaped, salted, hashed string to use for the non-root user.
