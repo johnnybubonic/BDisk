@@ -1,6 +1,7 @@
 # We don't want local build settings in case someone's using
 # the git dir as a place to store their build.ini
 /build.ini
+/build.ini.*
 /dist.build.ini
 *.bak
 
