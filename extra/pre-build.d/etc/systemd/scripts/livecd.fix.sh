@@ -22,7 +22,7 @@ do
 done
 
 function fuck_you_gimme_net() {
-IFACE=$(ifconfig -a -s | egrep -E '^((en|wl)p?|em)' | awk '{print $1}' | tr '\n' ' ' | sed -e 's/\ $//g')
+IFACE=$(ip -o link | awk '{print $2}' | egrep -E '^((en|wl)p?|em)' | sed -e 's/:$//g' | head -n1)
 for i in ${IFACE};
 do
 
@@ -41,15 +41,15 @@ do
    DEV='wireless-open'
   fi
 
- ifconfig ${i} down
+ ip link set dev ${i} down
  cp -a /etc/netctl/examples/${DEV} /etc/netctl/${i}
  sed -i -re "s/^([[:space:]]*Interface[[:space:]]*=).*/\1${i}/g" /etc/netctl/${i}
  if [ "${DEV}" == "wireless-open" ];
  then
-  ifconfig ${i} up && \
+  ip link set dev ${i} up && \
   ESSID=$(iwlist ${i} scanning | egrep -A5 -B5 '^[[:space:]]*Encryption key:off' | egrep '^[[:space:]]*ESSID:' | sed -re 's/^[[:space:]]*ESSID:(.*)/\1/g')
   sed -i -re "s/^([[:space:]]*ESSID[[:space:]]*=).*/\1${ESSID}/g" /etc/netctl/${i}
-  ifconfig ${i} down
+  ip link set ${i} down
  fi
  netctl restart ${i} > /dev/null 2>&1
  #cat /etc/resolvconf.conf.failover > /etc/resolvconf.conf
