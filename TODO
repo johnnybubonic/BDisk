@@ -1,0 +1,14 @@
+- write classes/functions
+- support XML and legacy build.ini (warn to STDERR for build.ini)
+
+
+BUGS.SQUARE-R00T.NET bugs/tasks:
+#7:  Ensure conditional deps/imports for features only if used.
+     Is this setup.py-compatible?
+#14: Use os.path.join() for more consistency/pythonicness
+#24: Run as regular user? (pychroot? fakeroot?)
+#34: Build-time support for only building single phase of build
+#36: Allow parsing pkg lists with inline comments
+#39: Fix UEFI
+#40: ISO overlay (to add e.g. memtest86+ to final ISO)
+#43: Support resuming partial tarball downloads (Accet-Ranges: bytes)
