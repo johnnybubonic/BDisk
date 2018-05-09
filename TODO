@@ -1,5 +1,13 @@
 - write classes/functions
-- support XML and legacy build.ini (warn to STDERR for build.ini)
+- XML-based config
+- ensure we use docstrings in a Sphinx-compatible manner.
+  https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+
+- package for PyPI:
+# https://packaging.python.org/tutorials/distributing-packages/
+# https://docs.python.org/3/distutils/apiref.html
+# https://python-packaging.readthedocs.io/en/latest/minimal.html
+# https://setuptools.readthedocs.io/en/latest/setuptools.html#new-and-changed-setup-keywords
 
 
 BUGS.SQUARE-R00T.NET bugs/tasks:
