@@ -1,38 +1,17 @@
 # We don't want local build settings in case someone's using
 # the git dir as a place to store their build.ini
-/build.ini
-/build.ini.*
-/dist.build.ini
+confs/*
 *.bak
-
-# These are user-controlled.
-/overlay
-!/overlay/x86_64
-!/overlay/i686
-!/overlay/etc
-extra/templates/overlay
-!extra/templates/overlay/x86_64
-!extra/templates/overlay/i686
-!extra/templates/overlay/etc
-# The default doesn't store these in the git working dir,
-# but better safe than sorry.
-/root.x86_64
-/root.i686
-/http
-/iso
-/temp
-/tftpboot
 
 # We don't need these in git. They should be generated dynamically.
 .latest.*.tar
 /buildnum
-/screenlog*
+screenlog*
 /logs
 *.swp
 *.lck
 *~
 .~lock.*
-/extrasrc
 
 # You should really generate local copies of these, as they're pretty private.
 **/etc/dropbear
