@@ -1,5 +1,0 @@
-title   {{ bdisk['pname'] }} (Media)
-linux   /{% if efi is defined %}EFI/{{ bdisk['name'] }}{% else %}boot{% endif %}/{{ bdisk['uxname'] }}.{% if efi is defined %}efi{% else %}kern{% endif %}
-initrd  /{% if efi is defined %}EFI/{{ bdisk['name'] }}{% else %}boot{% endif %}/{{ bdisk['uxname'] }}.img
-options archisobasedir={{ bdisk['name'] }} archisolabel={{ bdisk['name'] }}
-

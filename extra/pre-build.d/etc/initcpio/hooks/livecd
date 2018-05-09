@@ -1,7 +1,0 @@
-# vim: set ft=sh:
-
-run_cleanuphook () {
-        msg ":: Adding SSL and SSH support..."
-
-	pkill -9 dropbear #kill SSH (in preparation for the live system starting ssh on port 22
-}

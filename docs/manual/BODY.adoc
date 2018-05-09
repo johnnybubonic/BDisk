@@ -1,6 +1,0 @@
-include::USER.adoc[]
-include::DEV.adoc[]
-include::BOOT.adoc[]
-include::FURTHER.adoc[]
-include::FAQ.adoc[]
-include::FOOT.adoc[]

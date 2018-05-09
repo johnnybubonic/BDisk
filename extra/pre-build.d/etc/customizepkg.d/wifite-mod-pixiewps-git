@@ -1,3 +1,0 @@
-#!/bin/bash
-
-sed -i -re "s/'any'/'i686' 'x86_64'/g" ${1}

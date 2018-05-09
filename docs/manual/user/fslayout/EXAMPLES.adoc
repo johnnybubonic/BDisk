@@ -1,3 +1,0 @@
-=== examples/
-This directory contains example filesystem layouts for e.g. your webserver (for iPXE), or your PXE server via TFTP.
-

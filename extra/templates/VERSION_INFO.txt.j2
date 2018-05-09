@@ -1,6 +1,0 @@
-Version:        {{ bdisk['ver'] }}
-Build:          {{ build['buildnum'] }}
-Time:           {{ build['time'] }}
-Machine:        {{ hostname }} ({{ distro }})
-User:           {{ build['user'] }}{% if build['realuser'] is defined and build['realuser']|length > 0 %} ({{ build['realuser'] }}){% endif %}
-

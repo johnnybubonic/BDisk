@@ -1,5 +1,0 @@
-include::WHYARCH.adoc[]
-include::LONGTIME.adoc[]
-include::ISOBIG.adoc[]
-include::GETVERSION.adoc[]
-include::ALTERNATIVES.adoc[]

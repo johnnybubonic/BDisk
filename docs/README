@@ -1,8 +1,0 @@
-Please see the full documentation at https://bdisk.square-r00t.net
-
-Alternatively, you can compile the manual yourself (requires asciidoc and asciidoctor):
-
-cd docs/manual
-asciidoctor -o /tmp/README.html HEAD.adoc
-
-Then point your browser to /tmp/README.html

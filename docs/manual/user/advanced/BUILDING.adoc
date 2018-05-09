@@ -1,3 +1,0 @@
-=== Changing the Build Process
-If you want to make modifications that can't be managed by arbitrary file inclusion or changing the software package lists, you may want to introduce additional changes to the image configuration that's run during the chroot. This is fairly easy to do. Simply modify `<basedir>/extra/pre-build.d/root/pre-build.sh` with the changes you desire. Note that this has a `.sh` file extension, but it can be any type of script you want -- Bash, Perl, Python, etc. -- it just needs the shebang line at the beginning of the script.
-
