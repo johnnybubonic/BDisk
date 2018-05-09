@@ -43,28 +43,28 @@
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
                 <tarball flags="glob,latest">
-                    <xpath-ref select="./mirror" />/<xpath-ref select="./webroot" />/archlinux-bootstrap-*-x86_64.tar.gz
+                    <xpath-ref select="../mirror" />/<xpath-ref select="../webroot" />/archlinux-bootstrap-*-x86_64.tar.gz
                 </tarball>
                 <checksum hash="sha1">
-                    <xpath-ref select="./mirror" />/<xpath-ref select="./webroot" />/sha1sums.txt
+                    <xpath-ref select="../mirror" />/<xpath-ref select="../webroot" />/sha1sums.txt
                 </checksum>
                 <sig keys="7F2D434B9741E8AC"
                      keyserver="hkp://pool.sks-keyservers.net">
-                    <xpath-ref select="./tarball" />.sig
+                    <xpath-ref select="../tarball" />.sig
                 </sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
                 <tarball flags="glob,latest">
-                    <xpath-ref select="./mirror" />/<xpath-ref select="./webroot" />/archlinux-bootstrap-*-i686.tar.gz
+                    <xpath-ref select="../mirror" />/<xpath-ref select="../webroot" />/archlinux-bootstrap-*-i686.tar.gz
                 </tarball>
                 <checksum hash="sha512">
-                    <xpath-ref select="./mirror" />/<xpath-ref select="./webroot" />/sha512sums.txt
+                    <xpath-ref select="../mirror" />/<xpath-ref select="../webroot" />/sha512sums.txt
                 </checksum>
                 <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
                      keyserver="hkp://pool.sks-keyservers.net">
-                    <xpath-ref select="./tarball" />.sig
+                    <xpath-ref select="../tarball" />.sig
                 </sig>
             </source>
         </sources>
@@ -76,10 +76,10 @@
                 <mount>/mnt/<xpath-ref select="//meta/names/uxname" /></mount>
                 <distros>~/<xpath-ref select="//meta/names/uxname" />/distros</distros>
                 <dest>~/<xpath-ref select="//meta/names/uxname" />/results</dest>
-                <iso><xpath-ref select="./dest" />/iso</iso>
-                <http><xpath-ref select="./dest" />/http</http>
-                <tftp><xpath-ref select="./dest" />/tftp</tftp>
-                <ssl><xpath-ref select="./dest" />/pki</ssl>
+                <iso><xpath-ref select="../dest" />/iso</iso>
+                <http><xpath-ref select="../dest" />/http</http>
+                <tftp><xpath-ref select="../dest" />/tftp</tftp>
+                <ssl><xpath-ref select="../dest" />/pki</ssl>
             </paths>
             <basedistro>archlinux</basedistro>
             <iso sign="yes" sync="yes" multiarch="yes" rsync="yes"/>
