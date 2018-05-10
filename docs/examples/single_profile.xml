@@ -77,11 +77,36 @@
             <basedistro>archlinux</basedistro>
             <iso sign="yes" sync="yes" multiarch="yes" rsync="yes"/>
             <ipxe sign="yes" sync="yes" iso="yes" rsync="yes">
-                <ssl>
-                    <ca>{xpath_ref%build/paths/ssl/text()}/ca.crt</ca>
-                    <ca_key>{xpath_ref%build/paths/ssl/text()}/ca.key</ca_key>
-                    <crt>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</crt>
-                    <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                <ssl custom="no">
+                    <!-- http://ipxe.org/crypto -->
+                    <ca>
+                        <cert>{xpath_ref%build/paths/ssl/text()}/ca.crt</cert>
+                        <csr />
+                        <key des="no" passphrase="none">{xpath_ref%build/paths/ssl/text()}/ca.key</key>
+                        <subject>
+                            <commonName>domain.tld</commonName>
+                            <countryName>XX</countryName>
+                            <localityName>Some City</localityName>
+                            <stateOrProvinceName>Some State</stateOrProvinceName>
+                            <organization>Some Org, Inc.</organization>
+                            <organizationalUnitName>Department Name</organizationalUnitName>
+                            <emailAddress>{xpath_ref%../../../../../../meta/names/dev/email/text()}</emailAddress>
+                        </subject>
+                    </ca>
+                    <server>
+                        <cert>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</cert>
+                        <csr />
+                        <key des="no" passphrase="none">{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                        <subject>
+                            <commonName>domain.tld (client)</commonName>
+                            <countryName>XX</countryName>
+                            <localityName>Some City</localityName>
+                            <stateOrProvinceName>Some State</stateOrProvinceName>
+                            <organization>Some Org, Inc.</organization>
+                            <organizationalUnitName>Department Name</organizationalUnitName>
+                            <emailAddress>{xpath_ref%../../../../../../meta/names/dev/email/text()}</emailAddress>
+                        </subject>
+                    </server>
                 </ssl>
                 <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
             </ipxe>

@@ -78,10 +78,16 @@
             <iso sign="yes" sync="yes" multiarch="yes" rsync="yes"/>
             <ipxe sign="yes" sync="yes" iso="yes" rsync="yes">
                 <ssl>
-                    <ca>{xpath_ref%build/paths/ssl/text()}/ca.crt</ca>
-                    <ca_key>{xpath_ref%build/paths/ssl/text()}/ca.key</ca_key>
-                    <crt>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</crt>
-                    <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                    <ca>
+                        <cert>{xpath_ref%build/paths/ssl/text()}/ca.crt</cert>
+                        <csr />
+                        <key>{xpath_ref%build/paths/ssl/text()}/ca.key</key>
+                    </ca>
+                    <server>
+                        <cert>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</cert>
+                        <csr />
+                        <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                    </server>
                 </ssl>
                 <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
             </ipxe>
@@ -161,10 +167,14 @@
             <iso sign="yes" sync="yes" multiarch="yes" rsync="yes"/>
             <ipxe sign="yes" sync="yes" iso="yes" rsync="yes">
                 <ssl>
-                    <ca>{xpath_ref%build/paths/ssl/text()}/ca.crt</ca>
-                    <ca_key>{xpath_ref%build/paths/ssl/text()}/ca.key</ca_key>
-                    <crt>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</crt>
-                    <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                    <ca>
+                        <cert>{xpath_ref%build/paths/ssl/text()}/ca.crt</cert>
+                        <key>{xpath_ref%build/paths/ssl/text()}/ca.key</key>
+                    </ca>
+                    <server>
+                        <cert>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</cert>
+                        <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                    </server>
                 </ssl>
                 <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
             </ipxe>
