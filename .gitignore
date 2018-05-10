@@ -26,4 +26,4 @@ screenlog*
 # and we DEFINITELY don't need these.
 __pycache__/
 *.pyc
-test.py
+*test*.py
