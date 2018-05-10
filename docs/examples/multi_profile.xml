@@ -21,62 +21,44 @@
             <ver>1.0.0</ver>
             <!-- This is the VERY FIRST value parsed, and is required. It controls how many levels of {xpath_ref:} to recurse. -->
             <!-- If the maximum level is reached, the substitution will evaluate as blank. -->
-            <max_recurse>3</max_recurse>
+            <max_recurse>5</max_recurse>
         </meta>
         <accounts>
             <!-- Salted/hashed password is "test" -->
-            <rootpass hashed="yes">
-                $6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1
-            </rootpass>
+            <rootpass hashed="yes">$6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1</rootpass>
             <user sudo="yes">
                 <username>{xpath_ref%//meta/names/uxname/text()}</username>
                 <!-- You can also use substitution from different profiles: -->
-                <!-- <username>{xpath_ref%//profile[@name='another_profile']/meta/names/uxname/text()}</username> -->
+                <!-- <username>{xpath_ref%//profile[@name='another_profile']/meta/names/uxname"}</username> -->
                 <name>{xpath_ref%//meta/dev/author/text()}</name>
                 <password hashed="no"
                           hash_algo="sha512"
-                          salt="auto">
-                    testpassword
-                </password>
+                          salt="auto">testpassword</password>
             </user>
             <user sudo="no">
                 <username>testuser</username>
                 <name>Test User</name>
                 <password hashed="no"
                           hash_algo="sha512"
-                          salt="auto">
-                    anothertestpassword
-                </password>
+                          salt="auto">anothertestpassword</password>
             </user>
         </accounts>
         <sources>
             <source arch="x86_64">
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
-                <tarball flags="glob,latest">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz
-                </tarball>
-                <checksum hash="sha1">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha1sums.txt
-                </checksum>
+                <tarball flags="glob,latest">{xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz</tarball>
+                <checksum hash="sha1">{xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/sha1sums.txt</checksum>
                 <sig keys="7F2D434B9741E8AC"
-                     keyserver="hkp://pool.sks-keyservers.net">
-                    {xpath_ref%../tarbal/text()}.sig
-                </sig>
+                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
-                <tarball flags="glob,latest">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-i686.tar.gz
-                </tarball>
-                <checksum hash="sha512">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha512sums.txt
-                </checksum>
+                <tarball flags="glob,latest">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-i686.tar.gz</tarball>
+                <checksum hash="sha512">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha512sums.txt</checksum>
                 <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
-                     keyserver="hkp://pool.sks-keyservers.net">
-                    {xpath_ref%../tarball/text()}.sig
-                </sig>
+                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
         </sources>
         <build its_full_of_stars="yes">
@@ -98,12 +80,8 @@
                 <ssl>
                     <ca>{xpath_ref%build/paths/ssl/text()}/ca.crt</ca>
                     <ca_key>{xpath_ref%build/paths/ssl/text()}/ca.key</ca_key>
-                    <crt>
-                        {xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt
-                    </crt>
-                    <key>
-                        {xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key
-                    </key>
+                    <crt>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</crt>
+                    <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
                 </ssl>
                 <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
             </ipxe>
@@ -139,47 +117,31 @@
             <max_recurse>3</max_recurse>
         </meta>
         <accounts>
-            <rootpass hashed="no">
-                atotallyinsecurepassword
-            </rootpass>
+            <rootpass hashed="no">atotallyinsecurepassword</rootpass>
             <user sudo="no">
                 <username>testuser</username>
                 <name>Test User</name>
                 <password hashed="no"
                           hash_algo="sha512"
-                          salt="auto">
-                    atestpassword
-                </password>
+                          salt="auto">atestpassword</password>
             </user>
         </accounts>
         <sources>
             <source arch="x86_64">
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
-                <tarball flags="glob,latest">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz
-                </tarball>
-                <checksum hash="sha1">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha1sums.txt
-                </checksum>
+                <tarball flags="glob,latest">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz</tarball>
+                <checksum hash="sha1">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha1sums.txt</checksum>
                 <sig keys="7F2D434B9741E8AC"
-                     keyserver="hkp://pool.sks-keyservers.net">
-                    {xpath_ref%../tarball/text()}.sig
-                </sig>
+                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
-                <tarball flags="glob,latest">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-i686.tar.gz
-                </tarball>
-                <checksum hash="sha512">
-                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha512sums.txt
-                </checksum>
+                <tarball flags="glob,latest">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-i686.tar.gz</tarball>
+                <checksum hash="sha512">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha512sums.txt</checksum>
                 <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
-                     keyserver="hkp://pool.sks-keyservers.net">
-                    {xpath_ref%../tarball/text()}.sig
-                </sig>
+                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
         </sources>
         <build its_full_of_stars="yes">
@@ -201,12 +163,8 @@
                 <ssl>
                     <ca>{xpath_ref%build/paths/ssl/text()}/ca.crt</ca>
                     <ca_key>{xpath_ref%build/paths/ssl/text()}/ca.key</ca_key>
-                    <crt>
-                        {xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt
-                    </crt>
-                    <key>
-                        {xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key
-                    </key>
+                    <crt>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</crt>
+                    <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
                 </ssl>
                 <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
             </ipxe>
