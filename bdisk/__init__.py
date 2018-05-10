@@ -2,6 +2,9 @@ import os
 import platform
 import sys
 
+"""
+BDisk - An easy liveCD creator built in python.
+"""
 
 # BDisk is only supported on Python 3.4 and up.
 if sys.version_info.major != 3:

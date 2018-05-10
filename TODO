@@ -1,7 +1,8 @@
 - write classes/functions
 - XML-based config
-- ensure we use docstrings in a Sphinx-compatible manner.
+- ensure we use docstrings in a Sphinx-compatible manner?
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
+  at the very least document all the functions and such so pydoc's happy.
 
 - package for PyPI:
 # https://packaging.python.org/tutorials/distributing-packages/
