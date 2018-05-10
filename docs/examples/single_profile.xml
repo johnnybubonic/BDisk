@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<bdisk>
+    <profile name="default" id="1" uuid="8cdd6bcb-c147-4a63-9779-b5433c510dbc">
+        <meta>
+            <names>
+                <name>BDisk</name>
+                <uxname>bdisk</uxname>
+                <!-- Just like with previous versions of BDisk, you can reference other values...
+                     but now with the neat benefits of XPath! Everything you could do in build.ini's and more.
+                     See https://www.w3schools.com/xml/xpath_syntax.asp
+                     If you need a literal bracket, double them (e.g. for "{foo}", use "{{foo}}") -->
+                <pname>{xpath_ref%../name/text()}</pname>
+            </names>
+            <desc>A rescue/restore live environment.</desc>
+            <dev>
+                <author>A. Dev Eloper</author>
+                <email>dev@domain.tld</email>
+                <website>https://domain.tld/~dev</website>
+            </dev>
+            <uri>https://domain.tld/projname</uri>
+            <ver>1.0.0</ver>
+            <!-- This is the VERY FIRST value parsed, and is required. It controls how many levels of {xpath_ref:} to recurse. -->
+            <!-- If the maximum level is reached, the substitution will evaluate as blank. -->
+            <max_recurse>5</max_recurse>
+        </meta>
+        <accounts>
+            <!-- Salted/hashed password is "test" -->
+            <rootpass hashed="yes">
+                $6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1
+            </rootpass>
+            <user sudo="yes">
+                <username>{xpath_ref%//meta/names/uxname/text()}</username>
+                <!-- You can also use substitution from different profiles: -->
+                <!-- <username>{xpath_ref%//profile[@name='another_profile']/meta/names/uxname"}</username> -->
+                <name>{xpath_ref%//meta/dev/author/text()}</name>
+                <password hashed="no"
+                          hash_algo="sha512"
+                          salt="auto">
+                    testpassword
+                </password>
+            </user>
+            <user sudo="no">
+                <username>testuser</username>
+                <name>Test User</name>
+                <password hashed="no"
+                          hash_algo="sha512"
+                          salt="auto">
+                    anothertestpassword
+                </password>
+            </user>
+        </accounts>
+        <sources>
+            <source arch="x86_64">
+                <mirror>http://archlinux.mirror.domain.tld</mirror>
+                <webroot>/iso/latest</webroot>
+                <tarball flags="glob,latest">
+                    {xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz
+                </tarball>
+                <checksum hash="sha1">
+                    {xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/sha1sums.txt
+                </checksum>
+                <sig keys="7F2D434B9741E8AC"
+                     keyserver="hkp://pool.sks-keyservers.net">
+                    {xpath_ref%../tarball/text()}.sig
+                </sig>
+            </source>
+            <source arch="i686">
+                <mirror>http://archlinux32.mirror.domain.tld</mirror>
+                <webroot>/iso/latest</webroot>
+                <tarball flags="glob,latest">
+                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-i686.tar.gz
+                </tarball>
+                <checksum hash="sha512">
+                    {xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha512sums.txt
+                </checksum>
+                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
+                     keyserver="hkp://pool.sks-keyservers.net">
+                    {xpath_ref%../tarball/text()}.sig
+                </sig>
+            </source>
+        </sources>
+        <build its_full_of_stars="yes">
+            <paths>
+                <cache>/var/tmp/{xpath_ref%//meta/names/uxname/text()}</cache>
+                <chroot>/var/tmp/chroots/{xpath_ref%//meta/names/uxname/text()}</chroot>
+                <templates>~/{xpath_ref%//meta/names/uxname/text()}/templates</templates>
+                <mount>/mnt/{xpath_ref%//meta/names/uxname/text()}</mount>
+                <distros>~/{xpath_ref%//meta/names/uxname/text()}/distros</distros>
+                <dest>~/{xpath_ref%//meta/names/uxname/text()}/results</dest>
+                <iso>{xpath_ref%../dest/text()}/iso</iso>
+                <http>{xpath_ref%../dest/text()}/http</http>
+                <tftp>{xpath_ref%../dest/text()}/tftp</tftp>
+                <ssl>{xpath_ref%../dest/text()}/pki</ssl>
+            </paths>
+            <basedistro>archlinux</basedistro>
+            <iso sign="yes" sync="yes" multiarch="yes" rsync="yes"/>
+            <ipxe sign="yes" sync="yes" iso="yes" rsync="yes">
+                <ssl>
+                    <ca>{xpath_ref%build/paths/ssl/text()}/ca.crt</ca>
+                    <ca_key>{xpath_ref%build/paths/ssl/text()}/ca.key</ca_key>
+                    <crt>
+                        {xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt
+                    </crt>
+                    <key>
+                        {xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key
+                    </key>
+                </ssl>
+                <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
+            </ipxe>
+            <gpg keyid="none" gnupghome="none" publish="no" sync="yes" />
+            <sync>
+                <http enabled="yes" rsync="yes" />
+                <tftp enabled="yes" rsync="yes" />
+                <rsync enabled="yes">
+                    <user>root</user>
+                    <path>/srv/http/{xpath_ref%//meta/names/uxname/text()}</path>
+                    <host>mirror.domain.tld</host>
+                    <port>22</port>
+                    <pubkey>~/.ssh/id_ed25519</pubkey>
+                </rsync>
+            </sync>
+        </build>
+    </profile>
+</bdisk>
