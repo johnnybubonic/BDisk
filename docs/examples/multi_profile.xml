@@ -31,16 +31,12 @@
                 <!-- You can also use substitution from different profiles: -->
                 <!-- <username>{xpath_ref%//profile[@name='another_profile']/meta/names/uxname"}</username> -->
                 <name>{xpath_ref%//meta/dev/author/text()}</name>
-                <password hashed="no"
-                          hash_algo="sha512"
-                          salt="auto">testpassword</password>
+                <password hashed="no" hash_algo="sha512" salt="auto">testpassword</password>
             </user>
             <user sudo="no">
                 <username>testuser</username>
                 <name>Test User</name>
-                <password hashed="no"
-                          hash_algo="sha512"
-                          salt="auto">anothertestpassword</password>
+                <password hashed="no" hash_algo="sha512" salt="auto">anothertestpassword</password>
             </user>
         </accounts>
         <sources>
@@ -49,16 +45,14 @@
                 <webroot>/iso/latest</webroot>
                 <tarball flags="glob,latest">{xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz</tarball>
                 <checksum hash="sha1">{xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/sha1sums.txt</checksum>
-                <sig keys="7F2D434B9741E8AC"
-                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
+                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
                 <tarball flags="glob,latest">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-i686.tar.gz</tarball>
                 <checksum hash="sha512">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha512sums.txt</checksum>
-                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
-                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
+                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
         </sources>
         <build its_full_of_stars="yes">
@@ -77,24 +71,49 @@
             <basedistro>archlinux</basedistro>
             <iso sign="yes" sync="yes" multiarch="yes" rsync="yes"/>
             <ipxe sign="yes" sync="yes" iso="yes" rsync="yes">
-                <ssl>
+                <ssl custom="no">
+                    <!-- http://ipxe.org/crypto -->
                     <ca>
                         <cert>{xpath_ref%build/paths/ssl/text()}/ca.crt</cert>
-                        <csr />
-                        <key>{xpath_ref%build/paths/ssl/text()}/ca.key</key>
+                        <!-- If csr is self-enclosed (<csr />), we'll just generate and use a CSR in-memory.
+                             Assuming we need to generate a certificate, anyways.
+                             If you want to write it out to disk (for debugging, etc.) OR use one already generated,
+                             then provide a path.
+                             e.g.:
+                                <csr>{xpath_ref%build/paths/ssl/text()}/ca.csr</csr> -->
+                        <csr/>
+                        <key des="no" passphrase="none">{xpath_ref%build/paths/ssl/text()}/ca.key</key>
+                        <subject>
+                            <commonName>domain.tld</commonName>
+                            <countryName>XX</countryName>
+                            <localityName>Some City</localityName>
+                            <stateOrProvinceName>Some State</stateOrProvinceName>
+                            <organization>Some Org, Inc.</organization>
+                            <organizationalUnitName>Department Name</organizationalUnitName>
+                            <emailAddress>{xpath_ref%../../../../../../meta/names/dev/email/text()}</emailAddress>
+                        </subject>
                     </ca>
                     <server>
                         <cert>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</cert>
-                        <csr />
-                        <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                        <csr/>
+                        <key des="no" passphrase="none">{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                        <subject>
+                            <commonName>domain.tld (client)</commonName>
+                            <countryName>XX</countryName>
+                            <localityName>Some City</localityName>
+                            <stateOrProvinceName>Some State</stateOrProvinceName>
+                            <organization>Some Org, Inc.</organization>
+                            <organizationalUnitName>Department Name</organizationalUnitName>
+                            <emailAddress>{xpath_ref%../../../../../../meta/names/dev/email/text()}</emailAddress>
+                        </subject>
                     </server>
                 </ssl>
                 <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
             </ipxe>
-            <gpg keyid="none" gnupghome="none" publish="no" sync="yes" />
+            <gpg keyid="none" gnupghome="none" publish="no" sync="yes"/>
             <sync>
-                <http enabled="yes" rsync="yes" />
-                <tftp enabled="yes" rsync="yes" />
+                <http enabled="yes" rsync="yes"/>
+                <tftp enabled="yes" rsync="yes"/>
                 <rsync enabled="yes">
                     <user>root</user>
                     <path>/srv/http/{xpath_ref%//meta/names/uxname/text()}</path>
@@ -105,7 +124,7 @@
             </sync>
         </build>
     </profile>
-    <profile name="alternate" id="1" uuid="2ed07c19-2071-4d66-8569-da40475ba716">
+<profile name="alternate" id="2" uuid="2ed07c19-2071-4d66-8569-da40475ba716">
         <meta>
             <names>
                 <name>AnotherCD</name>
@@ -120,34 +139,30 @@
             </dev>
             <uri>https://domain.tld/projname</uri>
             <ver>0.0.1</ver>
-            <max_recurse>3</max_recurse>
+            <max_recurse>5</max_recurse>
         </meta>
         <accounts>
             <rootpass hashed="no">atotallyinsecurepassword</rootpass>
             <user sudo="no">
                 <username>testuser</username>
                 <name>Test User</name>
-                <password hashed="no"
-                          hash_algo="sha512"
-                          salt="auto">atestpassword</password>
+                <password hashed="no" hash_algo="sha512" salt="auto">testpassword</password>
             </user>
-        </accounts>
+            </accounts>
         <sources>
             <source arch="x86_64">
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
-                <tarball flags="glob,latest">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz</tarball>
-                <checksum hash="sha1">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha1sums.txt</checksum>
-                <sig keys="7F2D434B9741E8AC"
-                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
+                <tarball flags="glob,latest">{xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-x86_64.tar.gz</tarball>
+                <checksum hash="sha1">{xpath_ref%../mirror/text()}{xpath_ref%../webroot/text()}/sha1sums.txt</checksum>
+                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
                 <tarball flags="glob,latest">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/archlinux-bootstrap-*-i686.tar.gz</tarball>
                 <checksum hash="sha512">{xpath_ref%../mirror/text()}/{xpath_ref%../webroot/text()}/sha512sums.txt</checksum>
-                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
-                     keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
+                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net">{xpath_ref%../tarball/text()}.sig</sig>
             </source>
         </sources>
         <build its_full_of_stars="yes">
@@ -166,22 +181,42 @@
             <basedistro>archlinux</basedistro>
             <iso sign="yes" sync="yes" multiarch="yes" rsync="yes"/>
             <ipxe sign="yes" sync="yes" iso="yes" rsync="yes">
-                <ssl>
+                <ssl custom="no">
                     <ca>
                         <cert>{xpath_ref%build/paths/ssl/text()}/ca.crt</cert>
-                        <key>{xpath_ref%build/paths/ssl/text()}/ca.key</key>
+                        <csr/>
+                        <key des="no" passphrase="none">{xpath_ref%build/paths/ssl/text()}/ca.key</key>
+                        <subject>
+                            <commonName>domain.tld</commonName>
+                            <countryName>XX</countryName>
+                            <localityName>Some City</localityName>
+                            <stateOrProvinceName>Some State</stateOrProvinceName>
+                            <organization>Some Org, Inc.</organization>
+                            <organizationalUnitName>Department Name</organizationalUnitName>
+                            <emailAddress>{xpath_ref%../../../../../../meta/names/dev/email/text()}</emailAddress>
+                        </subject>
                     </ca>
                     <server>
                         <cert>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.crt</cert>
-                        <key>{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                        <csr/>
+                        <key des="no" passphrase="none">{xpath_ref%build/paths/ssl/text()}/{xpath_ref%//meta/names/uxname/text()}.key</key>
+                        <subject>
+                            <commonName>domain.tld (client)</commonName>
+                            <countryName>XX</countryName>
+                            <localityName>Some City</localityName>
+                            <stateOrProvinceName>Some State</stateOrProvinceName>
+                            <organization>Some Org, Inc.</organization>
+                            <organizationalUnitName>Department Name</organizationalUnitName>
+                            <emailAddress>{xpath_ref%../../../../../../meta/names/dev/email/text()}</emailAddress>
+                        </subject>
                     </server>
                 </ssl>
                 <uri>{xpath_ref%meta/dev/website/text()}/ipxe</uri>
             </ipxe>
-            <gpg keyid="none" gnupghome="none" publish="no" sync="yes" />
+            <gpg keyid="none" gnupghome="none" publish="no" sync="yes"/>
             <sync>
-                <http enabled="yes" rsync="yes" />
-                <tftp enabled="yes" rsync="yes" />
+                <http enabled="yes" rsync="yes"/>
+                <tftp enabled="yes" rsync="yes"/>
                 <rsync enabled="yes">
                     <user>root</user>
                     <path>/srv/http/{xpath_ref%//meta/names/uxname/text()}</path>

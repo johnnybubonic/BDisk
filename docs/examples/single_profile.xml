@@ -81,6 +81,12 @@
                     <!-- http://ipxe.org/crypto -->
                     <ca>
                         <cert>{xpath_ref%build/paths/ssl/text()}/ca.crt</cert>
+                        <!-- If csr is self-enclosed (<csr />), we'll just generate and use a CSR in-memory.
+                             Assuming we need to generate a certificate, anyways.
+                             If you want to write it out to disk (for debugging, etc.) OR use one already generated,
+                             then provide a path.
+                             e.g.:
+                                <csr>{xpath_ref%build/paths/ssl/text()}/ca.csr</csr> -->
                         <csr />
                         <key des="no" passphrase="none">{xpath_ref%build/paths/ssl/text()}/ca.key</key>
                         <subject>
