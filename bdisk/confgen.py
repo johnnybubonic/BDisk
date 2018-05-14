@@ -134,7 +134,7 @@ class ConfGenerator(object):
             self.cfg = lxml.etree.Element('bdisk')
             self.append = False
         self.profile = lxml.etree.Element('profile')
-        self.cfg.append(self.profile)  # do I need to do this at the end?
+        self.cfg.append(self.profile)
 
     def main(self):
         print(('\n\tPlease consult the manual at {manual_site} if you have '
@@ -146,6 +146,7 @@ class ConfGenerator(object):
             self.get_meta()
             self.get_accounts()
             self.get_sources()
+            self.get_build()
         except KeyboardInterrupt:
             exit('\n\nCaught KeyboardInterrupt; quitting...')
         return()
@@ -459,7 +460,6 @@ class ConfGenerator(object):
                     elif checksum_type is None:
                         print('Invalid selection. Starting over.')
                         continue
-                    chksum = lxml.etree.SubElement(source, 'checksum')
                     chksum.attrib['hash_algo'] = checksum_type
                     chksum.attrib['explicit'] = "no"
                     chksum.text = checksum['full_url']
@@ -568,12 +568,63 @@ class ConfGenerator(object):
             if tarball['port'] != '':
                 elems['mirror'].text += ':{0}'.format(tarball['port'])
             elems['webroot'].text = '{path}'.format(**tarball)
+            sources.append(source)
             _arches.append(arch)
             more_sources = prompt.confirm_or_no(prompt = ('\nWould you like '
                                                           'to add another '
                                                           'source?\n'),
                                                 usage = ('{0} for yes, {1} '
                                                          'for no...\n'))
+        return()
+
+    def get_build(self):
+        print('\n++ BUILD ++')
+        build = lxml.etree.SubElement(self.profile, 'build')
+        _chk_optimizations = prompt.confirm_or_no(prompt = (
+            '\nWould you like to enable experimental optimizations?\n'),
+                                                usage = (
+                                '{0} for yes, {1} for no...\n'))
+        if _chk_optimizations:
+            build.attrib['its_full_of_stars'] = 'yes'
+        # Thankfully, we can simplify a lot of this.
+        _dir_strings = {'cache': ('the caching directory (used for temporary '
+                                  'files, temporary downloads, etc.)'),
+                        'chroot': ('the chroot directory (where we store '
+                                   'the root filesystems that are converted '
+                                   'into the live environment'),
+                        'overlay': ('the overlay directory (allowing for '
+                                    'injecting files into the live '
+                                    'environment\'s filesystem)'),
+                        'templates': ('the template directory (for templating '
+                                      'configuration files in the live '
+                                      'environment)'),
+                        'mount': ('the mount directory (where chroots are '
+                                  'mounted to perform preparation tasks)'),
+                        'distros': ('the distro plugin directory (where '
+                                    'plugins supporting other guest Linux '
+                                    'distributions are put)'),
+                        'dest': ('the destination directory (where finished '
+                                 'products like ISO image files go)'),
+                        'iso': ('the iso directory (the overlay directory for '
+                                'the "outer" layer of media)'),
+                        'http': ('the HTTP directory (where a webroot is '
+                                 'created that can be used to serve iPXE)'),
+                        'tftp': ('the TFTP directory (where a TFTP/'
+                                 'traditional PXE root is created)'),
+                        'ssl': ('the SSL/TLS PKI directory (where we store '
+                                'the PKI structure we use/re-use - MAKE SURE '
+                                'it is in a path that is well-protected!)')}
+        has_paths = False
+        # Get the paths
+        while not has_paths:
+            paths = lxml.etree.Element('paths')
+            _paths_elems = {}
+            for _dir in _dir_strings:
+                _paths_elems[_dir] = lxml.etree.SubElement(paths, _dir)
+                path = prompt.path(_dir_strings[_dir])
+                _paths_elems[_dir].text = path
+            build.append(paths)
+            has_paths = True
         return()
 
 def main():

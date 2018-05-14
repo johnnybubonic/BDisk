@@ -211,6 +211,12 @@ class prompts(object):
                 print(end_str)
         return('\n'.join(_lines))
 
+    def path(self, path_desc):
+        path = input(('\nWhere would you like to put {0}?\n'
+                      'Path: ').format(path_desc))
+        path = transform().full_path(path)
+        return(path)
+
 class transform(object):
     def __init__(self):
         pass
@@ -229,6 +235,11 @@ class transform(object):
     def no_newlines(self, text_in):
         text = re.sub('\n+', ' ', text_in)
         return(text)
+
+    def full_path(self, path):
+        path = os.path.expanduser(path)
+        path = os.path.abspath(path)
+        return(path)
 
     def py2xml(self, value, attrib = True):
         if value in (False, ''):
@@ -381,13 +392,13 @@ class transform(object):
                'queries': queries,
                'fragments': fragments,
                'url': orig_url}
-        url['full_url'] = '{scheme}://'
+        url['full_url'] = '{0}://'.format(scheme)
         if userinfo not in (None, ''):
             url['full_url'] += '{user}:{password}@'.format(userinfo)
         url['full_url'] += host
         if port not in (None, ''):
             url['full_url'] += ':{0}'.format(port)
-        url['full_url'] += path + dest
+        url['full_url'] += '/'.join((path, dest))
         # Do these need to be in a specific order?
         if params not in (None, ''):
             _p = ['{0}={1}'.format(k, v) for k, v in params.items()]
