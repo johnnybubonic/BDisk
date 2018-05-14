@@ -3,6 +3,16 @@
 - ensure we use docstrings in a Sphinx-compatible manner?
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
   at the very least document all the functions and such so pydoc's happy.
+- better prompt display. i might include them as constants in a separate file
+  and then import it for e.g. confgen. or maybe a Flask website/app?
+- locking
+- for docs, 3.x (as of 3.10) was 2.4M.
+- GUI? at least for generating config...
+
+- need to package:
+  python-hashid (https://psypanda.github.io/hashID/,
+                 https://github.com/psypanda/hashID,
+                 https://pypi.org/project/hashID/)
 
 - package for PyPI:
 # https://packaging.python.org/tutorials/distributing-packages/
@@ -14,6 +24,7 @@
 BUGS.SQUARE-R00T.NET bugs/tasks:
 #7:  Ensure conditional deps/imports for features only if used.
      Is this setup.py-compatible?
+     nooope. just make everything a dep.
 #14: Use os.path.join() for more consistency/pythonicness
 #24: Run as regular user? (pychroot? fakeroot?)
 #34: Build-time support for only building single phase of build

@@ -33,8 +33,8 @@ for e in meta.iter():
 
 accounts_tags = {'rootpass': 'atotallyinsecurepassword',
                  'username': 'testuser',
-                 'name': 'Test User',
-                 'passowrd': 'atestpassword'}
+                 'comment': 'Test User',
+                 'password': 'atestpassword'}
 accounts = alt_profile.xpath('/profile/accounts')[0]
 for e in accounts.iter():
     if e.tag in accounts_tags:
@@ -47,7 +47,8 @@ for e in accounts.iter():
 accounts.remove(accounts[2])
 xml.append(alt_profile)
 
-#print(etree.tostring(xml).decode('utf-8'))
 with open('multi_profile.xml', 'wb') as f:
-    f.write(b'<?xml version="1.0" encoding="UTF-8" ?>\n' + etree.tostring(xml,
-                                                                         pretty_print = True))
+    f.write(etree.tostring(xml,
+                           pretty_print = True,
+                           encoding = 'UTF-8',
+                           xml_declaration = True))

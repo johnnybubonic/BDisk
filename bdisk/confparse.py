@@ -1,10 +1,10 @@
 import _io
 import copy
+import re
 import os
 import validators
 from urllib.parse import urlparse
 import lxml.etree
-import lxml.objectify as objectify
 
 etree = lxml.etree
 
@@ -14,24 +14,25 @@ def _detect_cfg(cfg):
     if isinstance(cfg, str):
         # check for path or string
         try:
-            etree.fromstring(cfg)
+            etree.fromstring(cfg.encode('utf-8'))
+            return(cfg.encode('utf-8'))
         except lxml.etree.XMLSyntaxError:
             path = os.path.abspath(os.path.expanduser(cfg))
             try:
-                with open(path, 'r') as f:
+                with open(path, 'rb') as f:
                     cfg = f.read()
             except FileNotFoundError:
                 raise ValueError('Could not open {0}'.format(path))
     elif isinstance(cfg, _io.TextIOWrapper):
-        _cfg = cfg.read()
+        _cfg = cfg.read().encode('utf-8')
         cfg.close()
         cfg = _cfg
     elif isinstance(self.cfg,  _io.BufferedReader):
-        _cfg = cfg.read().decode('utf-8')
+        _cfg = cfg.read()
         cfg.close()
         cfg = _cfg
     elif isinstance(cfg, bytes):
-        cfg = cfg.decode('utf-8')
+        return(cfg)
     else:
         raise TypeError('Could not determine the object type.')
     return(cfg)
@@ -76,7 +77,15 @@ class Conf(object):
         self.profile = profile
         self.xml = None
         self.profile = None
-        self.xml = etree.from_string(self.cfg)
+        # Mad props to https://stackoverflow.com/a/12728199/733214
+        self.xpath_re = re.compile('(?<=(?<!\{)\{)[^{}]*(?=\}(?!\}))')
+        self.substitutions = {}
+        self.xpaths = ['xpath_ref']
+        try:
+            self.xml = etree.fromstring(self.raw)
+        except lxml.etree.XMLSyntaxError:
+            raise ValueError('The configuration provided does not seem to be '
+                             'valid')
         self.xsd = None
         #if not self.validate():  # Need to write the XSD
         #    raise ValueError('The configuration did not pass XSD/schema '
@@ -137,7 +146,7 @@ class Conf(object):
                     break
             # We couldn't find a profile with a default name. Try to grab the
             # first profile.
-            if not self.profile:
+            if self.profile is None:
                 # Grab the first profile.
                 if profiles:
                     self.profile = profile[0]
@@ -150,9 +159,4 @@ class Conf(object):
     def parse_profile(self):
         pass
 
-    def _xpath_ref(self, element):
-        data = None
-        # This is incremented each recursive call until we reach
-        # self.max_recurse
-        recurse_cnt = 1
-        return(data)
+
