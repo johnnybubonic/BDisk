@@ -1,8 +1,10 @@
+import _io
 import crypt
 import GPG
 import hashid
 import hashlib
 import os
+import pprint
 import re
 import string
 import textwrap
@@ -30,6 +32,15 @@ crypt_map = {'sha512': crypt.METHOD_SHA512,
              'sha256': crypt.METHOD_SHA256,
              'md5': crypt.METHOD_MD5,
              'des': crypt.METHOD_CRYPT}
+
+class XPathFmt(string.Formatter):
+    def get_field(self, field_name, args, kwargs):
+        vals = self.get_value(field_name, args, kwargs), field_name
+        if not vals[0]:
+            print(vals)
+            vals = ('{{{0}}}'.format(vals[1]), vals[1])
+            print(vals)
+        return(vals)
 
 class detect(object):
     def __init__(self):
@@ -411,6 +422,126 @@ class transform(object):
             url['full_url'] += '#{0}'.format('#'.join(_f))
         return(url)
 
+class xml_supplicant(object):
+    def __init__(self, cfg, profile = None, max_recurse = 5):
+        raw = self._detect_cfg(cfg)
+        xmlroot = lxml.etree.fromstring(raw)
+        self.root = lxml.etree.ElementTree(xmlroot)
+        self.max_recurse = max_recurse
+        self.ptrn = re.compile('(?<=(?<!\{)\{)[^{}]*(?=\}(?!\}))')
+        self.substitutions = {}
+        if not profile:
+            self.profile = xmlroot.xpath('/bdisk/profile[1]')[0]
+        else:
+            self.profile = xmlroot.xpath(profile)[0]
+        
+    def _detect_cfg(self, cfg):
+        if isinstance(cfg, str):
+            try:
+                lxml.etree.fromstring(cfg.encode('utf-8'))
+                return(cfg.encode('utf-8'))
+            except lxml.etree.XMLSyntaxError:
+                path = os.path.abspath(os.path.expanduser(cfg))
+                try:
+                    with open(path, 'rb') as f:
+                        cfg = f.read()
+                except FileNotFoundError:
+                    raise ValueError('Could not open {0}'.format(path))
+        elif isinstance(cfg, _io.TextIOWrapper):
+            _cfg = cfg.read().encode('utf-8')
+            cfg.close()
+            cfg = _cfg
+        elif isinstance(cfg,  _io.BufferedReader):
+            _cfg = cfg.read()
+            cfg.close()
+            cfg = _cfg
+        elif isinstance(cfg, lxml.etree._Element):
+            return(lxml.etree.tostring(cfg))
+        elif isinstance(cfg, bytes):
+            return(cfg)
+        else:
+            raise TypeError('Could not determine the object type.')
+        return(cfg)
+    
+
+    def get_path(self, element):
+        path = element
+        try:
+            path = self.root.getpath(element)
+        except ValueError:
+            raise ValueError(
+                (
+                    'Could not find a path for the expression {0}'
+                ).format(element.text))
+        return(path)
+
+    def substitute(self, element, recurse_count = 0):
+        if recurse_count >= self.max_recurse:
+            return(None)
+        if isinstance(element, lxml.etree._Element):
+            if isinstance(element, lxml.etree._Comment):
+                return(element)
+            if element.text:
+                _dictmap = self.xpath_to_dict(element.text)
+                while _dictmap:
+                    for elem in _dictmap:
+                        if _dictmap is None:
+                            continue
+                        # I still for the life of me cannot figure out why this
+                        # is not caught by the above. But it isn't.
+                        if elem not in _dictmap:
+                            continue
+                        if isinstance(_dictmap[elem], str):
+                            try:
+                                newpath = element.xpath(_dictmap[elem])
+                            except (AttributeError, IndexError, TypeError):
+                                newpath = element
+                            try:
+                                self.substitutions[elem] = self.substitute(
+                                                            newpath,
+                                                            (recurse_count + 1)
+                                                                           )[0]
+                            except (IndexError, TypeError):
+                                raise ValueError(
+                                    ('Encountered an error while trying to '
+                                     'substitute {0} at {1}').format(
+                                        elem, self.get_path(element)
+                                    ))
+                            element.text = XPathFmt().vformat(
+                                                element.text,
+                                                [],
+                                                self.substitutions)
+                            _dictmap = self.xpath_to_dict(element.text)
+        return(element)
+
+    def xpath_selector(self, selectors,
+                       selector_ids = ('id', 'name', 'uuid')):
+        # selectors is a dict of {attrib:value}
+        xpath = ''
+        for i in selectors.items():
+            if i[1] and i[0] in selector_ids:
+                xpath += '[@{0}="{1}"]'.format(*i)
+        return(xpath)
+
+    def xpath_to_dict(self, text_in):
+        d = None
+        ptrn_id = self.ptrn.findall(text_in)
+        if len(ptrn_id) >= 1:
+            for item in ptrn_id:
+                if not isinstance(d, dict):
+                    d = {}
+                try:
+                    _, xpath_expr = item.split('%', 1)
+                    if not _ == 'xpath':
+                        continue
+                    if item not in self.substitutions:
+                        self.substitutions[item] = None
+                    d[item] = xpath_expr
+                except ValueError:
+                    return(None)
+        return(d)
+
+
 class valid(object):
     def __init__(self):
         pass
@@ -423,12 +554,9 @@ class valid(object):
         pass
 
     def email(self, addr):
-        if isinstance(validators.email(emailparse(addr)[1]),
-                      validators.utils.ValidationFailure):
-            return(False)
-        else:
-            return(True)
-        return()
+        return(
+            isinstance(validators.email(emailparse(addr)[1]),
+                      validators.utils.ValidationFailure))
 
     def gpgkeyID(self, key_id):
         # Condense fingerprints into normalized 40-char "full" key IDs.
@@ -487,14 +615,21 @@ class valid(object):
             return(False)
         return(True)
 
+    def plugin_name(self, name):
+        if len(name) == 0:
+            return(False)
+        _name_re = re.compile('^[a-z][0-9a-z_]+$', re.IGNORECASE)
+        if not _name_re.search(name):
+            return(False)
+        return(True)
+
     def posix_filename(self, fname):
         # Note: 2009 spec of POSIX, "3.282 Portable Filename Character Set"
         if len(fname) == 0:
             return(False)
-        _chars = (string.ascii_letters + string.digits + '.-_')
-        for char in fname:
-            if char not in _chars:
-                return(False)
+        _char_re = re.compile('^[a-z0-9._-]+$', re.IGNORECASE)
+        if not _char_re.search(fname):
+            return(False)
         return(True)
 
     def url(self, url):

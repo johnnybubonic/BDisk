@@ -19,11 +19,11 @@ alt_profile.attrib['uuid'] = '2ed07c19-2071-4d66-8569-da40475ba716'
 
 meta_tags = {'name': 'AnotherCD',
              'uxname': 'bdisk_alt',
-             'pname': '{xpath_ref%../name/text()}',
+             'pname': '{xpath%../name/text()}',
              'desc': 'Another rescue/restore live environment.',
              'author': 'Another Dev Eloper',
-             'email': '{xpath_ref%//profile[@name="default"]/meta/dev/email/text()}',
-             'website': '{xpath_ref%//profile[@name="default"]/meta/dev/website/text()}',
+             'email': '{xpath%//profile[@name="default"]/meta/dev/email/text()}',
+             'website': '{xpath%//profile[@name="default"]/meta/dev/website/text()}',
              'ver': '0.0.1'}
 # Change the names
 meta = alt_profile.xpath('/profile/meta')[0]

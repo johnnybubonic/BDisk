@@ -30,8 +30,8 @@ def pass_prompt(user):
     _need_input_type = True
     while _need_input_type:
         _input_type = input('\nWill you be entering a password or a salted '
-                            'hash? (If using a "special" value per the manual, '
-                            'use 1 (password)):\n\n'
+                            'hash? (If using a "special" value per the '
+                            'manual, use password entry):\n\n'
                             '\t\t1: password\n'
                             '\t\t2: salted hash\n\n'
                             'Choice: ').strip()
@@ -576,7 +576,7 @@ class ConfGenerator(object):
                                                 usage = ('{0} for yes, {1} '
                                                          'for no...\n'))
         return()
-
+    
     def get_build(self):
         print('\n++ BUILD ++')
         build = lxml.etree.SubElement(self.profile, 'build')
@@ -586,6 +586,7 @@ class ConfGenerator(object):
                                 '{0} for yes, {1} for no...\n'))
         if _chk_optimizations:
             build.attrib['its_full_of_stars'] = 'yes'
+        print('\n++ BUILD || PATHS ++')
         # Thankfully, we can simplify a lot of this.
         _dir_strings = {'cache': ('the caching directory (used for temporary '
                                   'files, temporary downloads, etc.)'),
@@ -625,6 +626,28 @@ class ConfGenerator(object):
                 _paths_elems[_dir].text = path
             build.append(paths)
             has_paths = True
+        print('\n++ BUILD || ENVIRONMENT DISTRO ++')
+        has_distro = False
+        while not has_distro:
+            try:
+                distro_path = self.profile.xpath('//paths/distros/text()')[0]
+            except IndexError:
+                distro_path = 'your "distros" path'
+            distro = (input('\nWhich distro plugin/distro base are you using? '
+                            'See the manual for more information. A matching '
+                            'plugin MUST exist in {0} for a build to '
+                            'complete successfully! The default (Arch Linux, '
+                            '"archlinux") will be used if left blank.'
+                            '\nDistro base: ').format(
+                                    distro_path)).strip()
+            if distro == '':
+                distro = 'archlinux'
+            if not valid.plugin_name(distro):
+                print('That is not a valid name. See the manual for examples '
+                      'and shipped plugins. Retrying.')
+                continue
+            distro_elem = lxml.etree.SubElement(build, 'distro')
+            distro_elem.text = distro
         return()
 
 def main():

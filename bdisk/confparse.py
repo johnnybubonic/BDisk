@@ -1,48 +1,12 @@
-import _io
 import copy
 import re
 import os
+import utils
 import validators
-from urllib.parse import urlparse
 import lxml.etree
+from urllib.parse import urlparse
 
 etree = lxml.etree
-
-_profile_specifiers = ('id', 'name', 'uuid')
-
-def _detect_cfg(cfg):
-    if isinstance(cfg, str):
-        # check for path or string
-        try:
-            etree.fromstring(cfg.encode('utf-8'))
-            return(cfg.encode('utf-8'))
-        except lxml.etree.XMLSyntaxError:
-            path = os.path.abspath(os.path.expanduser(cfg))
-            try:
-                with open(path, 'rb') as f:
-                    cfg = f.read()
-            except FileNotFoundError:
-                raise ValueError('Could not open {0}'.format(path))
-    elif isinstance(cfg, _io.TextIOWrapper):
-        _cfg = cfg.read().encode('utf-8')
-        cfg.close()
-        cfg = _cfg
-    elif isinstance(self.cfg,  _io.BufferedReader):
-        _cfg = cfg.read()
-        cfg.close()
-        cfg = _cfg
-    elif isinstance(cfg, bytes):
-        return(cfg)
-    else:
-        raise TypeError('Could not determine the object type.')
-    return(cfg)
-
-def _profile_xpath_gen(selector):
-    xpath = ''
-    for i in selector.items():
-        if i[1] and i[0] in _profile_specifiers:
-            xpath += '[@{0}="{1}"]'.format(*i)
-    return(xpath)
 
 class Conf(object):
     def __init__(self, cfg, profile = None):
@@ -80,7 +44,7 @@ class Conf(object):
         # Mad props to https://stackoverflow.com/a/12728199/733214
         self.xpath_re = re.compile('(?<=(?<!\{)\{)[^{}]*(?=\}(?!\}))')
         self.substitutions = {}
-        self.xpaths = ['xpath_ref']
+        self.xpaths = ['xpath']
         try:
             self.xml = etree.fromstring(self.raw)
         except lxml.etree.XMLSyntaxError:

@@ -27,3 +27,5 @@ screenlog*
 __pycache__/
 *.pyc
 *test*.py
+*test*.sh
+*test*.exp
