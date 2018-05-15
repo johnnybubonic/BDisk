@@ -37,9 +37,7 @@ class XPathFmt(string.Formatter):
     def get_field(self, field_name, args, kwargs):
         vals = self.get_value(field_name, args, kwargs), field_name
         if not vals[0]:
-            print(vals)
             vals = ('{{{0}}}'.format(vals[1]), vals[1])
-            print(vals)
         return(vals)
 
 class detect(object):
@@ -426,9 +424,11 @@ class xml_supplicant(object):
     def __init__(self, cfg, profile = None, max_recurse = 5):
         raw = self._detect_cfg(cfg)
         xmlroot = lxml.etree.fromstring(raw)
-        self.root = lxml.etree.ElementTree(xmlroot)
+        self.btags = {'xpath': {},
+                      'regex': {}}
         self.max_recurse = max_recurse
         self.ptrn = re.compile('(?<=(?<!\{)\{)[^{}]*(?=\}(?!\}))')
+        self.root = lxml.etree.ElementTree(xmlroot)
         self.substitutions = {}
         if not profile:
             self.profile = xmlroot.xpath('/bdisk/profile[1]')[0]
@@ -462,7 +462,6 @@ class xml_supplicant(object):
         else:
             raise TypeError('Could not determine the object type.')
         return(cfg)
-    
 
     def get_path(self, element):
         path = element
@@ -477,7 +476,7 @@ class xml_supplicant(object):
 
     def substitute(self, element, recurse_count = 0):
         if recurse_count >= self.max_recurse:
-            return(None)
+            return(element)
         if isinstance(element, lxml.etree._Element):
             if isinstance(element, lxml.etree._Comment):
                 return(element)
@@ -485,16 +484,23 @@ class xml_supplicant(object):
                 _dictmap = self.xpath_to_dict(element.text)
                 while _dictmap:
                     for elem in _dictmap:
-                        if _dictmap is None:
-                            continue
-                        # I still for the life of me cannot figure out why this
-                        # is not caught by the above. But it isn't.
-                        if elem not in _dictmap:
-                            continue
+#                        if _dictmap is None:
+#                            continue
+#                        # I still for the life of me cannot figure out why this
+#                        # is not caught by the above. But it isn't.
+#                        if elem not in _dictmap:
+#                            continue
                         if isinstance(_dictmap[elem], str):
                             try:
-                                newpath = element.xpath(_dictmap[elem])
+                                print('bleh')
+                                print(_dictmap[elem])
+                                try:
+                                    print(self.get_path(element))
+                                except:
+                                    pass
+                                newpath = element.xpath(_dictmap[elem])[0]
                             except (AttributeError, IndexError, TypeError):
+                                print('blugh')
                                 newpath = element
                             try:
                                 self.substitutions[elem] = self.substitute(
@@ -532,6 +538,7 @@ class xml_supplicant(object):
                     d = {}
                 try:
                     _, xpath_expr = item.split('%', 1)
+                    print(_)
                     if not _ == 'xpath':
                         continue
                     if item not in self.substitutions:
