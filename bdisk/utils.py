@@ -34,7 +34,11 @@ crypt_map = {'sha512': crypt.METHOD_SHA512,
              'des': crypt.METHOD_CRYPT}
 
 class XPathFmt(string.Formatter):
+    def __init__(self):
+        print('foo')
+
     def get_field(self, field_name, args, kwargs):
+        # custom arg to specify if it's a regex pattern or not
         vals = self.get_value(field_name, args, kwargs), field_name
         if not vals[0]:
             vals = ('{{{0}}}'.format(vals[1]), vals[1])
@@ -426,10 +430,14 @@ class xml_supplicant(object):
         xmlroot = lxml.etree.fromstring(raw)
         self.btags = {'xpath': {},
                       'regex': {}}
+        self.fmt = XPathFmt()
         self.max_recurse = max_recurse
-        self.ptrn = re.compile('(?<=(?<!\{)\{)[^{}]*(?=\}(?!\}))')
+        #self.ptrn = re.compile('(?<=(?<!\{)\{)[^{}]*(?=\}(?!\}))')
+        # I don't have permission to credit them, but to the person who helped
+        # me with this regex - thank you. You know who you are.
+        self.ptrn = re.compile(('(?<=(?<!\{)\{)(?:[^{}]+'
+                                '|{{[^{}]*}})*(?=\}(?!\}))'))
         self.root = lxml.etree.ElementTree(xmlroot)
-        self.substitutions = {}
         if not profile:
             self.profile = xmlroot.xpath('/bdisk/profile[1]')[0]
         else:
@@ -480,43 +488,41 @@ class xml_supplicant(object):
         if isinstance(element, lxml.etree._Element):
             if isinstance(element, lxml.etree._Comment):
                 return(element)
+#            if len(element) == 0:
+#                print(element.text)
             if element.text:
                 _dictmap = self.xpath_to_dict(element.text)
                 while _dictmap:
                     for elem in _dictmap:
-#                        if _dictmap is None:
-#                            continue
-#                        # I still for the life of me cannot figure out why this
-#                        # is not caught by the above. But it isn't.
-#                        if elem not in _dictmap:
-#                            continue
                         if isinstance(_dictmap[elem], str):
                             try:
-                                print('bleh')
-                                print(_dictmap[elem])
-                                try:
-                                    print(self.get_path(element))
-                                except:
-                                    pass
-                                newpath = element.xpath(_dictmap[elem])[0]
+                                newpath = element.xpath(_dictmap[elem])
                             except (AttributeError, IndexError, TypeError):
-                                print('blugh')
                                 newpath = element
+                            except lxml.etree.XPathEvalError:
+                                return(element)
                             try:
-                                self.substitutions[elem] = self.substitute(
-                                                            newpath,
-                                                            (recurse_count + 1)
-                                                                           )[0]
+                                self.btags['xpath'][elem] = self.substitute(
+                                            newpath, (recurse_count + 1))[0]
                             except (IndexError, TypeError):
                                 raise ValueError(
                                     ('Encountered an error while trying to '
                                      'substitute {0} at {1}').format(
                                         elem, self.get_path(element)
                                     ))
-                            element.text = XPathFmt().vformat(
+                            print(element.text)
+                            element.text = self.fmt.format(
                                                 element.text,
-                                                [],
-                                                self.substitutions)
+                                                {**self.btags['xpath'],
+                                                 **self.btags['regex']})
+#                            element.text = self.fmt.vformat(
+#                                                element.text,
+#                                                [],
+#                                                {**self.btags['xpath'],
+#                                                 **self.btags['regex']})
+#                            element.text = (element.text).format(
+#                                                    {**self.btags['xpath'],
+#                                                     **self.btags['regex']})
                             _dictmap = self.xpath_to_dict(element.text)
         return(element)
 
@@ -538,11 +544,15 @@ class xml_supplicant(object):
                     d = {}
                 try:
                     _, xpath_expr = item.split('%', 1)
-                    print(_)
-                    if not _ == 'xpath':
+                    if _ not in self.btags:
                         continue
-                    if item not in self.substitutions:
-                        self.substitutions[item] = None
+                    if item not in self.btags[_]:
+                        self.btags[_][item] = None
+                        if _ == 'regex':
+                            _re = re.sub('^regex%', '', item)
+                            _re = re.sub('{{(.*)}}', '\g<1>', _re)
+                            # We use a native python object
+                            self.btags['regex'][item] = re.compile(_re)
                     d[item] = xpath_expr
                 except ValueError:
                     return(None)

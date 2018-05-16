@@ -48,7 +48,8 @@
             <source arch="x86_64">
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
-                <tarball flags="regex,latest">{xpath%../mirror/text()}{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz}</tarball>
+                <tarball flags="regex,latest">{xpath%../mirror/text()}{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{{4}}\.[0-9]{{2}}\.[0-9]{{2}}-x86_64\.tar\.gz}</tarball>
+                <!-- <tarball flags="regex,latest">{xpath%../mirror/text()}{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz}</tarball> -->
                 <checksum hash_algo="sha1" flags="none" >{xpath%../mirror/text()}{xpath%../webroot/text()}/sha1sums.txt</checksum>
                 <sig keys="7F2D434B9741E8AC"
                      keyserver="hkp://pool.sks-keyservers.net"
@@ -57,7 +58,8 @@
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <webroot>/iso/latest</webroot>
-                <tarball flag="regex,latest">{xpath%../mirror/text()}/{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz}</tarball>
+                <tarball flag="regex,latest">{xpath%../mirror/text()}/{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{{4}}\.[0-9]{{2}}\.[0-9]{{2}}-i686\.tar\.gz}</tarball>
+                <!-- <tarball flag="regex,latest">{xpath%../mirror/text()}/{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz}</tarball> -->
                 <checksum hash_algo="sha512" explicit="yes">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
                 <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
                      keyserver="hkp://pool.sks-keyservers.net">{xpath%../tarball/text()}.sig</sig>
