@@ -1,9 +1,9 @@
 # We don't want local build settings in case someone's using
 # the git dir as a place to store their build.ini
 confs/*
-*.bak
 
-# We don't need these in git. They should be generated dynamically.
+# We don't need these in git. They should be generated dynamically, or they're used in testing/development or local
+# to a workstation.
 .latest.*.tar
 /buildnum
 screenlog*
@@ -12,6 +12,7 @@ screenlog*
 *.lck
 *~
 .~lock.*
+.idea/
 
 # You should really generate local copies of these, as they're pretty private.
 **/etc/dropbear
@@ -29,3 +30,4 @@ __pycache__/
 *test*.py
 *test*.sh
 *test*.exp
+*.bak
