@@ -3,8 +3,10 @@
 import copy
 from lxml import etree
 
+parser = etree.XMLParser(remove_blank_text = True)
+
 with open('single_profile.xml', 'rb') as f:
-    xml = etree.fromstring(f.read())
+    xml = etree.fromstring(f.read(), parser)
 
 single_profile = xml.xpath('/bdisk/profile[1]')[0]
 alt_profile = copy.deepcopy(single_profile)
@@ -45,6 +47,9 @@ for e in accounts.iter():
         e.attrib['sudo'] = 'no'
 # Delete the second user
 accounts.remove(accounts[2])
+author = alt_profile.xpath('/profile/meta/dev/author')[0]
+author.addnext(etree.Comment(
+    ' You can reference other profiles within the same configuration. '))
 xml.append(alt_profile)
 
 with open('multi_profile.xml', 'wb') as f:

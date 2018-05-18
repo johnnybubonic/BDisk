@@ -23,13 +23,25 @@
             <!-- This is the VERY FIRST value parsed, and is required. It controls how many levels of {xpath%...} to recurse. -->
             <!-- If the maximum level is reached, the substitution will evaluate as blank. -->
             <max_recurse>5</max_recurse>
+            <!-- You need to store regex patterns here and reference them in a special way later, and it's only valid for certain
+                 items. See the manual for more information. -->
+            <regexes>
+                <pattern id="tarball_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz$</pattern>
+                <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$</pattern>
+                <pattern id="tarball_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz$</pattern>
+                <pattern id="sig_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz\.sig$</pattern>
+            </regexes>
+            <!-- You can also define variables. NO xpath or regex btags, and they can't be used within other btags! -->
+            <variables>
+                <variable id="bdisk_root">/var/tmp/BDisk</variable>
+            </variables>
         </meta>
         <accounts>
             <!-- Salted/hashed password is "test" -->
             <rootpass hashed="yes">$6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1</rootpass>
             <user sudo="yes">
                 <username>{xpath%//meta/names/uxname/text()}</username>
-                <!-- You can also use substitution from different profiles: -->
+                <!-- You can also use substitution from different profiles in this same configuration: -->
                 <!-- <username>{xpath%//profile[@name='another_profile']/meta/names/uxname"}</username> -->
                 <comment>{xpath%//meta/dev/author/text()}</comment>
                 <password hashed="no"
@@ -47,48 +59,47 @@
         <sources>
             <source arch="x86_64">
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
-                <webroot>/iso/latest</webroot>
-                <tarball flags="regex,latest">{xpath%../mirror/text()}{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{{4}}\.[0-9]{{2}}\.[0-9]{{2}}-x86_64\.tar\.gz}</tarball>
-                <!-- <tarball flags="regex,latest">{xpath%../mirror/text()}{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz}</tarball> -->
-                <checksum hash_algo="sha1" flags="none" >{xpath%../mirror/text()}{xpath%../webroot/text()}/sha1sums.txt</checksum>
-                <sig keys="7F2D434B9741E8AC"
+                <rootpath>/iso/latest</rootpath>
+                <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
+                <checksum hash_algo="sha1" flags="none">sha1sums.txt</checksum>
+                <sig keys="7F2D434B9741E8AC"    
                      keyserver="hkp://pool.sks-keyservers.net"
-                     flags="latest">{xpath%../tarball/text()}.sig</sig>
+                     flags="regex,latest">{regex%sig_x86_64}</sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
-                <webroot>/iso/latest</webroot>
-                <tarball flag="regex,latest">{xpath%../mirror/text()}/{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{{4}}\.[0-9]{{2}}\.[0-9]{{2}}-i686\.tar\.gz}</tarball>
-                <!-- <tarball flag="regex,latest">{xpath%../mirror/text()}/{xpath%../webroot/text()}/{regex%archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz}</tarball> -->
+                <rootpath>/iso/latest</rootpath>
+                <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
                 <checksum hash_algo="sha512" explicit="yes">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
                 <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
-                     keyserver="hkp://pool.sks-keyservers.net">{xpath%../tarball/text()}.sig</sig>
+                     keyserver="hkp://pool.sks-keyservers.net"
+                     flags="regex,latest">{regex%sig_i686}</sig>
             </source>
         </sources>
         <build its_full_of_stars="yes">
             <paths>
-                <cache>/var/tmp/{xpath%//meta/names/uxname/text()}</cache>
-                <chroot>/var/tmp/chroots/{xpath%//meta/names/uxname/text()}</chroot>
-                <overlay>{xpath%../cache/text()}/overlay</overlay>
-                <templates>~/{xpath%//meta/names/uxname/text()}/templates</templates>
+                <cache>{variable%bdisk_root}/cache</cache>
+                <chroot>{variable%bdisk_root}/chroots</chroot>
+                <overlay>{variable%bdisk_root}/overlay</overlay>
+                <templates>{variable%bdisk_root}/templates</templates>
                 <mount>/mnt/{xpath%//meta/names/uxname/text()}</mount>
-                <distros>~/{xpath%//meta/names/uxname/text()}/distros</distros>
-                <dest>~/{xpath%//meta/names/uxname/text()}/results</dest>
-                <iso>{xpath%../dest/text()}/iso</iso>
-                <http>{xpath%../dest/text()}/http</http>
-                <tftp>{xpath%../dest/text()}/tftp</tftp>
-                <pki>{xpath%../dest/text()}/pki</pki>
+                <distros>{variable%bdisk_root}/distros</distros>
+                <dest>{variable%bdisk_root}/results</dest>
+                <iso>{variable%bdisk_root}/iso_overlay</iso>
+                <http>{variable%bdisk_root}/http</http>
+                <tftp>{variable%bdisk_root}/tftp</tftp>
+                <pki>{variable%bdisk_root}/pki</pki>
             </paths>
             <basedistro>archlinux</basedistro>
         </build>
-        <iso sign="yes" multiarch="yes" />
+        <iso sign="yes" multi_arch="yes" />
         <ipxe sign="yes" iso="yes">
             <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
         </ipxe>
         <pki overwrite="no">
             <!-- http://ipxe.org/crypto -->
             <ca>
-                <cert>{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
+                <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
                 <!-- If csr is self-enclosed (<csr />), we'll just generate and use a CSR in-memory.
                      Assuming we need to generate a certificate, anyways.
                      If you want to write it out to disk (for debugging, etc.) OR use one already generated,
@@ -96,7 +107,18 @@
                      e.g.:
                         <csr>{xpath%build/paths/ssl/text()}/ca.csr</csr> -->
                 <csr />
-                <key des="no" passphrase="none">{xpath%../../../build/paths/pki/text()}/ca.key</key>
+                <!-- If you use an index file (or want to) to serialize client certificates, specify it here. -->
+                <!-- It must conform to CADB spec (https://pki-tutorial.readthedocs.io/en/latest/cadb.html). -->
+                <!-- You should probably also specify a serial file if so. -->
+                <!-- Both of these are entirely optional if you aren't using an existing PKI. -->
+                <index>{xpath%../../../build/paths/pki/text()}/index.txt</index>
+                <serial>{xpath%../../../build/paths/pki/text()}/serial</serial>
+                <!-- If you specify a cipher, the key will be encrypted to the passphrase provided by the passphrase attribute.
+                     If the key is encrypted (either a pre-existing or a created one) but passphrase is not provided, you will
+                     be (securely) prompted for the passphrase to unlock it/add a passphrase to it. -->
+                <key cipher="none"
+                     passphrase="none"
+                     keysize="4096">{xpath%../../../build/paths/pki/text()}/ca.key</key>
                 <subject>
                     <commonName>domain.tld</commonName>
                     <countryName>XX</countryName>
@@ -108,9 +130,11 @@
                 </subject>
             </ca>
             <client>
-                <cert>{xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt</cert>
+                <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt</cert>
                 <csr />
-                <key des="no" passphrase="none">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
+                <key cipher="none"
+                     passphrase="none"
+                     keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
                 <subject>
                     <commonName>some client name</commonName>
                     <countryName>XX</countryName>

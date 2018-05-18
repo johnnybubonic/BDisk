@@ -3,11 +3,11 @@ import crypt
 import GPG
 import hashid
 import hashlib
+import iso3166
 import os
 import pprint
 import re
 import string
-import textwrap
 import uuid
 import validators
 import zlib
@@ -17,6 +17,7 @@ from dns import resolver
 from email.utils import parseaddr as emailparse
 from passlib.context import CryptContext as cryptctx
 from urllib.parse import urlparse
+from urllib.request import urlopen
 
 # Supported by all versions of GNU/Linux shadow
 passlib_schemes = ['des_crypt', 'md5_crypt', 'sha256_crypt', 'sha512_crypt']
@@ -26,19 +27,21 @@ digest_schemes = list(hashlib.algorithms_available)
 # Provided by zlib
 digest_schemes.append('adler32')
 digest_schemes.append('crc32')
-#clean_digest_schemes = sorted(list(set(digest_schemes)))
 
 crypt_map = {'sha512': crypt.METHOD_SHA512,
              'sha256': crypt.METHOD_SHA256,
              'md5': crypt.METHOD_MD5,
              'des': crypt.METHOD_CRYPT}
 
-class XPathFmt(string.Formatter):
-    def __init__(self):
-        print('foo')
+# These are *key* ciphers, for encrypting exported keys.
+openssl_ciphers = ['aes128', 'aes192', 'aes256', 'bf', 'blowfish',
+                   'camellia128', 'camellia192', 'camellia256', 'cast', 'des',
+                   'des3', 'idea', 'rc2', 'seed']
+openssl_digests = ['blake2b512', 'blake2s256', 'gost', 'md4', 'md5', 'mdc2',
+                   'rmd160', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512']
 
+class XPathFmt(string.Formatter):
     def get_field(self, field_name, args, kwargs):
-        # custom arg to specify if it's a regex pattern or not
         vals = self.get_value(field_name, args, kwargs), field_name
         if not vals[0]:
             vals = ('{{{0}}}'.format(vals[1]), vals[1])
@@ -51,7 +54,7 @@ class detect(object):
     def any_hash(self, hash_str):
         h = hashid.HashID()
         hashes = []
-        for i in h.IdentifyHash(hash_str):
+        for i in h.identifyHash(hash_str):
             if i.extended:
                 continue
             x = i.name
@@ -74,7 +77,7 @@ class detect(object):
         return()
 
     def gpgkeyID_from_url(self, url):
-        with urlparse(url) as u:
+        with urlopen(url) as u:
             data = u.read()
         g = GPG.GPGHandler()
         key_ids = g.get_sigs(data)
@@ -85,7 +88,7 @@ class detect(object):
         def _get_key():
             key = None
             try:
-                key = g.get_key(keyID, secret = secret)
+                key = g.ctx.get_key(keyID, secret = secret)
             except GPG.gpg.errors.KeyNotFound:
                 return(None)
             except Exception:
@@ -93,16 +96,16 @@ class detect(object):
             return(key)
         uids = {}
         g = GPG.GPGHandler()
-        _orig_kl_mode = g.get_keylist_mode()
+        _orig_kl_mode = g.ctx.get_keylist_mode()
         if _orig_kl_mode != GPG.gpg.constants.KEYLIST_MODE_EXTERN:
             _key = _get_key()
             if not _key:
-                g.set_keylist_mode(GPG.gpg.constants.KEYLIST_MODE_EXTERN)
+                g.ctx.set_keylist_mode(GPG.gpg.constants.KEYLIST_MODE_EXTERN)
                 _key = _get_key()
         else:
             _key = _get_key()
         if not _key:
-            g.set_keylist_mode(_orig_kl_mode)
+            g.ctx.set_keylist_mode(_orig_kl_mode)
             del(g)
             return(None)
         else:
@@ -119,7 +122,7 @@ class detect(object):
                 _u['Invalid'] = (True if _uid.invalid else False)
                 _u['Revoked'] = (True if _uid.revoked else False)
                 uids['User IDs'].append(_u)
-        g.set_keylist_mode(_orig_kl_mode)
+        g.ctx.set_keylist_mode(_orig_kl_mode)
         del(g)
         return(uids)
 
@@ -163,7 +166,7 @@ class prompts(object):
 
     def confirm_or_no(self, prompt = '', invert = False,
                       usage = '{0} to confirm, otherwise {1}...\n'):
-        # A simplified version of multiline_input, really.
+        # A simplified version of multiline_input(), really.
         # By default, Enter confirms (and returns True) and CTRL-d returns
         # False unless - you guessed it - invert is True.
         # usage is a string appended to prompt that explains which keys to use.
@@ -224,11 +227,135 @@ class prompts(object):
                 print(end_str)
         return('\n'.join(_lines))
 
-    def path(self, path_desc):
+    def path(self, path_desc, empty_passthru = False):
         path = input(('\nWhere would you like to put {0}?\n'
                       'Path: ').format(path_desc))
+        if empty_passthru:
+            if path.strip() == '':
+                return('')
         path = transform().full_path(path)
         return(path)
+    
+    def ssl_object(self, pki_role, cn_url):
+        ssl_vals = {'paths': {},
+                    'attribs': {},
+                    'subject': {}}
+        # pki_role should be 'ca' or 'client'
+        if pki_role not in ('ca', 'client'):
+            raise ValueError('pki_role must be either "ca" or "client"')
+        _attribs = {'cert': {'hash_algo': {'text': ('What hashing algorithm '
+                                'do you want to use? (Default is sha512.)'),
+                                           'prompt': 'Hashing algorithm: ',
+                                           'options': openssl_digests,
+                                           'default': 'sha512'}},
+                    'key': {'cipher': {'text': ('What encryption algorithm/'
+                                'cipher do you want to use? (Default is '
+                                                'aes256.)'),
+                                      'prompt': 'Cipher: ',
+                                      'options': openssl_ciphers,
+                                       'default': 'aes256'},
+                            # This can actually theoretically be anywhere from
+                            # 512 to... who knows how high. I couldn't find the
+                            # upper bound. So we just set it to sensible
+                            # defaults. If they want something higher, they can
+                            # edit the XML when they're done.
+                            'keysize': {'text': ('What keysize/length (in '
+                                'bits) do you want the key to be? (Default is '
+                                '4096; much higher values are possible but '
+                                'are untested and thus not supported by this '
+                                'tool; feel free to edit the generated '
+                                'configuration by hand.)'),
+                                        'prompt': 'Keysize: ',
+                                        'options': ['1024', '2048', '4096'],
+                                        'default': '4096'}}}
+        _paths = {'cert': '(or read from) the certificate',
+                  'key': '(or read from) the key',
+                  'csr': ('(or read from) the certificate signing request (if '
+                          'blank, we won\'t write to disk - the operation '
+                          'will occur entirely in memory assuming we need to '
+                          'generate/sign)')}
+        if pki_role == 'ca':
+            _paths['index'] = ('(or read from) the CA DB index file (if left '
+                              'blank, one will not be used)')
+            _paths['serial'] = ('(or read from) the CA DB serial file (if '
+                                'left blank, one will not be used)')
+        for a in _attribs:
+            ssl_vals['attribs'][a] = {}
+            for x in _attribs[a]:
+                ssl_vals['attribs'][a][x] = None
+        for p in _paths:
+            if p == 'csr':
+                _allow_empty = True
+            else:
+                _allow_empty = False
+            ssl_vals['paths'][p] = self.path(_paths[p],
+                                             empty_passthru = _allow_empty)
+            print()
+            if ssl_vals['paths'][p] == '':
+                ssl_vals['paths'][p] = None
+            if p in _attribs:
+                for x in _attribs[p]:
+                    while not ssl_vals['attribs'][p][x]:
+                        ssl_vals['attribs'][p][x] = (input(
+                            ('\n{0}\n\n\t{1}\n\n{2}').format(
+                                    _attribs[p][x]['text'],
+                                    '\n\t'.join(_attribs[p][x]['options']),
+                                    _attribs[p][x]['prompt'])
+                                )).strip().lower()
+                        if ssl_vals['attribs'][p][x] not in \
+                                                    _attribs[p][x]['options']:
+                            print(('\nInvalid selection; setting default '
+                                   '({0}).').format(_attribs[p][x]['default']))
+                            ssl_vals['attribs'][p][x] = \
+                                                    _attribs[p][x]['default']
+        _subject = {'countryName': {'text': ('the 2-letter country '
+                                             'abbreviation (must conform to '
+                                             'ISO3166 ALPHA-2)?\nCountry '
+                                             'code: '),
+                                    'check': 'func',
+                                    'func': valid().country_abbrev},
+                    'localityName': {'text': ('the city/town/borough/locality '
+                                              'name?\nLocality: '),
+                                     'check': None},
+                    'stateOrProvinceName': {'text': ('the state/region '
+                                                     'name (full string)?'
+                                                     '\nRegion: '),
+                                            'check': None},
+                    'organization': {'text': ('your organization\'s name?'
+                                              '\nOrganization: '),
+                                     'check': None},
+                    'organizationalUnitName': {'text': ('your department/role/'
+                                                        'team/department name?'
+                                                        '\nOrganizational '
+                                                        'Unit: '),
+                                               'check': None},
+                    'emailAddress': {'text': ('the email address to be '
+                                              'associated with this '
+                                              'certificate/PKI object?\n'
+                                              'Email: '),
+                                     'check': 'func',
+                                     'func': valid().email}}
+        for s in _subject:
+            ssl_vals['subject'][s] = None
+        for s in _subject:
+            while not ssl_vals['subject'][s]:
+                _input = (input(
+                            ('\nWhat is {0}').format(_subject[s]['text'])
+                        )).strip()
+                _chk = _subject[s]['check']
+                if _chk:
+                    if _chk == 'func':
+                        _chk = _subject[s]['func'](_input)
+                        if not _chk:
+                            print('Invalid value; retrying.')
+                            continue
+                print()
+                ssl_vals['subject'][s] = _input
+        _url = transform().url_to_dict(cn_url, no_None = True)
+        ssl_vals['subject']['commonName'] = _url['host']
+        if pki_role == 'client':
+            ssl_vals['subject']['commonName'] += ' (Client)'
+        return(ssl_vals)
 
 class transform(object):
     def __init__(self):
@@ -280,6 +407,7 @@ class transform(object):
         text_out = re.sub('[^\w]', '', text_out)
         return(text_out)
 
+    # noinspection PyDictCreation
     def url_to_dict(self, orig_url, no_None = False):
         def _getuserinfo(uinfo_str):
             if len(uinfo_str) == 0:
@@ -332,25 +460,25 @@ class transform(object):
                     return(None)
                 else:
                     return('')
-            params = {}
+            _params = {}
             for i in in_str.split(split_char):
                 p = [x.strip() for x in i.split('=')]
-                params[p[0]] = p[1]
-            if not params:
+                _params[p[0]] = p[1]
+            if not _params:
                 if not no_None:
                     return(None)
                 else:
                     return('')
-            if not params and not no_None:
+            if not _params and not no_None:
                 return(None)
-            return(params)
+            return(_params)
         _dflt_ports = _getdfltport()
         scheme = None
-        _scheme_re = re.compile('^([\w+\.-]+)(://.*)', re.IGNORECASE)
+        _scheme_re = re.compile('^([\w+.-]+)(://.*)', re.IGNORECASE)
         if not _scheme_re.search(orig_url):
             # They probably didn't prefix a URI signifier (RFC3986 § 3.1).
             # We'll add one for them.
-            url = 'http://' + url
+            url = 'http://' + orig_url
             scheme = 'http'
         else:
             # urlparse's .scheme? Total trash.
@@ -407,7 +535,7 @@ class transform(object):
                'url': orig_url}
         url['full_url'] = '{0}://'.format(scheme)
         if userinfo not in (None, ''):
-            url['full_url'] += '{user}:{password}@'.format(userinfo)
+            url['full_url'] += '{user}:{password}@'.format(**userinfo)
         url['full_url'] += host
         if port not in (None, ''):
             url['full_url'] += ':{0}'.format(port)
@@ -424,144 +552,14 @@ class transform(object):
             url['full_url'] += '#{0}'.format('#'.join(_f))
         return(url)
 
-class xml_supplicant(object):
-    def __init__(self, cfg, profile = None, max_recurse = 5):
-        raw = self._detect_cfg(cfg)
-        xmlroot = lxml.etree.fromstring(raw)
-        self.btags = {'xpath': {},
-                      'regex': {}}
-        self.fmt = XPathFmt()
-        self.max_recurse = max_recurse
-        #self.ptrn = re.compile('(?<=(?<!\{)\{)[^{}]*(?=\}(?!\}))')
-        # I don't have permission to credit them, but to the person who helped
-        # me with this regex - thank you. You know who you are.
-        self.ptrn = re.compile(('(?<=(?<!\{)\{)(?:[^{}]+'
-                                '|{{[^{}]*}})*(?=\}(?!\}))'))
-        self.root = lxml.etree.ElementTree(xmlroot)
-        if not profile:
-            self.profile = xmlroot.xpath('/bdisk/profile[1]')[0]
-        else:
-            self.profile = xmlroot.xpath(profile)[0]
-        
-    def _detect_cfg(self, cfg):
-        if isinstance(cfg, str):
-            try:
-                lxml.etree.fromstring(cfg.encode('utf-8'))
-                return(cfg.encode('utf-8'))
-            except lxml.etree.XMLSyntaxError:
-                path = os.path.abspath(os.path.expanduser(cfg))
-                try:
-                    with open(path, 'rb') as f:
-                        cfg = f.read()
-                except FileNotFoundError:
-                    raise ValueError('Could not open {0}'.format(path))
-        elif isinstance(cfg, _io.TextIOWrapper):
-            _cfg = cfg.read().encode('utf-8')
-            cfg.close()
-            cfg = _cfg
-        elif isinstance(cfg,  _io.BufferedReader):
-            _cfg = cfg.read()
-            cfg.close()
-            cfg = _cfg
-        elif isinstance(cfg, lxml.etree._Element):
-            return(lxml.etree.tostring(cfg))
-        elif isinstance(cfg, bytes):
-            return(cfg)
-        else:
-            raise TypeError('Could not determine the object type.')
-        return(cfg)
-
-    def get_path(self, element):
-        path = element
-        try:
-            path = self.root.getpath(element)
-        except ValueError:
-            raise ValueError(
-                (
-                    'Could not find a path for the expression {0}'
-                ).format(element.text))
-        return(path)
-
-    def substitute(self, element, recurse_count = 0):
-        if recurse_count >= self.max_recurse:
-            return(element)
-        if isinstance(element, lxml.etree._Element):
-            if isinstance(element, lxml.etree._Comment):
-                return(element)
-#            if len(element) == 0:
-#                print(element.text)
-            if element.text:
-                _dictmap = self.xpath_to_dict(element.text)
-                while _dictmap:
-                    for elem in _dictmap:
-                        if isinstance(_dictmap[elem], str):
-                            try:
-                                newpath = element.xpath(_dictmap[elem])
-                            except (AttributeError, IndexError, TypeError):
-                                newpath = element
-                            except lxml.etree.XPathEvalError:
-                                return(element)
-                            try:
-                                self.btags['xpath'][elem] = self.substitute(
-                                            newpath, (recurse_count + 1))[0]
-                            except (IndexError, TypeError):
-                                raise ValueError(
-                                    ('Encountered an error while trying to '
-                                     'substitute {0} at {1}').format(
-                                        elem, self.get_path(element)
-                                    ))
-                            print(element.text)
-                            element.text = self.fmt.format(
-                                                element.text,
-                                                {**self.btags['xpath'],
-                                                 **self.btags['regex']})
-#                            element.text = self.fmt.vformat(
-#                                                element.text,
-#                                                [],
-#                                                {**self.btags['xpath'],
-#                                                 **self.btags['regex']})
-#                            element.text = (element.text).format(
-#                                                    {**self.btags['xpath'],
-#                                                     **self.btags['regex']})
-                            _dictmap = self.xpath_to_dict(element.text)
-        return(element)
-
-    def xpath_selector(self, selectors,
-                       selector_ids = ('id', 'name', 'uuid')):
-        # selectors is a dict of {attrib:value}
-        xpath = ''
-        for i in selectors.items():
-            if i[1] and i[0] in selector_ids:
-                xpath += '[@{0}="{1}"]'.format(*i)
-        return(xpath)
-
-    def xpath_to_dict(self, text_in):
-        d = None
-        ptrn_id = self.ptrn.findall(text_in)
-        if len(ptrn_id) >= 1:
-            for item in ptrn_id:
-                if not isinstance(d, dict):
-                    d = {}
-                try:
-                    _, xpath_expr = item.split('%', 1)
-                    if _ not in self.btags:
-                        continue
-                    if item not in self.btags[_]:
-                        self.btags[_][item] = None
-                        if _ == 'regex':
-                            _re = re.sub('^regex%', '', item)
-                            _re = re.sub('{{(.*)}}', '\g<1>', _re)
-                            # We use a native python object
-                            self.btags['regex'][item] = re.compile(_re)
-                    d[item] = xpath_expr
-                except ValueError:
-                    return(None)
-        return(d)
-
-
 class valid(object):
     def __init__(self):
         pass
+
+    def country_abbrev(self, country_code):
+        if country_code not in iso3166.countries_by_alpha2:
+            return(False)
+        return(True)
 
     def dns(self, addr):
         pass
@@ -572,7 +570,7 @@ class valid(object):
 
     def email(self, addr):
         return(
-            isinstance(validators.email(emailparse(addr)[1]),
+            not isinstance(validators.email(emailparse(addr)[1]),
                       validators.utils.ValidationFailure))
 
     def gpgkeyID(self, key_id):
@@ -626,9 +624,10 @@ class valid(object):
 
     def salt_hash(self, salthash):
         _idents = ''.join([i.ident for i in crypt_map if i.ident])
-        _regex = re.compile('^(\$[{0}]\$)?[./0-9A-Za-z]{0,16}\$?'.format(
+        # noinspection PyStringFormat
+        _regex = re.compile('^(\$[{0}]\$)?[./0-9A-Za-z]{{0,16}}\$?'.format(
                                                                     _idents))
-        if not regex.search(salthash):
+        if not _regex.search(salthash):
             return(False)
         return(True)
 
@@ -650,7 +649,7 @@ class valid(object):
         return(True)
 
     def url(self, url):
-        if not re.search('^[\w+\.-]+://', url):
+        if not re.search('^[\w+.-]+://', url):
             # They probably didn't prefix a URI signifier (RFC3986 § 3.1).
             # We'll add one for them.
             url = 'http://' + url
@@ -670,9 +669,152 @@ class valid(object):
     def uuid(self, uuid_str):
         is_uuid = True
         try:
-            u = uuid.UUID(uuid_in)
+            u = uuid.UUID(uuid_str)
         except ValueError:
             return(False)
-        if not uuid_in == str(u):
+        if not uuid_str == str(u):
             return(False)
         return(is_uuid)
+
+class xml_supplicant(object):
+    def __init__(self, cfg, profile = None, max_recurse = 5):
+        raw = self._detect_cfg(cfg)
+        xmlroot = lxml.etree.fromstring(raw)
+        self.btags = {'xpath': {},
+                      'regex': {},
+                      'variable': {}}
+        self.fmt = XPathFmt()
+        self.max_recurse = max_recurse
+        # I don't have permission to credit them, but to the person who helped
+        # me with this regex - thank you. You know who you are.
+        self.ptrn = re.compile(('(?<=(?<!\{)\{)(?:[^{}]+'
+                                '|{{[^{}]*}})*(?=\}(?!\}))'))
+        self.root = lxml.etree.ElementTree(xmlroot)
+        if not profile:
+            self.profile = xmlroot.xpath('/bdisk/profile[1]')[0]
+        else:
+            self.profile = xmlroot.xpath(profile)[0]
+        self._parse_regexes()
+        self._parse_variables()
+        
+    def _detect_cfg(self, cfg):
+        if isinstance(cfg, str):
+            try:
+                lxml.etree.fromstring(cfg.encode('utf-8'))
+                return(cfg.encode('utf-8'))
+            except lxml.etree.XMLSyntaxError:
+                path = os.path.abspath(os.path.expanduser(cfg))
+                try:
+                    with open(path, 'rb') as f:
+                        cfg = f.read()
+                except FileNotFoundError:
+                    raise ValueError('Could not open {0}'.format(path))
+        elif isinstance(cfg, _io.TextIOWrapper):
+            _cfg = cfg.read().encode('utf-8')
+            cfg.close()
+            cfg = _cfg
+        elif isinstance(cfg,  _io.BufferedReader):
+            _cfg = cfg.read()
+            cfg.close()
+            cfg = _cfg
+        elif isinstance(cfg, lxml.etree._Element):
+            return(lxml.etree.tostring(cfg))
+        elif isinstance(cfg, bytes):
+            return(cfg)
+        else:
+            raise TypeError('Could not determine the object type.')
+        return(cfg)
+    
+    def _parse_regexes(self):
+        for regex in self.profile.xpath('//meta/regexes/pattern'):
+            self.btags['regex'][regex.attrib['id']] = re.compile(regex.text)
+        return()
+
+    def _parse_variables(self):
+        for variable in self.profile.xpath('//meta/variables/variable'):
+            self.btags['variable'][
+                                'variable%{0}'.format(variable.attrib['id'])
+                                    ] = variable.text
+        return()
+
+    def get_path(self, element):
+        path = element
+        try:
+            path = self.root.getpath(element)
+        except ValueError:
+            raise ValueError(
+                (
+                    'Could not find a path for the expression {0}'
+                ).format(element.text))
+        return(path)
+
+    def substitute(self, element, recurse_count = 0):
+        if recurse_count >= self.max_recurse:
+            return(element)
+        if isinstance(element, lxml.etree._Element):
+            if element.tag == 'regex':
+                return(element)
+            if isinstance(element, lxml.etree._Comment):
+                return(element)
+            if element.text:
+                _dictmap = self.btags_to_dict(element.text)
+                for elem in _dictmap:
+                    # This is needed because _dictmap gets replaced below
+                    if not _dictmap:
+                        return(element)
+                    _btag, _value = _dictmap[elem]
+                    if isinstance(_value, str):
+                        if _btag == 'xpath':
+                            try:
+                                newpath = element.xpath(_dictmap[elem][1])
+                            except (AttributeError, IndexError, TypeError):
+                                newpath = element
+                            except lxml.etree.XPathEvalError:
+                                return(element)
+                            try:
+                                self.btags['xpath'][elem] = self.substitute(
+                                            newpath, (recurse_count + 1))[0]
+                            except (IndexError, TypeError):
+                                raise ValueError(
+                                    ('Encountered an error while trying to '
+                                     'substitute {0} at {1}').format(
+                                        elem, self.get_path(element)
+                                    ))
+                        element.text = self.fmt.vformat(
+                                            element.text,   
+                                            [],
+                                            {**self.btags['xpath'],
+                                             **self.btags['variable']})
+                        _dictmap = self.btags_to_dict(element.text)
+        return(element)
+
+    def xpath_selector(self, selectors,
+                       selector_ids = ('id', 'name', 'uuid')):
+        # selectors is a dict of {attrib:value}
+        xpath = ''
+        for i in selectors.items():
+            if i[1] and i[0] in selector_ids:
+                xpath += '[@{0}="{1}"]'.format(*i)
+        return(xpath)
+
+    def btags_to_dict(self, text_in):
+        d = {}
+        ptrn_id = self.ptrn.findall(text_in)
+        if len(ptrn_id) >= 1:
+            for item in ptrn_id:
+                try:
+                    btag, expr = item.split('%', 1)
+                    if btag not in self.btags:
+                        continue
+                    if item not in self.btags[btag]:
+                        self.btags[btag][item] = None
+                    #self.btags[btag][item] = expr # remove me?
+                    if btag == 'xpath':
+                        d[item] = (btag, expr)
+                    elif btag == 'variable':
+                        d[item] = (btag, self.btags['variable'][item])
+                except ValueError:
+                    return(d)
+        return(d)
+
+

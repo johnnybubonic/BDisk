@@ -3,6 +3,9 @@ import os
 import psutil
 import gpg.errors
 
+# http://files.au.adversary.org/crypto/GPGMEpythonHOWTOen.html
+# https://www.gnupg.org/documentation/manuals/gpgme.pdf
+
 class GPGHandler(object):
     def __init__(self, gnupg_homedir = None, key_id = None, keyservers = None):
         self.home = gnupg_homedir

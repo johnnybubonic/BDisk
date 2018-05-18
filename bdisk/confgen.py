@@ -1,5 +1,8 @@
 #!/usr/bin/env python3.6
 
+# Ironically enough, I think building a GUI for this would be *cleaner*.
+# Go figure.
+
 import confparse
 import crypt
 import getpass
@@ -15,7 +18,7 @@ transform = utils.transform()
 valid = utils.valid()
 
 # TODO: convert the restarts for prompts to continue's instead of letting them
-# continue on to the next prompt.
+#       continue on to the next prompt.
 
 def pass_prompt(user):
     # This isn't in utils.prompts() because we need to use an instance of
@@ -147,6 +150,9 @@ class ConfGenerator(object):
             self.get_accounts()
             self.get_sources()
             self.get_build()
+            self.get_iso()
+            self.get_ipxe()
+            self.get_pki()
         except KeyboardInterrupt:
             exit('\n\nCaught KeyboardInterrupt; quitting...')
         return()
@@ -290,6 +296,8 @@ class ConfGenerator(object):
                 '\nWhat is YOUR name?\nName: ')).strip()
             meta_items['dev']['email'] = (input('\nWhat is your email address?'
                                                 '\nemail: ')).strip()
+            # TODO: this always returns invalid?? and doesn't seem to trigger
+            # the redo
             if not valid.email(meta_items['dev']['email']):
                 print('Invalid; skipping...')
                 meta_items['dev']['email'] = None
@@ -395,7 +403,8 @@ class ConfGenerator(object):
                              'x86_64': ('(Also referred to by distros as '
                                         '"64-bit")')}
         while more_sources:
-            if len(_arches) == len(_supported_arches):
+            # this doesn't trigger? maybe?
+            if len(_arches) >= len(_supported_arches):
                 # All supported arches have been added. We currently don't
                 # support mirror-balancing. TODO?
                 print('\nCannot add more sources; all supported architectures '
@@ -403,7 +412,7 @@ class ConfGenerator(object):
                 more_sources = False
                 break
             if len(_arches) > 0:
-                print('\n(Currently added arches: {0})'.format(
+                print('\n\t(Currently added arches: {0})'.format(
                                                         ', '.join(_arches)))
             _print_arches = '\n\t'.join(
                 ['{0}:\t{1}'.format(*i) for i in _supported_arches.items()])
@@ -531,7 +540,7 @@ class ConfGenerator(object):
                         continue
                     sig.attrib['keys'] = sigkeys
                 else:
-                    sigkeys = detect.gpgkeyID_from_url(gpgsig)
+                    sigkeys = detect.gpgkeyID_from_url(gpgsig['full_url'])
                     if not isinstance(sigkeys, list):
                         print('Could not properly parse any keys in the '
                               'signature file. Restarting.')
@@ -553,7 +562,8 @@ class ConfGenerator(object):
                             print('\t\t{0}'.format(_uid['Name']))
                             for k in _uid:
                                 if k != 'Name':
-                                    print('\t\t\t{0}:\t{1}'.format(k, _uid[k]))
+                                    print('\t\t\t{0:<9} {1}'.format(
+                                            '{0}:'.format(k), _uid[k]))
                     _key_chk = prompt.confirm_or_no(prompt = (
                         '\n{0} look correct?\n').format(_s))
                     if not _key_chk:
@@ -633,21 +643,156 @@ class ConfGenerator(object):
                 distro_path = self.profile.xpath('//paths/distros/text()')[0]
             except IndexError:
                 distro_path = 'your "distros" path'
-            distro = (input('\nWhich distro plugin/distro base are you using? '
-                            'See the manual for more information. A matching '
-                            'plugin MUST exist in {0} for a build to '
-                            'complete successfully! The default (Arch Linux, '
-                            '"archlinux") will be used if left blank.'
-                            '\nDistro base: ').format(
-                                    distro_path)).strip()
+            distro = (input(('\nWhich distro plugin/distro base are you '
+                             'using? See the manual for more information. A '
+                             'matching plugin MUST exist in {0} for a build '
+                             'to complete successfully! The default (Arch '
+                             'Linux, "archlinux") will be used if left blank.'
+                             '\nDistro base: ').format(distro_path))).strip()
             if distro == '':
                 distro = 'archlinux'
             if not valid.plugin_name(distro):
                 print('That is not a valid name. See the manual for examples '
                       'and shipped plugins. Retrying.')
                 continue
+            else:
+                has_distro = True
             distro_elem = lxml.etree.SubElement(build, 'distro')
             distro_elem.text = distro
+        return()
+    
+    def get_iso(self):
+        print('\n++ ISO ++')
+        # We don't need to ask if it's multiarch if we only have one arch.
+        iso = lxml.etree.Element('iso')
+        _arches = []
+        for _source in self.profile.xpath('sources/source'):
+            _arches.append(_source.attrib['arch'])
+        if len(_arches) < 2:
+            iso.attrib['multi_arch'] = _arches[0]
+            self.profile.append(iso)
+        # We have more than one arch, so we need to ask how they want to handle
+        # it.
+        _ma_strings = {'yes': ('a multi-arch ISO (both architectures on one '
+                               'ISO)'),
+                       'no': ('separate image files for '
+                              '{0}').format(' and '.join(_arches))}
+        for a in _arches:
+            _ma_strings[a] = 'only build an image file for {0}'.format(a)
+        if len(_arches) > 1:
+            _multi_arch_input = None
+            while not _multi_arch_input:
+                print('\n++ ISO || MULTI-ARCH ++')
+                _multi_arch = (input((
+                    '\nYou have defined mutliple architecture sources. BDisk '
+                    'allows you to build an ISO image (USB image, etc.) that '
+                    'will support both architectures using the same file. '
+                    'Please consult the manual if you need further '
+                    'information.\nPossible values:\n'
+                    '\n\t{0}\n\nMulti-arch: ').format(
+                    '\n\t'.join(
+                    ['{0}:\t{1}'.format(k, v) for k, v in _ma_strings.items()]
+                        )))).strip().lower()
+                if _multi_arch not in _ma_strings.keys():
+                    print('Invalid selection; retrying.')
+                    continue
+                else:
+                    _multi_arch_input = _multi_arch
+            iso.attrib['multi_arch'] = _multi_arch_input
+        _gpg_sign = None
+        while not _gpg_sign:
+            print('\n++ ISO || SIGNING ++')
+            _gpg_input = prompt.confirm_or_no(prompt = (
+                '\nWe can sign ISO image files using GPG (we\'ll give the '
+                'option to configure it a bit later).\nWould you like to sign '
+                'the ISO/USB image files with GPG?\n'), usage = (
+                                '{0} for yes, {1} for no...\n'))
+            _gpg_sign = ('yes' if _gpg_input else 'no')
+        iso.attrib['sign'] = _gpg_sign
+        self.profile.append(iso)
+        return()
+    
+    def get_ipxe(self):
+        print('\n++ iPXE ++')
+        ipxe = lxml.etree.Element('ipxe')
+        _ipxe = None
+        while not _ipxe:
+            _ipxe = prompt.confirm_or_no(prompt = (
+                '\nBDisk has built-in support for iPXE (https://ipxe.org/, '
+                'see the manual for more information). Would you like to '
+                'build iPXE support?\n'), usage = (
+                                '{0} for yes, {1} for no...\n'))
+            _ipxe = ('yes' if _ipxe else 'no')
+        if _ipxe == 'yes':
+            print('\n++ iPXE || MINI-ISO ++')
+            _iso = prompt.confirm_or_no(prompt = (
+                '\nWould you like to build a "mini-ISO" (see the manual) for '
+                'bootstrapping iPXE booting from USB or optical media?\n'),
+                                    usage = ('{0} for yes, {1} for no...\n'))
+            ipxe.attrib['iso'] = ('yes' if _iso else 'no')
+            print('\n++ iPXE || SIGNING ++')
+            _sign = prompt.confirm_or_no(prompt = (
+                '\nBDisk can sign the mini-ISO and other relevant files for '
+                'iPXE builds using GPG. Would you like to sign the iPXE build '
+                'distributables? (You\'ll have the chance to configure GPG '
+                'later).\n'), usage = ('{0} for yes, {1} for no...\n'))
+            ipxe.attrib['sign'] = ('yes' if _sign else 'no')
+            _uri = None
+            while not _uri:
+                print('\n++ iPXE || URL ++')
+                _uri = (input(
+                    '\niPXE uses a remote URI to boot. What URI should this '
+                    'profile\'s iPXE use? (Consult the manual for more '
+                    'information.)\niPXE Boot URL: ')).strip()
+                if not valid.url(_uri):
+                    print('Invalid URL, retrying...')
+                    _uri = None
+                    continue
+                else:
+                    uri = lxml.etree.SubElement(ipxe, 'uri')
+                    uri.text = _uri
+        if _ipxe == 'yes':
+            self.profile.append(ipxe)
+        return()
+    
+    def get_pki(self):
+        print('\n++ SSL/TLS PKI ++')
+        pki = lxml.etree.Element('pki')
+        _pki = None
+        while not _pki:
+            _pki = prompt.confirm_or_no(prompt = (
+                '\nWould you like to support SSL/TLS transport for various '
+                'functions? Currently this is only used for iPXE, but future '
+                'applications may be possible.\n'),
+                                    usage = ('{0} for yes, {1} for no...\n'))
+        if _pki:
+            _pki_url_chk = self.profile.xpath('ipxe/uri/text()')
+            _pki_url = (_pki_url_chk[0] if _pki_url_chk else None)
+            print('\n++ SSL/TLS PKI || OVERWRITE ++')
+            _overwrite = prompt.confirm_or_no(prompt = (
+                '\nYou\'ll have the opportunity in a moment to configure '
+                'paths for the various files, but do you want BDisk to '
+                're-generate (and thus overwrite) any of the files it finds? '
+                'If you use these files for anything OTHER than BDisk (or '
+                'wish to keep persistent keys and certs), you should '
+                'DEFINITELY answer no here.\n'),
+                    usage = ('{0} for yes, {1} for no...\n'))
+            pki.attrib['overwrite'] = ('yes' if _overwrite else 'no')
+            for x in ('ca', 'client'):
+                print('\n++ SSL/TLS PKI || {0} ++'.format(x.upper()))
+                _x = None
+                while not _x:
+                    _x = prompt.ssl_object(x, _pki_url)
+                elem = lxml.etree.SubElement(pki, x)
+                _elems = {}
+                for e in _x['paths']:
+                    _elems[e] = lxml.etree.SubElement(elem, e)
+                    _elems[e].text = _x['paths'][e]
+                for e in _x['attribs']:
+                    for a in _x['attribs'][e]:
+                        _elems[e].attrib[a] = _x['attribs'][e][a]
+        if _pki:
+            self.profile.append(pki)
         return()
 
 def main():

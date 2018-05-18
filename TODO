@@ -9,6 +9,15 @@
 - for docs, 3.x (as of 3.10) was 2.4M.
 - GUI? at least for generating config...
 
+- SSL key gen:
+import OpenSSL
+k = OpenSSL.crypto.PKey()
+k.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
+x = OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM,
+                                   k,
+                                   cipher = 'aes256',
+                                   passphrase = 'test')
+
 - need to package:
   python-hashid (https://psypanda.github.io/hashID/,
                  https://github.com/psypanda/hashID,
