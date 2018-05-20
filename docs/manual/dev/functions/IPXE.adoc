@@ -1,0 +1,22 @@
+=== `ipxe.py`
+This file handles building the "mini" ISO via iPXE.
+
+==== buildIPXE(_conf_)
+This function builds the iPXE core files.
+
+===== conf
+See <<conf>>.
+
+==== genISO(_conf_)
+This function builds the mini ISO (if <<code_iso_code,enabled>>). Returns a dictionary of information about the built ISO file (see <<iso>>).
+
+===== conf
+See <<conf>>.
+
+==== tftpbootEnv(_conf_)
+This function configures a TFTP boot/root directory for traditional PXE setups.
+
+NOTE: This function currently is a no-op; it will be implemented in future versions.
+
+===== conf
+See <<conf>>.

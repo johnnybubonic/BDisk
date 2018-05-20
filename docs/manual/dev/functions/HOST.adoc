@@ -1,0 +1,42 @@
+=== `host.py`
+These functions are used to perform "meta" tasks such as get information about the build host, find <<the_code_build_ini_code_file,the `build.ini` file>>, and parse your configuration options.
+
+==== getOS()
+Returns the distribution of the build host.
+
+==== getBits()
+Returns the "bitness" of the build host (e.g. `32bit` or `64bit`)
+
+==== getHostname()
+Returns the hostname of the build host.
+
+==== getConfig(_conf_file_ = '/etc/bdisk/build.ini')
+Returns a list of:
+
+. the default configuration file
+. the user-specified configuration file
+
+===== conf_file
+This is a full/absolute path that is searched first. If it exists and is a file, it is assumed to be the "canonical" <<the_code_build_ini_code_file,`build.ini` file>>.
+
+==== parseConfig(_confs_)
+This function parses the configuration file(s) and returns a list of:
+
+. A ConfigParser object
+. The configuration as a dictionary
+
+It performs some additional things, such as:
+
+* Converts "boolean" operations to true Python booleans
+* Tries to automatically detect the version if one isn't provided
+* Establishes the build number (this is a number that should be local to the build host)
+* Forms a list of the <<code_multiarch_code,architectures>> to build
+* Validates:
+** The bootstrap tarball mirror
+** The rsync destination (if <<code_rsync_code,enabled>>)
+** The iPXE remote URI (if <<code_ipxe_code,enabled>>)
+** That <<code_basedir_code>> is correctly set
+* Makes prerequisite directories
+
+===== confs
+A list of configuration files. See <<getconfig_em_conf_file_em_etc_bdisk_build_ini,getConfig()>>.

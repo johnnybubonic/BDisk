@@ -1,0 +1,70 @@
+== Why does building take so long?
+This typically occurs when you're building from within a LiveCD/LiveUSB situation, in a VM/container/etc., or on a headless server. If this is the case, you may run into what appears to be "stalling", especially while keys are generating for the chroots. Thankfully, there is an easy fix. You can install http://www.issihosts.com/haveged/[haveged^] and run it (this can be done safely while a build is executing). This will show an immediate and non-negligible improvement for the above contexts. If you have extra processing power to throw at the build process (or are using a dedicated build box) as well, I recommend enabling <<code_its_full_of_stars,`its_full_of_stars`>>. BDisk will then be more aggressive with its resource consumption.
+
+=== Running a local mirror
+Keep in mind also that the more packages you opt to install, the longer the build process will take. This process will also use quite a fair bit of bandwidth. If you plan on building regular images (e.g. nightly builds, etc.) or are undergoing some custom change testing, I recommend running a private repository mirror on-site. For Arch-based builds, this will not store AUR packages, as those will still be fetched and built (documentation on working around this is TODO) but setting up a local mirror is quite quick and easy. We'll of course use Arch as an example since that's the default guest environment (though I have a https://git.square-r00t.net/OpTools/tree/centos/repoclone[script^] for CentOS as well).
+
+First, you'll need at least 90Gb of free disk space. Let's say our repository clone will be at `/srv/repo/arch/`.
+
+You'll also need to find an Arch mirror, ideally one close to you that is up-to-date. The https://www.archlinux.org/mirrorlist/[mirrorlist generator^] and https://www.archlinux.org/mirrors/[mirror list^] will assist you here greatly.
+
+NOTE: You'll need to find a mirror that supports _rsync_.
+
+TIP: You can use ANY distro to run a repository mirror, as long as it has _rsync_ installed!
+
+==== Set up the sync
+
+I have https://git.square-r00t.net/OpTools/tree/arch/repoclone.py[written a script^] that does the heavy-lifting! https://git.square-r00t.net/OpTools/plain/arch/repoclone.py[Download it^] and mark it as executable (`chmod +x repoclone.py`). Make sure you read the --help option and edit `~/.config/optools/repoclone/arch.ini`.
+
+Assuming you want to run the sync script every 6 hours, this is the cron entry you would use (`crontab -e`):
+
+ 0    */6  *   *   * /path/to/repoclone.py
+
+The first sync can take quite a while, but subsequent runs shouldn't take more than five minutes or so (depending on how many updates are available).
+
+==== Configuring the local mirror
+You'll need a way to serve this local mirror in a way pacman can understand. Luckily, it's fairly easy. I recommend using https://www.nginx.com/[nginx^] as it's available by default in many operating systems. You can of course use others such as https://www.lighttpd.net/[lighttpd^], https://httpd.apache.org/[apache/httpd^], etc. For the example configuration here, we're going to use an nginx configuration file.
+
+```
+server {
+            listen [::]:80;
+            access_log /var/log/nginx/repo.access.log main;
+            error_log /var/log/nginx/repo.error.log;
+            #error_log /var/log/nginx/repo.error.log debug;
+
+            autoindex on;
+
+            root /srv/repo/arch;
+        }
+```
+
+The configuration may vary according to your distribution's provided nginx default configuration, but you'll want this configuration to be served as the default (or set an appropriate `https://nginx.org/en/docs/http/server_names.html[server_name]` directive which you would then use in `<profile><build><paths><base>/etc/pacman.d/mirrorlist`).
+
+==== Configuring BDisk
+
+You'll then want to configure BDisk's chroots to use your local mirror first. However, if you want to use a LAN resource mirror, when doing so you run into an issue -- in the built image, install operations will take longer than they need to because the local mirror likely won't be available! This is a small issue as it's unexpected that you'll need to install software within the live environment, but I've run into cases where it was a necessity once or twice.
+
+There is an https://devblog.square-r00t.net/articles/libvirt-spoof-domains-dns-records-redirect-to-another-ip[easy workaround^] if you're using libvirt to build -- you can simply tell your build VM to resolve to the IP address of the box that is running the mirror for the same FQDN that the "preferred" "real" mirror on the Internet and set that mirror at the top of `<profile><build><paths><base>/etc/pacman.d/mirrorlist`. However, that's not always feasible- most notably if you're building on a physical box and it's the same host as the repository clone. In that case you can set the specific local resolution -- e.g. `http://127.0.0.1/` -- at the top of `<profile><build><paths><base>/etc/pacman.d/mirrorlist` and then set a mirrorlist WITHOUT that entry in `<profile><build><paths><overlay>/etc/pacman.d/mirrorlist`. For more information on using these type of overrides, see <<advanced_customization>>.
+
+If you're using the libvirt workaround, remember to configure nginx (or whatever you're using) with a virtual host and location block that matches the "real", upstream mirror. In our example below, we use *http://arch.mirror.square-r00t.net* as the mirror.
+
+```
+server {
+            listen [::]:80;
+            access_log /var/log/nginx/repo.access.log main;
+            error_log /var/log/nginx/repo.error.log;
+            #error_log /var/log/nginx/repo.error.log debug;
+
+            server_name arch.mirror.square-r00t.net;
+
+            autoindex on;
+
+            root /srv/repo/arch;
+
+            location /archlinux {
+                                    autoindex on;
+                                    rewrite ^/archlinux(/.*)$ /$1;
+                                }
+        }
+```
+

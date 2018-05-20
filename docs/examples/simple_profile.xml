@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<bdisk>
+    <profile name="simple" id="1" uuid="7b9128d2-0ba5-4302-9b3c-9951401853e5">
+        <meta>
+            <names>
+                <name>BDISK</name>
+                <uxname>BDisk</uxname>
+                <pname>BDisk</pname>
+            </names>
+            <desc>A rescue/restore live environment.</desc>
+            <dev>
+                <author>A. Dev Eloper</author>
+                <email>dev@domain.tld</email>
+                <website>https://domain.tld/~dev</website>
+            </dev>
+            <uri>https://domain.tld/projname</uri>
+            <ver>1.0.0</ver>
+            <max_recurse>5</max_recurse>
+            <regexes/>
+            <variables/>
+        </meta>
+        <accounts>
+            <rootpass hashed="no" hash_algo="sha512" salt="auto">testpassword</rootpass>
+        </accounts>
+        <sources>
+            <source arch="x86_64">
+                <mirror>http://archlinux.mirror.domain.tld</mirror>
+                <rootpath>/iso/latest</rootpath>
+                <tarball>archlinux-bootstrap-2018.05.01-x86_64.tar.gz</tarball>
+                <checksum/>
+                <sig/>
+            </source>
+        </sources>
+        <build its_full_of_stars="no">
+            <paths>
+                <base>/tmp/bdisk/base</base>
+                <cache>/tmp/bdisk/cache</cache>
+                <chroot>/tmp/bdisk/chroots</chroot>
+                <overlay>/tmp/bdisk/overlay</overlay>
+                <templates>/tmp/bdisk/templates</templates>
+                <mount>/mnt/bdisk</mount>
+                <distros>/tmp/bdisk/distros</distros>
+                <dest>/tmp/bdisk/results</dest>
+                <iso>/tmp/bdisk/iso_overlay</iso>
+                <http>/tmp/bdisk/http</http>
+                <tftp>/tmp/bdisk/tftp</tftp>
+                <pki>/tmp/bdisk/pki</pki>
+            </paths>
+            <basedistro>archlinux</basedistro>
+        </build>
+        <iso sign="no" multi_arch="no" />
+        <gpg/>
+        <sync/>
+    </profile>
+</bdisk>

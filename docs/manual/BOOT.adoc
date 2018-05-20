@@ -1,0 +1,5 @@
+= Netboot
+
+It's possible to netboot my personal build of BDisk (or any environment built with BDisk, but this serves as an example for your own setup). I mostly keep this up for emergencies in case I need it, but it's good to show you that yes, you can boot a 2GB+ squashed and compressed filesystem from a <50MB image file.
+
+include::netboot/HOWTO.adoc[]

@@ -1,0 +1,64 @@
+=== `bSSL.py`
+Functions having to do with OpenSSL are stored here. This is used primarily for "mini" builds (via iPXE), they let you boot your BDisk distribution over the Internet. If an SSL key, CA certificate, etc. weren't defined and you want to build a mini image, this file contains functions that will build an SSL PKI (public key infrastructure) for you automatically.
+
+==== verifyCert(_cert_, _key_, _CA_ = None)
+This function will verify a certificate's validity/pairing with a key, optionally against a given CA certificate. Returns *True* on successful verification, or *False* and an exit (for sanity purposes).
+
+===== cert
+The certificate to be validated. Must be a PyOpenSSL certificate object.
+
+===== key
+The key to validate against <<cert>>. Must be a PyOpenSSL key object.
+
+===== CA
+The CA, or certificate authority, certificate to verify against.
+
+NOTE: This currently does not work, as PyOpenSSL does not currently support verifying against a specified CA certificate.
+
+==== sslCAKey(_conf_)
+This function imports a CA key (<<code_ssl_cakey_code>>) into a PyOpenSSL object (or generates one if necessary). Returns a PyOpenSSL key object.
+
+===== conf
+See <<conf>>.
+
+==== sslCA(_conf_, _key_ = None)
+This function imports a CA certificate (<<code_ssl_ca_code>>) into a PyOpenSSL object (or generates one if necessary). Returns a PyOpenSSL certificate object.
+
+===== conf
+See <<conf>>.
+
+===== key
+A PyOpenSSL key object that should be used to generate the CA certificate (or is paired to the CA certificate if specified).
+
+==== sslCKey(_conf_)
+This function imports a client key (<<code_ssl_key_code>>) into a PyOpenSSL object (or generates one if necessary). Returns a PyOpenSSL key object.
+
+===== conf
+See <<conf>>.
+
+==== ssslCSR(_conf_, _key_ = None)
+This function generates a CSR (certificate signing request).
+
+===== conf
+See <<conf>>.
+
+===== key
+A PyOpenSSL key object that should be used to generate the CSR. It should be a key that is paired to the client certificate.
+
+==== sslSign(_conf_, _ca_, _key_, _csr_)
+This function signs a CSR using a specified CA.
+
+===== conf
+See <<conf>>.
+
+===== ca
+A PyOpenSSL certificate object for the CA certificate. This certificate (object) should have signing capabilities.
+
+===== key
+A PyOpenSSL key object paired to <<ca_2>>.
+
+===== csr
+A PyOpenSSL CSR object. See <<ssslcsr_em_conf_em_em_key_em_none,sslCSR()>>.
+
+==== sslPKI(_conf_)
+Ties all the above together into one convenient function. Returns a PyOpenSSL certificate object of the signed client certificate.

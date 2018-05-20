@@ -1,0 +1,15 @@
+=== docs/
+This directory contains various documentation and other helpful text.
+
+==== COPYING
+This contains BDisk's license, the GPLv3.
+
+==== LICENSE
+This is simply a link to `COPYING`.
+
+==== manual/
+This directory contains the documentation source you're reading right now! It's written in http://asciidoc.org/[asciidoc^] (well, to be more precise it's written in/has some http://asciidoctor.org/[asciidoctor^]-isms). I'd recommend reading the rendered version, as the source (while perfectly human-readable) is written in a very modular fashion so it may be inconvenient to read each source file and following include directives.
+
+==== README
+This is a placeholder for common convention; it simply tells you to read the manual (and where to find it/build it).
+

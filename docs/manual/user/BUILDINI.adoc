@@ -1,0 +1,598 @@
+== The `build.ini` File
+This file is where you can specify some of the very basics of BDisk building. It allows you to specify/define certain variables and settings used by the build process. It uses https://docs.python.org/3/library/configparser.html[ConfigParser^] for the parsing engine, and you can do some https://wiki.python.org/moin/ConfigParserExamples[more advanced^] things with it than I demonstrate in the default.
+
+It's single-level, but divided into "sections". This is unfortunately a limitation of ConfigParser, but it should be easy enough to follow.
+
+Blank lines are ignored, as well as any lines beginning with `#` and `;`. There are some restrictions and recommendations for some values, so be sure to note them when they occur. Variables referencing other values in the `build.ini` are allowed in the format of `${value}` if it's in the same section; otherwise, `${section:value}` can be used.
+
+If you want to use your own `build.ini` file (and you should!), the following paths are searched in order. The first one found will be used.
+
+* `/etc/bdisk/build.ini`
+* `/usr/share/bdisk/build.ini`
+* `/usr/share/bdisk/extra/build.ini`
+* `/usr/share/docs/bdisk/build.ini`
+* `/usr/local/etc/bdisk/build.ini`
+* `/usr/local/share/docs/bdisk/build.ini`
+* `/opt/dev/bdisk/build.ini`
+* `/opt/dev/bdisk/extra/build.ini`
+* `/opt/dev/bdisk/extra/dist.build.ini`
+
+We'll go into more detail for each section below.
+
+=== Example
+ [bdisk]
+ name = BDISK
+ uxname = bdisk
+ pname = BDisk
+ ver =
+ dev = A Developer
+ email = dev@domain.tld
+ desc = A rescue/restore live environment.
+ uri = https://domain.tld
+ root_password =
+ user = yes
+ [user]
+ username = ${bdisk:uxname}
+ name = Default user
+ password = $$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/
+ [build]
+ mirror = mirror.us.leaseweb.net
+ mirrorproto = https
+ mirrorpath = /archlinux/iso/latest/
+ mirrorfile =
+ mirrorchksum = ${mirrorpath}sha1sums.txt
+ mirrorgpgsig =
+ gpgkey = 7F2D434B9741E8AC
+ gpgkeyserver =
+ gpg = no
+ dlpath = /var/tmp/${bdisk:uxname}
+ chrootdir = /var/tmp/chroots
+ basedir = /opt/dev/bdisk
+ isodir = ${dlpath}/iso
+ srcdir = ${dlpath}/src
+ prepdir = ${dlpath}/temp
+ archboot = ${prepdir}/${bdisk:name}
+ mountpt = /mnt/${bdisk:uxname}
+ multiarch = yes
+ ipxe = no
+ i_am_a_racecar = no
+ [gpg]
+ mygpgkey =
+ mygpghome =
+ [sync]
+ http = no
+ tftp = no
+ git = no
+ rsync = no
+ [http]
+ path = ${build:dlpath}/http
+ user = http
+ group = http
+ [tftp]
+ path = ${build:dlpath}/tftpboot
+ user = root
+ group = root
+ [ipxe]
+ iso = no
+ uri = https://domain.tld
+ ssldir = ${build:dlpath}/ssl
+ ssl_ca = ${ssldir}/ca.crt
+ ssl_cakey = ${ssldir}/ca.key
+ ssl_crt = ${ssldir}/main.crt
+ ssl_key = ${ssldir}/main.key
+ [rsync]
+ host =
+ user =
+ path =
+ iso = no
+
+=== `[bdisk]`
+This section controls some basic branding and information having to do with the end product.
+
+==== `name`
+This value is a "basic" name of your project. It's not really shown anywhere end-user visible, but we need a consistent name that follows some highly constrained rules:
+
+. Alphanumeric only
+. 8 characters total (or less)
+. No whitespace
+. ASCII only
+. Will be converted to uppercase if it isn't already
+
+==== `uxname`
+This value is used for filenames and the like. I highly recommend it be the same as `<<code_name_code,name>>` (in lowercase) but it doesn't need to be. It also has some rules:
+
+. Alphanumeric only
+. No whitespace
+. ASCII only
+. Will be converted to lowercase if it isn't already
+
+==== `pname`
+This string is used for "pretty-printing" of the project name; it should be a more human-readable string.
+
+. *Can* contain whitespace
+. *Can* be mixed-case, uppercase, or lowercase
+. ASCII only
+
+==== `ver`
+The version string. If this isn't specified, we'll try to guess based on the current git commit and tags in `<<code_basedir_code,build:basedir>>`.
+
+. No whitespace
+
+==== `dev`
+The name of the developer or publisher of the ISO, be it an individual or organization. For example, if you are using BDisk to build an install CD for your distro, this would be the name of your distro. The same rules as `<<code_pname_code,pname>>` apply.
+
+. *Can* contain whitespace
+. *Can* be mixed-case, uppercase, or lowercase
+. ASCII only
+
+==== `email`
+An email address to use for git syncing messages, and/or GPG key generation.
+
+==== `desc`
+What this distribution/project is used for.
+
+. *Can* contain whitespace
+. *Can* be mixed-case, uppercase, or lowercase
+. ASCII only
+
+==== `uri`
+What is this project's URI (website, etc.)? Alternatively, your personal site, your company's site, etc.
+
+. Should be a valid URI understood by curl
+
+
+==== `root_password`
+The escaped, salted, hashed string to use for the root user.
+
+Please see <<passwords,the section on passwords>> for information on this value. In the <<example,example above>>, the string `$$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/` is created from the password `test`. I cannot stress this enough, do not use a plaintext password here nor just use a regular `/etc/shadow` file/`crypt(3)` hash here. Read the section. I promise it's short.
+
+==== `user`
+*Default: no*
+
+This setting specifies if we should create a regular (non-root) user in the live environment. See the section <<code_user_code_2,`[user]`>> for more options.
+
+NOTE: If enabled, this user has full sudo access.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+=== `[user]`
+This section of `build.ini` controls aspects about `bdisk:user`. It is only used if <<code_user_code,`bdisk:user`>> is enabled.
+
+==== `username`
+What username should the user have? Standard *nix username rules apply:
+
+. ASCII only
+. 32 characters or less
+. Alphanumeric only
+. Lowercase only
+. No whitespace
+. Cannot start with a number
+
+==== `name`
+What comment/description/real name should be used for the user? For more information on this, see the https://linux.die.net/man/5/passwd[passwd(5) man page^]'s section on *GECOS*.
+
+. ASCII only
+
+==== `password`
+The escaped, salted, hashed string to use for the non-root user.
+
+Please see <<passwords,the section on passwords>> for information on this value. In the <<example,example above>>, the string `$$6$$t92Uvm1ETLocDb1D$$BvI0Sa6CSXxzIKBinIaJHb1gLJWheoXp7WzdideAJN46aChFu3hKg07QaIJNk4dfIJ2ry3tEfo3FRvstKWasg/` is created from the password `test`. I cannot stress this enough, do not use a plaintext password here nor just use a regular `/etc/shadow` file/`crypt(3)` hash here. Read the section. I promise it's short.
+
+=== `[build]`
+This section controls some aspects about the host and things like filesystem paths, etc.
+
+==== `mirror`
+A mirror that hosts the bootstrap tarball. It is *highly* recommended you use an Arch Linux https://wiki.archlinux.org/index.php/Install_from_existing_Linux#Method_A:_Using_the_bootstrap_image_.28recommended.29[bootstrap tarball^] as the build process is highly specialized to this (but <<bug_reports_feature_requests,patches/feature requests>> are welcome for other built distros). You can find a list of mirrors at the bottom of Arch's https://www.archlinux.org/download/[download page^].
+
+. No whitespace
+. Must be accessible remotely/via a WAN-recognized address
+. Must be a domain/FQDN only; no paths (those come later!)
+
+==== `mirrorproto`
+What protocol should we use for the <<code_mirror_code,`mirror`>>?
+
+|======================
+^s|Must be (case-insensitive) one of: ^.^m|http ^.^m|https ^.^m|ftp
+|======================
+
+==== `mirrorpath`
+What is the path to the tarball directory on the <<code_mirror_code,`mirror`>>?
+
+. Must be a complete path (e.g. `/dir1/subdir1/subdir2`)
+. No whitespace
+
+==== `mirrorfile`
+What is the filename for the tarball found in the path specified in <<code_mirrorpath_code,`mirrorpath`>> ? If left blank, we will use the sha1 <<code_mirrorchksum_code,checksum>> file to try to guess the most recent file.
+
+==== `mirrorchksum`
+The path to a sha1 checksum file of the bootstrap tarball.
+
+. No whitespace
+. Must be the full path
+. Don't include the mirror domain or protocol
+
+==== `mirrorgpgsig`
+*[optional]* +
+*default: (no GPG checking done)* +
+*requires: <<optional,_gpg/gnupg_>>* +
+*requires: <<code_gpgkey_code,`gpgkey`>>*
+
+If the bootstrap tarball file has a GPG signature, we can use it for extra checking. If it's blank, GPG checking will be disabled.
+
+If you specify just `.sig` (or use the default and don't specify a <<code_mirrorfile_code,`mirrorfile`>>), BDisk will try to guess based on the file from the sha1 <<code_mirrorchksum_code,checksum>> file. Note that this must evaluate to a full URL. (e.g. `${mirrorproto}://${mirror}${mirrorpath}somefile.sig`)
+
+==== `gpgkey`
+*requires: <<optional,_gpg/gnupg_>>*
+
+What is a key ID that should be used to verify/validate the <<code_mirrorgpgsig_code,`mirrorgpgsig`>>?
+
+. Only used if <<code_mirrorgpgsig_code,`mirrorgpgsig`>> is set
+. Can be in "short" form (e.g. _7F2D434B9741E8AC_) or "full" form (_4AA4767BBC9C4B1D18AE28B77F2D434B9741E8AC_), with or without the _0x_ prefix.
+
+==== `gpgkeyserver`
+*default: blank (GNUPG-bundled keyservers)* +
+*requires: <<optional,_gpg/gnupg_>>*
+
+What is a valid keyserver we should use to fetch <<code_gpgkey_code,`gpgkey`>>?
+
+. Only used if <<code_mirrorgpgsig_code,`mirrorgpgsig`>> is set
+. The default (blank) is probably fine. If you don't specify a personal GPG config, then you'll most likely want to leave this blank.
+. If set, make sure it is a valid keyserver URI (e.g. `hkp://keys.gnupg.net`)
+
+==== `gpg`
+Should we sign our release files? See the <<code_gpg_code_2,`[gpg]`>> section.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `dlpath`
+Where should the release files be saved? Note that many other files are created here as well.
+
+WARNING: If you manage your project in git, this should not be checked in as it has many large files that are automatically generated!
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `chrootdir`
+Where the bootstrap tarball(s) extract to, where the chroots are built and prepped for filesystems on the live media.
+
+WARNING: If you manage your project in git, this should not be checked in as it has many large files that are automatically generated!
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `basedir`
+Where your <<extra,`extra/`>> and <<overlay,`overlay/`>> directories are located. If you checked out from git, this would be your git worktree directory.
+
+. No whitespace
+. Must exist and contain the above directories populated with necessary files
+
+==== `isodir`
+This is the output directory of ISO files when they're created (as well as GPG signatures if you <<code_gpg_code,enabled them>>).
+
+WARNING: If you manage your project in git, this should not be checked in as it has many large files that are automatically generated!
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `srcdir`
+This is where we save and compile source code if we need to dynamically build components (such as iPXE for mini ISOs).
+
+. No whitespace
+. Will be created if it doesn't exist (and is needed)
+
+==== `prepdir`
+This is the directory we use for staging.
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `archboot`
+This directory is used to stage boot files.
+
+WARNING: This directory should not be the exact same path as other directives! If so, you will cause your ISO to be much larger than necessary. A subdirectory of another directive's path, however, is okay.
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `mountpt`
+The path to use as a mountpoint.
+
+. No whitespace
+. Will be created if it doesn't exist
+
+==== `multiarch`
+*default: yes*
+
+Whether or not to build a "multiarch" image- that is, building support for both x86_64 and i686 in the same ISO.
+
+[options="header"]
+|======================
+s|In order to... 3+^|Accepts (case-insensitive) one of:
+s|build a multiarch ISO ^m|yes ^m|true ^m|1
+s|build a separate ISO for each architecture ^m|no ^m|false ^m|0
+s|only build an i686-architecture ISO ^m|i686 ^m|32 ^m|no64
+s|only build an x86_64-architecture ISO ^m|x86_64 ^m|64 ^m|no32
+|======================
+
+==== `ipxe`
+*default: no*
+
+Enable iPXE ("mini ISO") functionality.
+
+NOTE: This has no bearing on the <<code_sync_code,`[sync]`>> section, so you can create an iPXE HTTP preparation for instance without needing to sync it anywhere (in case you're building on the webserver itself).
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `i_am_a_racecar`
+*default: no*
+
+This option should only be enabled if you are on a fairly powerful, multicore system with plenty of RAM. It will speed the build process along, but will have some seriously adverse effects if your system can't handle it. Most modern systems should be fine with enabling it.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+=== `[gpg]`
+This section controls settings for signing our release files. This is only used if <<code_gpg_code,`build:gpg`>> is enabled.
+
+==== `mygpgkey`
+A valid key ID that BDisk should use to _sign_ release files.
+
+. You will be prompted for a passphrase if your key has one/you don't have an open and authorized gpg-agent session. Make sure you have a working pinentry configuration set up!
+. If you leave this blank we will use the key we generate automatically earlier in the build process.
+. We will generate one if this is blank and you have selected sign as yes.
+
+==== `mygpghome`
+The directory should be used for the above GPG key if specified. Make sure it contains a keybox (`.kbx`) your private key. (e.g. `/home/username/.gnupg`)
+
+=== `[sync]`
+This section controls what we should do with the resulting build and how to handle uploads, if we choose to use those features.
+
+==== `http`
+*default: no*
+
+If enabled, BDisk will generate/prepare HTTP files. This is mostly only useful if you plan on using iPXE. See the <<code_http_code_2,`[http]`>> section.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `tftp`
+*default: no*
+
+If enabled, BDisk will generate/prepare TFTP files. This is mostly only useful if you plan on using more traditional (non-iPXE) setups and regualar PXE bootstrapping into iPXE.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `git`
+*requires: <<optional,git>>* +
+*default: no*
+
+Enable automatic Git pushing for any changes done to the project itself. If you don't have upstream write/push access, you'll want to disable this.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `rsync`
+*requires: <<optional,rsync>>* +
+*default: no*
+
+Enable rsync pushing for the ISO (and other files, if you choose- useful for iPXE over HTTP(S)).
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+=== `[http]`
+This section controls details about HTTP file preparation/generation. Only used if <<code_http_code,`sync:http`>> is enabled.
+
+==== `path`
+This directory is where to build an HTTP webroot.
+
+WARNING: MAKE SURE you do not store files here that you want to keep! They will be deleted!
+
+. No whitespace
+. If blank, HTTP preparation/generation will not be done
+. If specified, it will be created if it doesn't exist
+. Will be deleted first
+
+==== `user`
+What user the HTTP files should be owned as. This is most likely going to be either 'http', 'nginx', or 'apache'.
+
+. No whitespace
+. User must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|username ^.^m|http://www.linfo.org/uid.html[UID]
+|======================
+
+==== `group`
+What group the HTTP files should be owned as. This is most likely going to be either 'http', 'nginx', or 'apache'.
+
+. No whitespace
+. Group must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|group name ^.^m|https://linux.die.net/man/5/group[UID]
+|======================
+
+=== `[tftp]`
+This section controls details about TFTP file preparation/generation. Only used if <<code_tftp_code,`sync:tftp`>> is enabled.
+
+==== `path`
+The directory where we want to build a TFTP root.
+
+WARNING: MAKE SURE you do not store files here that you want to keep! They will be deleted!
+
+. No whitespace
+. Will be created if it doesn't exist
+. Will be deleted first
+
+==== `user`
+What user the TFTP files should be owned as. This is most likely going to be either 'tftp', 'root', or 'nobody'.
+
+. No whitespace
+. User must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|username ^.^m|http://www.linfo.org/uid.html[UID]
+|======================
+
+==== `group`
+What group the TFTP files should be owned as. This is most likely going to be either 'tftp', 'root', or 'nobody'.
+
+. No whitespace
+. Group must exist on build system
+
+|======================
+^s|Can be one of: ^.^m|group name ^.^m|https://linux.die.net/man/5/group[UID]
+|======================
+
+=== `[ipxe]`
+This section controls aspects of iPXE building. Only used if <<code_ipxe_code,`build:ipxe`>> is enabled.
+
+==== `iso`
+*default: no* +
+*requires: <<optional,_git_>>*
+
+Build a "mini-ISO"; that is, an ISO file that can be used to bootstrap an iPXE environment (so you don't need to set up a traditional PXE environment on your LAN). We'll still build a full standalone ISO no matter what.
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================
+
+==== `uri`
+What URI iPXE's EMBED script should use. This would be where you host an iPXE chainloading script on a webserver, for instance. See iPXE's example of http://ipxe.org/scripting#dynamic_scripts[dynamic scripts^] for an example of the script that would be placed at this URI.
+
+NOTE: If you require HTTP BASIC Authentication or HTTP Digest Authentication (untested), you can format it via `https://user:password@bdisk.square-r00t.net/boot.php`.
+
+NOTE: This currently does not work for HTTPS with self-signed certificates.
+
+. *Required* if <<code_iso_code,`iso`>> is enabled
+
+==== `ssldir`
+Directory to hold SSL results, if we are generating keys, certificates, etc.
+
+. No whitespace
+. Will be created if it does not exist
+
+==== `ssl_ca`
+Path to the (root) CA certificate file iPXE should use. See http://ipxe.org/crypto[iPXE's crypto page^] for more information.
+
+NOTE: You can use your own CA to sign existing certs. This is handy if you run a third-party/"Trusted" root-CA-signed certificate for the HTTPS target.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<code_iso_code,`iso`>> is enabled
+. If it exists, a matching key (ssl_cakey) *must* be specified
+.. However, if left blank/doesn't exist, one will be automatically generated
+
+==== `ssl_cakey`
+Path to the (root) CA key file iPXE should use.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<code_iso_code,`iso`>> is enabled
+. If left blank or it doesn't exist (and <<code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
+. *Must* match/pair to <<code_ssl_ca_code,`ssl_ca`>> if specified/exists
+. MUST NOT be passphrase-protected/DES-encrypted
+
+==== `ssl_crt`
+Path to the _client_ certificate iPXE should use.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<code_iso_code,`iso`>> is enabled
+. If specified/existent, a matching CA cert (<<code_ssl_ca_code,`ssl_ca`>>) and key (<<code_ssl_cakey_code,`ssl_cakey`>>) *must* be specified
+.. However, if left blank/doesn't exist, one will be automatically generated
+. *Must* be signed by <<code_ssl_ca_code,`ssl_ca`>>/<<code_ssl_cakey_code,`ssl_cakey`>> if specified and already exists
+
+==== `ssl_key`
+Path to the _client_ key iPXE should use.
+
+. No whitespace
+. Must be in PEM/X509 format
+. *Required* if <<code_iso_code,`iso`>> is enabled
+. If left blank/nonexistent (and <<code_ssl_ca_code,`ssl_ca`>> is also blank), one will be automatically generated
+
+=== `[rsync]`
+This section controls aspects of rsync pushing. Only used if <<code_rsync_code,`sync:rsync`>> is enabled.
+
+==== `host`
+The rsync destination host.
+
+. Must resolve from the build server
+. Can be host, FQDN, or IP address
+
+==== `user`
+This is the remote user we should use when performing the rsync push.
+
+. User must exist on remote system
+. SSH pubkey authorization must be configured
+. The destination's hostkey must be added to your local build user's known hosts
+
+==== `path`
+This is the remote destination path we should use for pushing via rsync.
+
+
+NOTE: You'll probably want to set <<code_user_code_3,`http:user`>> and <<code_group_code,`http:group`>> to what it'll need to be on the destination.
+
+. No whitespace
+. The path *must* exist on the remote host
+. The path MUST be writable by <<code_user_code_5,`user`>>
+
+==== `iso`
+Should we rsync over the ISO files too, or just the boot files?
+
+[options="header"]
+|======================
+2+^|Accepts (case-insensitive) one of:
+^m|yes ^m|no
+^m|true ^m|false
+^m|1 ^m|0
+|======================

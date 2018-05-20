@@ -37,8 +37,9 @@ class Conf(object):
                         You can provide any combination of these
                         (e.g. "profile={'id': 2, 'name' = 'some_profile'}").
         """
-        self.raw = _detect_cfg(cfg)
-        self.profile = profile
+        #self.raw = _detect_cfg(cfg)  # no longer needed; in utils
+        self.xml_suppl = utils.xml_supplicant(cfg, profile = profile)
+        self.profile = self.xml_suppl
         self.xml = None
         self.profile = None
         # Mad props to https://stackoverflow.com/a/12728199/733214

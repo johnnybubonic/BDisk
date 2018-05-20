@@ -1,0 +1,5 @@
+== Why is the ISO so large?
+This actually entirely depends on what <<changing_the_installed_software,packages you have chosen to install>> (and if you're building a <<code_multiarch_code,multiarch ISO>>). The default list is quite large.
+
+If you build a minimal ISO (i.e. only the necessary components required for booting and nothing else, single-arch), the ISO is only about 570MB (but work is being done to make this even smaller).
+

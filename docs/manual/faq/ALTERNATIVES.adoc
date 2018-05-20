@@ -1,0 +1,83 @@
+== I don't like BDisk. Are there any other alternatives?
+First, I'm sorry to hear that BDisk doesn't suit your needs. If you want any features you think are missing or encounter any <<FURTHER.adoc#bug_reports_feature_requests, bugs>>, please report them!
+
+But yes; there are plenty of alternatives! I encourage you to search for yourself, but I've tried to be as impartial as I can for the below.
+
+NOTE: Only *currently maintained projects* are listed here.
+
+=== https://wiki.archlinux.org/index.php/archboot[Archboot^]
+Written in Bash
+[frame="topbot",options="header,footer"]
+|======================
+|Pros|Cons
+|Highly featureful|Arch-only live media
+|Includes an assisted Arch install script|Inaccessible to non-Arch users
+|Can create tarballs too|Not very customizable by default
+|Supports hybrid ISOs|Infrequent stable releases
+|Supports PXE-booting infrastructure|Requires a systemd build host
+|Supports SecureBoot|Not a secure setup by default
+|Supports GRUB2's "ISO-loopback" mode|Builds a much larger image
+|Official Arch project|Some graphical bugs
+||Much more disk space is necessary for the tool itself
+||*Only* runs in RAM, so not ideal for RAM-constrained systems
+||Based on/requires an Arch build host
+||Requires an x86_64 build host
+||Has a large amount of dependencies
+||Manual intervention required for build process
+||Minimal documentation
+||
+|======================
+
+=== https://wiki.archlinux.org/index.php/archiso[Archiso^]
+Written in Bash.
+[frame="topbot",options="header,footer"]
+|======================
+|Pros|Cons
+|Used to build the official Arch ISO|Requires an x86_64 build host
+|Supports custom local on-disk repositories|Not very featureful as far as customization goes
+|Supports arbitrary file placement in finished image|Requires an Arch build host
+|Supports hybrid ISOs|Has odd quirks with package selection
+|Supports Secureboot|Manual intervention required for build process
+|Official Arch project|Does not start networking by default
+|Can run in RAM or from media|Very minimal environment
+||Arch-only live meda
+||Documentation is lacking
+||
+|======================
+
+=== Debian's https://wiki.debian.org/Simple-CDD[Simple-CDD^]
+Written in Bash (some Python).
+[frame="topbot",options="header,footer"]
+|======================
+|Pros|Cons
+|Supports custom packages to be installed|Very limited -- no customization beyond package listing
+|Lightweight; quick to set up|Takes a long time for preparation; requires a clone of many .deb packages first.
+||Doesn't seem to work as according to https://wiki.debian.org/Simple-CDD/Howto[the documentation^]
+||Documentation is sparse
+||Full featureset unknown due to ISO not building on Debian Jessie (8.0)
+||
+|======================
+
+=== Fedora's https://fedoraproject.org/wiki/Livemedia-creator-_How_to_create_and_use_a_Live_CD[Livemedia-creator^]
+Written in Bash.
+[frame="topbot",options="header,footer"]
+|======================
+|Pros|Cons
+|Somewhat customizable|Requires manual initialization of chroot(s) via https://github.com/rpm-software-management/mock/wiki[mock^]
+|Uses kickstart configurations|*Requires* a kickstart configuration in order to be useful
+|Simple/easy to use|Full featureset unknown; documentation is sparse
+||Limited configuration/customization
+||
+|======================
+
+=== https://github.com/rhinstaller/livecd-tools[LiveCD Tools^]
+Written in Python 2, some Bash.
+[frame="topbot",options="header,footer"]
+|======================
+|Pros|Cons
+|Can use kickstarts|*Requires* a kickstart configuration
+|Simple/easy to use to use|Limited configuration/customization
+|Automatically builds chroots|Full featureset unknown; documentation is sparse
+||
+|======================
+

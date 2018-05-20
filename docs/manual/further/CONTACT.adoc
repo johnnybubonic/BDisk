@@ -1,0 +1,10 @@
+== Contact the Author
+If you have any questions, comments, or concerns, you can use the following information to get in touch with me.
+
+I am available via mailto:bts@square-r00t.net[email]. If you use GPG, you can find my pubkey and other related info https://devblog.square-r00t.net/about/my-gpg-public-key-verification-of-identity[here^] (and on most keyservers).
+
+I occasionally write howto articles, brief tips, and other information in my https://devblog.square-r00t.net[dev blog].
+
+I am on IRC as *r00t^2*, and am usually in the irc://irc.freenode.org/#sysadministrivia[Sysadministrivia channel on Freenode]. Which reminds me, I run a podcast called https://sysadministrivia.com[Sysadministrivia^].
+
+I am on Twitter as https://twitter.com/brentsaner[@brentsaner^], though I don't tweet very often. (I usually tweet from my https://twitter.com/SysAdm_Podcast[podcast's twitter^].)

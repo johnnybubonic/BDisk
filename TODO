@@ -8,6 +8,7 @@
 - locking
 - for docs, 3.x (as of 3.10) was 2.4M.
 - GUI? at least for generating config...
+- Need ability to write/parse mtree specs (or a similar equivalent) for applying ownerships/permissions to overlay files
 
 - SSL key gen:
 import OpenSSL

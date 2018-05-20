@@ -5,6 +5,51 @@ import gpg.errors
 
 # http://files.au.adversary.org/crypto/GPGMEpythonHOWTOen.html
 # https://www.gnupg.org/documentation/manuals/gpgme.pdf
+# Support ECC? https://www.gnupg.org/faq/whats-new-in-2.1.html#ecc
+# section 4.1, 4.2, 7.5.1, 7.5.5 in gpgme manual
+# Please select what kind of key you want:
+#    (1) RSA and RSA (default) - 1024-4096 bits
+#    (2) DSA and Elgamal - 768-3072
+#    (3) DSA (sign only) - 768-3072
+#    (4) RSA (sign only) - 1024-4096
+#    (7) DSA (set your own capabilities) - 768-3072
+#    (8) RSA (set your own capabilities) - 1024-4096
+#    (9) ECC and ECC - (see below)
+#   (10) ECC (sign only) - (see below)
+#   (11) ECC (set your own capabilities) - (see below)
+# Your selection? 9
+# Please select which elliptic curve you want:
+#    (2) NIST P-256
+#    (3) NIST P-384
+#    (4) NIST P-521
+#    (5) Brainpool P-256
+#    (6) Brainpool P-384
+#    (7) Brainpool P-512
+# Your selection? 10
+# Please select which elliptic curve you want:
+#    (1) Curve 25519
+#    (3) NIST P-256
+#    (4) NIST P-384
+#    (5) NIST P-521
+#    (6) Brainpool P-256
+#    (7) Brainpool P-384
+#    (8) Brainpool P-512
+#    (9) secp256k1
+# gpgme key creation:
+#g = gpg.Context()
+#mainkey = g.create_key('test key via python <test2@test.com>', algorithm = 'rsa4096', expires = False,
+#                        #certify = True,
+#                        certify = False,
+#                        sign = False,
+#                        authenticate = False,
+#                        encrypt = False)
+#key = g.get_key(mainkey.fpr, secret = True)
+#subkey = g.create_subkey(key, algorithm = 'rsa4096', expires = False,
+#                         sign = True,
+#                         #certify = False,
+#                         encrypt = False,
+#                         authenticate = False)
+
 
 class GPGHandler(object):
     def __init__(self, gnupg_homedir = None, key_id = None, keyservers = None):

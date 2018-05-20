@@ -1,0 +1,13 @@
+=== overlay/
+This directory follows similar rules to the <<pre_build_d,pre-build.d/>> directory, except it is applied *after* the chroots are prepared (as it is designed to be user-centric rather than core functionality). We'll go more into this later in-depth, as this is where most of your customizations will be done.
+
+For files that should be included in both chroots, simply recreate the path with the desired file. For instance, if you want a file `/etc/foo/bar.conf` to exist in both i686 and x86_64 versions, it would exist as the path `overlay/etc/foo/bar.conf`.
+
+It follows the following structure:
+
+==== i686/
+This contains modifications that should be applied to the i686 version only. If you wanted a file to exist only in the i686 version at `/etc/a/b.conf`, it would be placed in `overlay/i686/etc/a/b.conf`.
+
+==== x86_64/
+This contains modifications that should be applied to the x86_64 version only. If you wanted a file to exist only in the x86_64 version at `/etc/z/y.conf`, it would be placed in `overlay/x86_64/etc/z/y.conf`.
+

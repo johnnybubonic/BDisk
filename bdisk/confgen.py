@@ -153,6 +153,8 @@ class ConfGenerator(object):
             self.get_iso()
             self.get_ipxe()
             self.get_pki()
+            self.get_gpg()
+            self.get_sync()
         except KeyboardInterrupt:
             exit('\n\nCaught KeyboardInterrupt; quitting...')
         return()
@@ -296,8 +298,6 @@ class ConfGenerator(object):
                 '\nWhat is YOUR name?\nName: ')).strip()
             meta_items['dev']['email'] = (input('\nWhat is your email address?'
                                                 '\nemail: ')).strip()
-            # TODO: this always returns invalid?? and doesn't seem to trigger
-            # the redo
             if not valid.email(meta_items['dev']['email']):
                 print('Invalid; skipping...')
                 meta_items['dev']['email'] = None
@@ -598,7 +598,10 @@ class ConfGenerator(object):
             build.attrib['its_full_of_stars'] = 'yes'
         print('\n++ BUILD || PATHS ++')
         # Thankfully, we can simplify a lot of this.
-        _dir_strings = {'cache': ('the caching directory (used for temporary '
+        _dir_strings = {'base': ('the base directory (used for files that are '
+                                 'required for basic guest environment '
+                                 'support)'),
+                        'cache': ('the caching directory (used for temporary '
                                   'files, temporary downloads, etc.)'),
                         'chroot': ('the chroot directory (where we store '
                                    'the root filesystems that are converted '
@@ -793,6 +796,208 @@ class ConfGenerator(object):
                         _elems[e].attrib[a] = _x['attribs'][e][a]
         if _pki:
             self.profile.append(pki)
+        return()
+
+    def get_gpg(self):
+        _sigchk = False
+        _xpaths = ['//iso/@sign', '//ipxe/@sign']
+        for x in _xpaths:
+            _x = self.profile.xpath(x)
+            for a in _x:
+                if a == 'yes':
+                    _sigchk = True
+                    break
+            if _sigchk:
+                break
+        if not _sigchk:
+            # An empty gpg element signifies a blank configuration.
+            lxml.etree.SubElement(self.profile, 'gpg')
+            return()
+        gpg = lxml.etree.Element('gpg')
+        print('\n++ GPG ++')
+        _gpg = None
+        while not _gpg:
+            print('\n++ GPG || KEY ID ++')
+            _gpg = (input('\nYou have specified GPG signing for one or more '
+                          'components. If you have a key already, please '
+                          'enter the key ID here; otherwise if left blank, '
+                          'BDisk will generate one for you.\n'
+                          'Key ID: ')).upper().strip()
+            if _gpg == '':
+                _gpg = 'none'
+            else:
+                if not valid.gpgkeyID(_gpg):
+                    print('That is not a valid GPG key ID. Retrying.')
+                    continue
+        gpg.attrib['keyid'] = _gpg
+        print('\n++ GPG || GPG HOME DIRECTORY ++')
+        _gpghome = None
+        while not _gpghome:
+            _gpghome = (input('\nWhat directory should be used for the GnuPG '
+                              'home directory? If left blank, BDisk will use '
+                              'the system default (first checking for an '
+                              'environment variable called GNUPGHOME, and '
+                              'then trying the built-in ~/.gnupg directory).'
+                              '\nGPG Home Directory: '))
+            if _gpghome.strip() != '':
+                gpg.attrib['gnupghome'] == _gpghome
+            else:
+                _gpghome = 'none'
+        print('\n++ GPG || KEYSERVER PUSHING ++')
+        _gpgpublish = prompt.confirm_or_no(prompt = (
+            '\nWould you like to push the key to the SKS keyserver pool '
+            '(making it much easier for end-users to look it up)?\n'),
+                                    usage = ('{0} for yes, {1} for no...\n'))
+        gpg.attrib['publish'] = ('yes' if _gpgpublish else 'no')
+        print('\n++ GPG || PASSWORD HANDLING ++')
+        _gpgpass_prompt = prompt.confirm_or_no(prompt = (
+            '\nWould you like BDisk to prompt you for a passphrase? If not, '
+            'you\'ll either have to include the passphrase in plaintext in '
+            'the configuration (HIGHLY unrecommended) or use a blank '
+            'passphrase (also HIGHLY unrecommended).\n'),
+                                    usage = ('{0} for yes, {1} for no...\n'))
+        gpg.attrib['prompt_passphrase'] = ('yes' if _gpgpass_prompt else 'no')
+        _pass = None
+        if not _gpgpass_prompt:
+            while not _pass:
+                print('\n++ GPG || PASSPHRASE ++')
+                _pass = getpass.getpass((
+                    '\nYou have specified not to use passphrase prompting for '
+                    'GPG. As such, you will need to provide the passphrase. '
+                    'If left blank, BDisk will assume one is not/should not '
+                    'be set.\nPassphrase (will NOT echo back; type '
+                    'carefully!): '))
+                if _pass.strip()  == '':
+                    _pass = 'none'
+                elif not valid.password(_pass):
+                    print('As a safety precaution, we are refusing to use '
+                          'this password. It should entirely consist of the '
+                          '95 printable ASCII characters. Consult the '
+                          'manual\'s section on passwords for more '
+                          'information.\nLet\'s try this again, shall we?')
+                    _pass = None
+                    continue
+                else:
+                    gpg.attrib['passphrase'] = _pass
+        if gpg.attrib['keyid'] == 'none':
+            _more_subkeys = True
+            while _more_subkeys:
+                _subkey = prompt.gpg_keygen_attribs()
+                subkey = lxml.etree.SubElement(gpg, 'key')
+                for a in _subkey['attribs']:
+                    subkey.attrib[a] = _subkey['attribs'][a]
+                for e in _subkey['params']:
+                    param = lxml.etree.SubElement(subkey, e)
+                    param.text = _subkey['params'][e]
+                _more_subkeys = prompt.confirm_or_no(prompt = (
+                    '\nDo you want to add another subkey?\n'),
+                    usage = ('{0} for yes, {1} for no...\n'))
+        self.profile.append(gpg)
+        return()
+
+    def get_sync(self):
+        print('\n++ SYNC ++')
+        print('This section will allow you to configure REMOTE paths to copy '
+              'the finished products to. These are COPIES, meaning they will '
+              'exist in the destination paths you specified earlier but will '
+              'also be copied to these destinations. The difference is these '
+              'can be on a remote host and will be copied via rsync.')
+        _sync_chk = prompt.confirm_or_no(prompt = (
+                        '\nWould you like to enable remote syncing?\n'),
+                                    usage = ('{0} for yes, {1} for no...\n'))
+        if not _sync_chk:
+            elem = lxml.etree.SubElement(self.profile, 'sync')
+            rsync = lxml.etree.SubElement(elem, 'rsync')
+            rsync.attrib['enabled'] = 'no'
+            return()
+        sync = lxml.etree.Element('sync')
+        _syncs = {'ipxe': ('the iPXE base'),
+                  'tftp': ('the TFTP root'),
+                  'iso': ('the ISO images destination'),
+                  'gpg': ('the exported GPG public key')}
+        for s in _syncs:
+            print('\n++ SYNC || {0} ++'.format(s.upper()))
+            _item_sync_chk = prompt.confirm_or_no(prompt = (
+                        '\nWould you like to sync {0}?\n'.format(_syncs[s])),
+                                    usage = ('{0} for yes, {1} for no...\n'))
+            elem = lxml.etree.SubElement(sync, s)
+            elem.attrib['enabled'] = ('yes' if _item_sync_chk else 'no')
+            if not _item_sync_chk:
+                continue
+            if s == 'gpg':
+                _choices = ['ASCII', 'binary']
+                _export_type = (input(
+                        ('\nWhat type of export dump would you like to use '
+                         'for the GPG public key? (You can use the first '
+                         'letter only as an abbreviation; the default is '
+                         'ASCII.)\n'
+                         'Choices:\n\n\t{0}\n\nExport type: ').format(
+                                '\n\t'.join(_choices)
+                                ))).strip().lower()
+                if _export_type.startswith('a'):
+                    _export_type == 'asc'
+                elif _export_type.startswith('b'):
+                    _export_type == 'bin'
+                else:
+                    print('Using the default.')
+                    _export_type == 'asc'
+                elem.attrib['format'] = _export_type
+            _path = None
+            while not _path:
+                _path = input(
+                    ('\nWhere (remote path) would you like {0} to be synced?\n'
+                     'Path: ').format(_syncs[s]))
+                if _path.strip() == '':
+                    print('Please specify a path. Retrying...')
+                    _path = None
+                    continue
+                elem.text = _path
+        rsync = lxml.etree.SubElement(sync, 'rsync')
+        print('\n++ SYNC || RSYNC ++')
+        _rsync = prompt.confirm_or_no(prompt = (
+            '\nEnable rsync? If disabled, no syncing would be done even if '
+            'enabled by a specific item above.\n'),
+                                    usage = ('{0} for yes, {1} for no...\n'))
+        if not _rsync:
+            self.profile.append(sync)
+            return()
+        _host = (input(
+                    '\nWhat host should we use for rsync?\nHost: ')
+                ).strip().lower()
+        if ':' in _host:
+            _h = _host.split(':')
+            _host = _h[0]
+            _port = _h[1]
+        else:
+            _port = None
+        host = lxml.etree.SubElement(rsync, 'host')
+        host.text = _host
+        while not _port:
+            _port = (input(
+                        '\nWhat port should we use? (Default: 22)\nPort: ')
+                    ).strip()
+            if _port == '':
+                _port = '22'
+            if not valid.integer(_port):
+                print('Invalid port number; try again.')
+                _port = None
+                continue
+        port = lxml.etree.SubElement(rsync, 'port')
+        port.text = _port
+        _user = (input(
+                    '\nWhat user should we use for {0}?\nUser: '.format(_host)
+                )).strip()
+        while not valid.username(_user):
+            print('Invalid username.')
+            _user = (input('\nUsername: ')).strip()
+        user = lxml.etree.SubElement(rsync, 'user')
+        user.text = _user
+        _pubkey = input('\nWhat path should we use for the SSH private key? '
+                        'Default: ~/.ssh/id_rsa\n'
+                        'Key path: ')
+        pubkey = lxml.etree.SubElement(rsync, 'pubkey')
+        pubkey.text = _pubkey
+        self.profile.append(sync)
         return()
 
 def main():

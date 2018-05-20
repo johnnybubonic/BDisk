@@ -1,0 +1,22 @@
+= User Manual
+
+BDisk was ultimately designed to make your life easier. "Why would I possibly need yet another LiveCD/LiveUSB?" Well, that's sort of the point- by customizing a live distribution of GNU/Linux to _your_ particular needs/desires/whimsy, you can do away with the multiple other images you keep around. It's designed to let you create a fully customized distribution/live environment.
+
+Using BDisk, you can:
+
+* Install GNU/Linux (https://wiki.archlinux.org/index.php/installation_guide[Arch^], https://watchmysys.com/blog/2015/02/installing-centos-7-with-a-chroot/[CentOS^], https://www.debian.org/releases/stable/amd64/apds03.html.en[Debian^], https://wiki.gentoo.org/wiki/Handbook:AMD64#Installing_Gentoo[Gentoo^], https://help.ubuntu.com/lts/installation-guide/powerpc/apds04.html[Ubuntu^]...). BDisk's flagship and guaranteed guest distro may be Arch-based, but many if not most other distros offer ways to install from any GNU/Linux live distribution. Plus, with the 4.x rewrite, it is possible to add support for any modern GNU/Linux guest distro.
+** This means one could easily create an http://aif.square-r00t.net/[automated Arch install ISO^], or Gentoo installer, etc.
+* Perform disk maintenance (https://raid.wiki.kernel.org/index.php/RAID_setup[mdadm^], fdisk / http://www.rodsbooks.com/gdisk/[gdisk^], http://gparted.org/[gparted^], https://www.thomas-krenn.com/en/wiki/StorCLI[storcli^], etc.). Need to replace that disk in your RAID and you don't have hotswap? Not a problem!
+* Rescue, recover, wipe (http://www.sleuthkit.org/sleuthkit/[scalpel^], http://www.andybev.com/index.php/Nwipe[nwipe^], http://foremost.sourceforge.net/[foremost^], etc.). Chances are this is why you booted a live distro in the first place, yes?
+* Boot over the Internet (or LAN). Burning a new image to CD/DVD/USB is a pain. BDisk has built-in support for http://ipxe.org/[iPXE^] (and traditional PXE setups). Update the filesystem image once, deploy it everywhere.
+* And much, much more.
+** Seriously.
+
+This manual will give you the information you need to build your very own live GNU/Linux distribution.
+
+include::user/GETTING_STARTED.adoc[]
+include::user/IMPORTANT_CONCEPTS.adoc[]
+include::user/PROJECT_LAYOUT.adoc[]
+include::user/BUILDINI.adoc[]
+include::user/ADVANCED.adoc[]
+include::user/BUILDING.adoc[]

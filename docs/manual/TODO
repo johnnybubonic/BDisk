@@ -1,0 +1,10 @@
+- dev/{FUNCTIONS.adoc,functions/}
+  need to update with new subpackages/functions etc.
+
+- script macOS tool for imaging to USB?
+
+- in faq/LONGTIME.adoc, in ==== Configuring the local mirror and ==== Configuring BDisk, mirrorlist should be part of the archlinux plugin - NOT a distributed hardcoded file. (can we then get rid of <paths><base> entirely?)
+
+- in faq/ISOBIG.adoc and the doc section it references, make sure we reference that the package lists are now in the environment plugin!
+
+- change all references to build.ini to something like "BDisk configuration file"

@@ -1,0 +1,5 @@
+= Developer Manual
+
+BDisk can be sourced for other projects, as it's written in a modular manner. Version 4.x aims to be installable as a standard Python module. This developer manual intends to provide information you may need to change parts of BDisk (or change how it behaves) -- it *is* opensource, after all!
+
+include::dev/FUNCTIONS.adoc[]
