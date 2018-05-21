@@ -1,11 +1,14 @@
 import _io
+import copy
 import crypt
 import GPG
+import getpass
 import hashid
 import hashlib
 import iso3166
 import os
 import pprint
+import prompt_strings
 import re
 import string
 import uuid
@@ -33,12 +36,7 @@ crypt_map = {'sha512': crypt.METHOD_SHA512,
              'md5': crypt.METHOD_MD5,
              'des': crypt.METHOD_CRYPT}
 
-# These are *key* ciphers, for encrypting exported keys.
-openssl_ciphers = ['aes128', 'aes192', 'aes256', 'bf', 'blowfish',
-                   'camellia128', 'camellia192', 'camellia256', 'cast', 'des',
-                   'des3', 'idea', 'rc2', 'seed']
-openssl_digests = ['blake2b512', 'blake2s256', 'gost', 'md4', 'md5', 'mdc2',
-                   'rmd160', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512']
+
 
 class XPathFmt(string.Formatter):
     def get_field(self, field_name, args, kwargs):
@@ -162,7 +160,10 @@ class generate(object):
 
 class prompts(object):
     def __init__(self):
-        pass
+        self.promptstr = prompt_strings.PromptStrings()
+
+    # TODO: these strings should be indexed in a separate module and
+    # sourced/imported. we should generally just find a cleaner way to do this.
 
     def confirm_or_no(self, prompt = '', invert = False,
                       usage = '{0} to confirm, otherwise {1}...\n'):
@@ -192,6 +193,62 @@ class prompts(object):
             else:
                 return(False)
         return(True)
+
+    def gpg_keygen_attribs(self):
+        _strs = self.promptstr.gpg
+        gpg_vals = {'attribs': {},
+                    'params': {}}
+        _checks = {
+            'params': {
+                'name': {'error': 'name cannot be empty',
+                         'check': valid().nonempty_str},
+                'email': {'error': 'not a valid email address',
+                          'check': valid().email}
+                }
+            }
+        for a in _strs['attribs']:
+            _a = None
+            while not _a:
+                if 'algo' in gpg_vals['attribs'] and a == 'keysize':
+                    _algo = gpg_vals['attribs']['algo']
+                    _choices = _strs['attribs']['keysize']['choices'][_algo]
+                    _dflt = _strs['attribs']['keysize']['default'][_algo]
+                else:
+                    _choices = _strs['attribs'][a]['choices']
+                    _dflt = _strs['attribs'][a]['default']
+                _a = (input(
+                    ('\nWhat should be {0}? (Default is {1}.)\nChoices:\n'
+                     '\n\t{2}\n\n{3}: ').format(
+                                                _strs['attribs'][a]['text'],
+                                                _dflt,
+                                                '\n\t'.join(_choices),
+                                                a.title()
+                                                )
+                                            )).strip().lower()
+                if _a == '':
+                    _a = _dflt
+                elif _a not in _choices:
+                    print(
+                            ('Invalid selection; choosing default '
+                             '({0})').format(_dflt)
+                            )
+                    _a = _dflt
+            gpg_vals['attribs'][a] = _a
+        for p in _strs['params']:
+            _p = input(
+                    ('\nWhat is the {0} for the subkey?\n'
+                     '{1}: ').format(p, p.title())
+                    )
+            if p in _checks['params']:
+                while not _checks['params'][p]['check'](_p):
+                    print(
+                            ('Invalid entry ({0}). Please retry.').format(
+                                    _checks['params'][p]['error']
+                                    )
+                            )
+                    _p = input('{0}: '.format(_p.title()))
+            gpg_vals['params'][p] = _p
+        return(gpg_vals)
 
     def hash_select(self, prompt = '',
                     hash_types = generate().hashlib_names()):
@@ -240,116 +297,81 @@ class prompts(object):
         ssl_vals = {'paths': {},
                     'attribs': {},
                     'subject': {}}
+        _checks = {
+            'subject': {
+                'countryName': valid().country_abbrev,
+                'emailAddress': valid().email
+                }
+            }
+        _strs = copy.deepcopy(self.promptstr.ssl)
         # pki_role should be 'ca' or 'client'
         if pki_role not in ('ca', 'client'):
             raise ValueError('pki_role must be either "ca" or "client"')
-        _attribs = {'cert': {'hash_algo': {'text': ('What hashing algorithm '
-                                'do you want to use? (Default is sha512.)'),
-                                           'prompt': 'Hashing algorithm: ',
-                                           'options': openssl_digests,
-                                           'default': 'sha512'}},
-                    'key': {'cipher': {'text': ('What encryption algorithm/'
-                                'cipher do you want to use? (Default is '
-                                                'aes256.)'),
-                                      'prompt': 'Cipher: ',
-                                      'options': openssl_ciphers,
-                                       'default': 'aes256'},
-                            # This can actually theoretically be anywhere from
-                            # 512 to... who knows how high. I couldn't find the
-                            # upper bound. So we just set it to sensible
-                            # defaults. If they want something higher, they can
-                            # edit the XML when they're done.
-                            'keysize': {'text': ('What keysize/length (in '
-                                'bits) do you want the key to be? (Default is '
-                                '4096; much higher values are possible but '
-                                'are untested and thus not supported by this '
-                                'tool; feel free to edit the generated '
-                                'configuration by hand.)'),
-                                        'prompt': 'Keysize: ',
-                                        'options': ['1024', '2048', '4096'],
-                                        'default': '4096'}}}
-        _paths = {'cert': '(or read from) the certificate',
-                  'key': '(or read from) the key',
-                  'csr': ('(or read from) the certificate signing request (if '
-                          'blank, we won\'t write to disk - the operation '
-                          'will occur entirely in memory assuming we need to '
-                          'generate/sign)')}
+        # NOTE: need to validate US and email
         if pki_role == 'ca':
-            _paths['index'] = ('(or read from) the CA DB index file (if left '
-                              'blank, one will not be used)')
-            _paths['serial'] = ('(or read from) the CA DB serial file (if '
-                                'left blank, one will not be used)')
-        for a in _attribs:
+            # this is getting triggered for clients?
+            _strs['paths'].update(_strs['paths_ca'])
+        for a in _strs['attribs']:
             ssl_vals['attribs'][a] = {}
-            for x in _attribs[a]:
+            for x in _strs['attribs'][a]:
                 ssl_vals['attribs'][a][x] = None
-        for p in _paths:
+        for p in _strs['paths']:
             if p == 'csr':
                 _allow_empty = True
             else:
                 _allow_empty = False
-            ssl_vals['paths'][p] = self.path(_paths[p],
+            ssl_vals['paths'][p] = self.path(_strs['paths'][p],
                                              empty_passthru = _allow_empty)
             print()
             if ssl_vals['paths'][p] == '':
                 ssl_vals['paths'][p] = None
-            if p in _attribs:
-                for x in _attribs[p]:
+            if p in _strs['attribs']:
+                for x in _strs['attribs'][p]:
                     while not ssl_vals['attribs'][p][x]:
-                        ssl_vals['attribs'][p][x] = (input(
-                            ('\n{0}\n\n\t{1}\n\n{2}').format(
-                                    _attribs[p][x]['text'],
-                                    '\n\t'.join(_attribs[p][x]['options']),
-                                    _attribs[p][x]['prompt'])
-                                )).strip().lower()
-                        if ssl_vals['attribs'][p][x] not in \
-                                                    _attribs[p][x]['options']:
-                            print(('\nInvalid selection; setting default '
-                                   '({0}).').format(_attribs[p][x]['default']))
-                            ssl_vals['attribs'][p][x] = \
-                                                    _attribs[p][x]['default']
-        _subject = {'countryName': {'text': ('the 2-letter country '
-                                             'abbreviation (must conform to '
-                                             'ISO3166 ALPHA-2)?\nCountry '
-                                             'code: '),
-                                    'check': 'func',
-                                    'func': valid().country_abbrev},
-                    'localityName': {'text': ('the city/town/borough/locality '
-                                              'name?\nLocality: '),
-                                     'check': None},
-                    'stateOrProvinceName': {'text': ('the state/region '
-                                                     'name (full string)?'
-                                                     '\nRegion: '),
-                                            'check': None},
-                    'organization': {'text': ('your organization\'s name?'
-                                              '\nOrganization: '),
-                                     'check': None},
-                    'organizationalUnitName': {'text': ('your department/role/'
-                                                        'team/department name?'
-                                                        '\nOrganizational '
-                                                        'Unit: '),
-                                               'check': None},
-                    'emailAddress': {'text': ('the email address to be '
-                                              'associated with this '
-                                              'certificate/PKI object?\n'
-                                              'Email: '),
-                                     'check': 'func',
-                                     'func': valid().email}}
-        for s in _subject:
+                        # cipher attrib is prompted for before this.
+                        if p == 'key' and x == 'passphrase':
+                            if ssl_vals['attribs']['key']['cipher'] == 'none':
+                                ssl_vals['attribs'][p][x] = 'none'
+                                continue
+                            ssl_vals['attribs'][p][x] = getpass.getpass(
+                                    ('{0}\n{1}').format(
+                                            _strs['attribs'][p][x]['text'],
+                                            _strs['attribs'][p][x]['prompt'])
+                                    )
+                            if ssl_vals['attribs'][p][x] == '':
+                                ssl_vals['attribs'][p][x] = 'none'
+                        else:
+                            ssl_vals['attribs'][p][x] = (input(
+                                ('\n{0}\n\n\t{1}\n\n{2}').format(
+                                                _strs['attribs'][p][x]['text'],
+                                                '\n\t'.join(
+                                            _strs['attribs'][p][x]['options']),
+                                            _strs['attribs'][p][x]['prompt']))
+                                                ).strip().lower()
+                            if ssl_vals['attribs'][p][x] not in \
+                                            _strs['attribs'][p][x]['options']:
+                                print(
+                                        ('\nInvalid selection; setting default '
+                                       '({0}).').format(
+                                            _strs['attribs'][p][x]['default']
+                                                )
+                                        )
+                                ssl_vals['attribs'][p][x] = \
+                                            _strs['attribs'][p][x]['default']
+        for s in _strs['subject']:
             ssl_vals['subject'][s] = None
-        for s in _subject:
+        for s in _strs['subject']:
             while not ssl_vals['subject'][s]:
                 _input = (input(
-                            ('\nWhat is {0}').format(_subject[s]['text'])
+                            ('\nWhat is {0}').format(
+                                _strs['subject'][s]['text'])
                         )).strip()
-                _chk = _subject[s]['check']
-                if _chk:
-                    if _chk == 'func':
-                        _chk = _subject[s]['func'](_input)
-                        if not _chk:
-                            print('Invalid value; retrying.')
-                            continue
                 print()
+                if s in _checks['subject']:
+                    if not _checks['subject'][s](_input):
+                        print('Invalid entry; try again.')
+                        ssl_vals['subject'][s] = None
+                        continue
                 ssl_vals['subject'][s] = _input
         _url = transform().url_to_dict(cn_url, no_None = True)
         ssl_vals['subject']['commonName'] = _url['host']
@@ -593,6 +615,11 @@ class valid(object):
         except ValueError:
             return(False)
         return()
+
+    def nonempty_str(self, str_in):
+        if str_in.strip() == '':
+            return(False)
+        return(True)
 
     def password(self, passwd):
         # https://en.wikipedia.org/wiki/ASCII#Printable_characters

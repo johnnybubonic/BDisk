@@ -625,7 +625,7 @@ class ConfGenerator(object):
                                  'created that can be used to serve iPXE)'),
                         'tftp': ('the TFTP directory (where a TFTP/'
                                  'traditional PXE root is created)'),
-                        'ssl': ('the SSL/TLS PKI directory (where we store '
+                        'pki': ('the SSL/TLS PKI directory (where we store '
                                 'the PKI structure we use/re-use - MAKE SURE '
                                 'it is in a path that is well-protected!)')}
         has_paths = False
@@ -840,7 +840,7 @@ class ConfGenerator(object):
                               'then trying the built-in ~/.gnupg directory).'
                               '\nGPG Home Directory: '))
             if _gpghome.strip() != '':
-                gpg.attrib['gnupghome'] == _gpghome
+                gpg.attrib['gnupghome'] = _gpghome
             else:
                 _gpghome = 'none'
         print('\n++ GPG || KEYSERVER PUSHING ++')
@@ -935,12 +935,12 @@ class ConfGenerator(object):
                                 '\n\t'.join(_choices)
                                 ))).strip().lower()
                 if _export_type.startswith('a'):
-                    _export_type == 'asc'
+                    _export_type = 'asc'
                 elif _export_type.startswith('b'):
-                    _export_type == 'bin'
+                    _export_type = 'bin'
                 else:
                     print('Using the default.')
-                    _export_type == 'asc'
+                    _export_type = 'asc'
                 elem.attrib['format'] = _export_type
             _path = None
             while not _path:
