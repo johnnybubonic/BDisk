@@ -661,6 +661,7 @@ class transform(object):
     def xml2py(self, value, attrib = True):
         yes = re.compile('^\s*(y(es)?|true|1)\s*$', re.IGNORECASE)
         no = re.compile('^\s*(no?|false|0)\s*$', re.IGNORECASE)
+        none = re.compile('^\s*(none|)\s*$', re.IGNORECASE)
         if no.search(value):
             if attrib:
                 return(False)
@@ -669,10 +670,13 @@ class transform(object):
         elif yes.search(value):
             # We handle the False case above.
             return(True)
-        elif value.strip() == '':
+        elif value.strip() == '' or none.search(value):
             return(None)
+        elif valid().integer(value):
+            return(int(value))
         else:
             return(value)
+        return()
 
 class valid(object):
     def __init__(self):

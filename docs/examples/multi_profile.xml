@@ -57,7 +57,7 @@
         <mirror>http://archlinux.mirror.domain.tld</mirror>
         <rootpath>/iso/latest</rootpath>
         <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
-        <checksum hash_algo="sha1" flags="none">sha1sums.txt</checksum>
+        <checksum hash_algo="sha1" explicit="no">sha1sums.txt</checksum>
         <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
       </source>
       <source arch="i686">
@@ -146,6 +146,7 @@
       </key>
     </gpg>
     <sync>
+      <!-- ipxe includes the http directory. or should, anyways. -->
       <ipxe enabled="yes">/srv/http/{xpath%../../meta/names/uxname/text()}</ipxe>
       <tftp enabled="yes">/tftproot/{xpath%../../meta/names/uxname/text()}</tftp>
       <iso enabled="yes">/srv/http/isos/{xpath%../../meta/names/uxname/text()}</iso>
@@ -198,7 +199,7 @@
         <mirror>http://archlinux.mirror.domain.tld</mirror>
         <rootpath>/iso/latest</rootpath>
         <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
-        <checksum hash_algo="sha1" flags="none">sha1sums.txt</checksum>
+        <checksum hash_algo="sha1" explicit="no">sha1sums.txt</checksum>
         <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
       </source>
       <source arch="i686">

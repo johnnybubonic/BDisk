@@ -55,6 +55,29 @@ class Conf(object):
             #    raise ValueError('The configuration did not pass XSD/schema '
             #                     'validation')
 
+    def get_pki_obj(self, pki, pki_type):
+        elem = {}
+        if pki_type not in ('ca', 'client'):
+            raise ValueError('pki_type must be "ca" or "client"')
+        if pki_type == 'ca':
+            elem['index'] = None
+            elem['serial'] = None
+        for e in pki.xpath('./*'):
+            # These have attribs or children.
+            if e.tag in ('cert', 'key', 'subject'):
+                elem[e.tag] = {}
+                if e.tag == 'subject':
+                    for sub in e.xpath('./*'):
+                        elem[e.tag][sub.tag] = transform.xml2py(sub.text,
+                                                                attrib = False)
+                else:
+                    for a in e.xpath('./@*'):
+                        elem[e.tag][a.attrname] = transform.xml2py(a)
+                    elem[e.tag]['path'] = e.text
+            else:
+                elem[e.tag] = e.text
+        return(elem)
+
     def get_source(self, source, item, _source):
         _source_item = {'flags': [],
                          'fname': None}
@@ -137,6 +160,8 @@ class Conf(object):
         self.parse_sources()
         self.parse_buildpaths()
         self.parse_pki()
+        self.parse_gpg()
+        self.parse_sync()
         return()
 
     def parse_buildpaths(self):
@@ -165,6 +190,30 @@ class Conf(object):
                 self.cfg[x]['uri'] = elem.xpath('./uri/text()')[0]
         return()
 
+    def parse_gpg(self):
+        ## PROFILE/GPG
+        self.cfg['gpg'] = {'keyid': None,
+                           'gnupghome': None,
+                           'publish': None,
+                           'prompt_passphrase': None,
+                           'keys': []}
+        elem = self.profile.xpath('./gpg')[0]
+        for attr in elem.xpath('./@*'):
+            self.cfg['gpg'][attr.attrname] = transform.xml2py(attr)
+        for key in elem.xpath('./key'):
+            _key = {'algo': 'rsa',
+                    'keysize': '4096',
+                    'expire': '0',
+                    'name': None,
+                    'email': None,
+                    'comment': None}
+            for attr in key.xpath('./@*'):
+                _key[attr.attrname] = transform.xml2py(attr)
+            for param in key.xpath('./*'):
+                _key[param.tag] = transform.xml2py(param.text, attrib = False)
+            self.cfg['gpg']['keys'].append(_key)
+        return()
+
     def parse_meta(self):
         ## PROFILE/META
         # Get the various meta strings. We skip regexes (we handle those
@@ -191,10 +240,18 @@ class Conf(object):
         return()
 
     def parse_pki(self):
-        self.cfg['pki'] = {'ca': {},
-                           'client': []}
+        ## PROFILE/PKI
+        self.cfg['pki'] = {'clients': []}
         elem = self.profile.xpath('./pki')[0]
-        self.cfg['pki']['overwrite'] =
+        self.cfg['pki']['overwrite'] = transform.xml2py(
+                                                elem.get('overwrite', 'no'))
+        ca = elem.xpath('./ca')[0]
+        clients = elem.xpath('./client')
+        self.cfg['pki']['ca'] = self.get_pki_obj(ca, 'ca')
+        for client in clients:
+            self.cfg['pki']['clients'].append(self.get_pki_obj(client,
+                                                               'client'))
+        return()
 
     def parse_profile(self):
         ## PROFILE
@@ -220,6 +277,28 @@ class Conf(object):
             for e in ('tarball', 'checksum', 'sig'):
                 _source[e] = self.get_source(source, e, _source)
             self.cfg['sources'].append(_source)
+        return()
+
+    def parse_sync(self):
+        ## PROFILE/SYNC
+        self.cfg['sync'] = {}
+        elem = self.profile.xpath('./sync')[0]
+        # We populate defaults in case they weren't specified.
+        for e in ('gpg', 'ipxe', 'iso', 'tftp'):
+            self.cfg['sync'][e] = {'enabled': False,
+                                   'path': None}
+            sub = elem.xpath('./{0}'.format(e))[0]
+            for a in sub.xpath('./@*'):
+                self.cfg['sync'][e][a.attrname] = transform.xml2py(a)
+            self.cfg['sync'][e]['path'] = sub.text
+        rsync = elem.xpath('./rsync')[0]
+        self.cfg['sync']['rsync'] = {'enabled': False}
+        for a in rsync.xpath('./@*'):
+            self.cfg['sync']['rsync'][a.attrname] = transform.xml2py(a)
+        for sub in rsync.xpath('./*'):
+            self.cfg['sync']['rsync'][sub.tag] = transform.xml2py(
+                                                        sub.text,
+                                                        attrib = False)
         return()
 
     def validate(self):

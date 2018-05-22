@@ -163,6 +163,7 @@
             </key>
         </gpg>
         <sync>
+            <!-- ipxe includes the http directory. or should, anyways. -->
             <ipxe enabled="yes">/srv/http/{xpath%../../meta/names/uxname/text()}</ipxe>
             <tftp enabled="yes">/tftproot/{xpath%../../meta/names/uxname/text()}</tftp>
             <iso enabled="yes">/srv/http/isos/{xpath%../../meta/names/uxname/text()}</iso>
