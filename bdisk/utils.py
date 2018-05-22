@@ -15,6 +15,7 @@ import uuid
 import validators
 import zlib
 import lxml.etree
+from bs4 import BeautifulSoup
 from collections import OrderedDict
 from dns import resolver
 from email.utils import parseaddr as emailparse
@@ -28,6 +29,7 @@ passlib_schemes = ['des_crypt', 'md5_crypt', 'sha256_crypt', 'sha512_crypt']
 # Build various hash digest name lists
 digest_schemes = list(hashlib.algorithms_available)
 # Provided by zlib
+# TODO
 digest_schemes.append('adler32')
 digest_schemes.append('crc32')
 
@@ -35,8 +37,6 @@ crypt_map = {'sha512': crypt.METHOD_SHA512,
              'sha256': crypt.METHOD_SHA256,
              'md5': crypt.METHOD_MD5,
              'des': crypt.METHOD_CRYPT}
-
-
 
 class XPathFmt(string.Formatter):
     def get_field(self, field_name, args, kwargs):
@@ -73,6 +73,41 @@ class detect(object):
         else:
             return(None)
         return()
+
+    def password_hash_salt(self, salted_hash):
+        _hash_list = salted_hash.split('$')
+        salt = _hash_list[2]
+        return(salt)
+
+    def remote_files(self, url_base, ptrn = None, flags = []):
+        with urlopen(url_base) as u:
+            soup = BeautifulSoup(u.read(), 'lxml')
+        urls = []
+        if 'regex' in flags:
+            if not isinstance(ptrn, str):
+                raise ValueError('"ptrn" must be a regex pattern to match '
+                                 'against')
+            else:
+                ptrn = re.compile(ptrn)
+        for u in soup.find_all('a'):
+            if not u.has_attr('href'):
+                continue
+            if 'regex' in flags:
+                if not ptrn.search(u.attrs['href']):
+                    continue
+            if u.has_attr('href'):
+                urls.append(u.attrs['href'])
+        if not urls:
+            return(None)
+        # We certainly can't intelligently parse the printed timestamp since it
+        # varies so much and that'd be a nightmare to get consistent...
+        # But we CAN sort by filename.
+        if 'latest' in flags:
+            urls = sorted(list(set(urls)))
+            urls = urls[-1]
+        else:
+            urls = urls[0]
+        return(urls)
 
     def gpgkeyID_from_url(self, url):
         with urlopen(url) as u:
@@ -144,6 +179,9 @@ class generate(object):
             _salt = crypt.mksalt(algo)
         else:
             _salt = salt
+        if not password:
+            # Intentionally empty password.
+            return('')
         return(crypt.crypt(password, _salt))
 
     def hashlib_names(self):
@@ -154,7 +192,9 @@ class generate(object):
                 hashes.append(h)
         return(hashes)
 
-    def salt(self, algo = 'sha512'):
+    def salt(self, algo = None):
+        if not algo:
+            algo = 'sha512'
         algo = crypt_map[algo]
         return(crypt.mksalt(algo))
 
@@ -574,6 +614,66 @@ class transform(object):
             url['full_url'] += '#{0}'.format('#'.join(_f))
         return(url)
 
+    def user(self, user_elem):
+        _attribs = ('hashed', 'hash_algo', 'salt')
+        acct = {}
+        for a in _attribs:
+            acct[a] = None
+        if len(user_elem):
+            elem = user_elem[0]
+            for a in _attribs:
+                if a in elem.attrib:
+                    acct[a] = self.xml2py(elem.attrib[a], attrib = True)
+            if acct['hashed']:
+                if not acct['hash_algo']:
+                    _hash = detect().password_hash(elem.text)
+                    if _hash:
+                        acct['hash_algo'] = _hash
+                    else:
+                        raise ValueError(
+                                'Invalid salted password hash: {0}'.format(
+                                        elem.text)
+                                )
+                acct['salt_hash'] = elem.text
+                acct['passphrase'] = None
+            else:
+                if not acct['hash_algo']:
+                    acct['hash_algo'] = 'sha512'
+                acct['passphrase'] = elem.text
+            _saltre = re.compile('^\s*(auto|none|)\s*$', re.IGNORECASE)
+            if acct['salt']:
+                if _saltre.search(acct['salt']):
+                    _salt = generate.salt(acct['hash_algo'])
+                    acct['salt'] = _salt
+            else:
+                if not acct['hashed']:
+                    acct['salt_hash'] = generate().hash_password(
+                                        acct['passphrase'],
+                                        algo = crypt_map[acct['hash_algo']])
+                acct['salt'] = detect().password_hash_salt(acct['salt_hash'])
+        if 'salt_hash' not in acct:
+            acct['salt_hash'] = generate().hash_password(
+                                        acct['passphrase'],
+                                        salt = acct['salt'],
+                                        algo = crypt_map[acct['hash_algo']])
+        return(acct)
+
+    def xml2py(self, value, attrib = True):
+        yes = re.compile('^\s*(y(es)?|true|1)\s*$', re.IGNORECASE)
+        no = re.compile('^\s*(no?|false|0)\s*$', re.IGNORECASE)
+        if no.search(value):
+            if attrib:
+                return(False)
+            else:
+                return(None)
+        elif yes.search(value):
+            # We handle the False case above.
+            return(True)
+        elif value.strip() == '':
+            return(None)
+        else:
+            return(value)
+
 class valid(object):
     def __init__(self):
         pass
@@ -705,22 +805,32 @@ class valid(object):
 
 class xml_supplicant(object):
     def __init__(self, cfg, profile = None, max_recurse = 5):
-        raw = self._detect_cfg(cfg)
-        xmlroot = lxml.etree.fromstring(raw)
+        self.selector_ids = ('id', 'name', 'uuid')
         self.btags = {'xpath': {},
                       'regex': {},
                       'variable': {}}
+        raw = self._detect_cfg(cfg)
+        # This is changed in just a moment.
+        self.profile = profile
+        # This is retained so we can "refresh" the profile if needed.
+        self.orig_profile = profile
+        try:
+            self.xml = lxml.etree.fromstring(raw)
+        except lxml.etree.XMLSyntaxError:
+            raise ValueError('The configuration provided does not seem to be '
+                             'valid')
+        self.get_profile(profile = profile)
+        self.xml = lxml.etree.fromstring(raw)
         self.fmt = XPathFmt()
-        self.max_recurse = max_recurse
+        self.max_recurse = int(self.profile.xpath(
+                                        '//meta/max_recurse/text()')[0])
         # I don't have permission to credit them, but to the person who helped
         # me with this regex - thank you. You know who you are.
+        # Originally this pattern was the one from:
+        # https://stackoverflow.com/a/12728199/733214
         self.ptrn = re.compile(('(?<=(?<!\{)\{)(?:[^{}]+'
                                 '|{{[^{}]*}})*(?=\}(?!\}))'))
-        self.root = lxml.etree.ElementTree(xmlroot)
-        if not profile:
-            self.profile = xmlroot.xpath('/bdisk/profile[1]')[0]
-        else:
-            self.profile = xmlroot.xpath(profile)[0]
+        self.root = lxml.etree.ElementTree(self.xml)
         self._parse_regexes()
         self._parse_variables()
         
@@ -751,10 +861,11 @@ class xml_supplicant(object):
         else:
             raise TypeError('Could not determine the object type.')
         return(cfg)
-    
+
     def _parse_regexes(self):
         for regex in self.profile.xpath('//meta/regexes/pattern'):
-            self.btags['regex'][regex.attrib['id']] = re.compile(regex.text)
+            _key = 'regex%{0}'.format(regex.attrib['id'])
+            self.btags['regex'][_key] = regex.text
         return()
 
     def _parse_variables(self):
@@ -762,6 +873,85 @@ class xml_supplicant(object):
             self.btags['variable'][
                                 'variable%{0}'.format(variable.attrib['id'])
                                     ] = variable.text
+        return()
+
+    def btags_to_dict(self, text_in):
+        d = {}
+        ptrn_id = self.ptrn.findall(text_in)
+        if len(ptrn_id) >= 1:
+            for item in ptrn_id:
+                try:
+                    btag, expr = item.split('%', 1)
+                    if btag not in self.btags:
+                        continue
+                    if item not in self.btags[btag]:
+                        self.btags[btag][item] = None
+                    #self.btags[btag][item] = expr # remove me?
+                    if btag == 'xpath':
+                        d[item] = (btag, expr)
+                    elif btag == 'variable':
+                        d[item] = (btag, self.btags['variable'][item])
+                except ValueError:
+                    return(d)
+        return(d)
+
+    def get_profile(self, profile = None):
+        """Get a configuration profile.
+
+        Get a configuration profile from the XML object and set that as a
+        profile object. If a profile is specified, attempt to find it. If not,
+        follow the default rules as specified in __init__.
+        """
+        if profile:
+            # A profile identifier was provided
+            if isinstance(profile, str):
+                _profile_name = profile
+                profile = {}
+                for i in self.selector_ids:
+                    profile[i] = None
+                profile['name'] = _profile_name
+            elif isinstance(profile, dict):
+                for k in self.selector_ids:
+                    if k not in profile.keys():
+                        profile[k] = None
+            else:
+                raise TypeError('profile must be a string (name of profile), '
+                                'a dictionary, or None')
+            xpath = '/bdisk/profile{0}'.format(self.xpath_selector(profile))
+            self.profile = self.xml.xpath(xpath)
+            if len(self.profile) != 1:
+                raise ValueError('Could not determine a valid, unique '
+                                 'profile; please check your profile '
+                                 'specifier(s)')
+            else:
+                # We need the actual *profile*, not a list of matching
+                # profile(s).
+                self.profile = self.profile[0]
+            if not len(self.profile):
+                raise RuntimeError('Could not find the profile specified in '
+                                   'the given configuration')
+        else:
+            # We need to find the default.
+            profiles = []
+            for p in self.xml.xpath('/bdisk/profile'):
+                profiles.append(p)
+            # Look for one named "default" or "DEFAULT" etc.
+            for idx, value in enumerate([e.attrib['name'].lower() \
+                                         for e in profiles]):
+                if value == 'default':
+                    #self.profile = copy.deepcopy(profiles[idx])
+                    self.profile = profiles[idx]
+                    break
+            # We couldn't find a profile with a default name. Try to grab the
+            # first profile.
+            if self.profile is None:
+                # Grab the first profile.
+                if profiles:
+                    self.profile = profiles[0]
+                else:
+                    # No profiles found.
+                    raise RuntimeError('Could not find any usable '
+                                       'configuration profiles')
         return()
 
     def get_path(self, element):
@@ -815,33 +1005,10 @@ class xml_supplicant(object):
                         _dictmap = self.btags_to_dict(element.text)
         return(element)
 
-    def xpath_selector(self, selectors,
-                       selector_ids = ('id', 'name', 'uuid')):
+    def xpath_selector(self, selectors):
         # selectors is a dict of {attrib:value}
         xpath = ''
         for i in selectors.items():
-            if i[1] and i[0] in selector_ids:
+            if i[1] and i[0] in self.selector_ids:
                 xpath += '[@{0}="{1}"]'.format(*i)
         return(xpath)
-
-    def btags_to_dict(self, text_in):
-        d = {}
-        ptrn_id = self.ptrn.findall(text_in)
-        if len(ptrn_id) >= 1:
-            for item in ptrn_id:
-                try:
-                    btag, expr = item.split('%', 1)
-                    if btag not in self.btags:
-                        continue
-                    if item not in self.btags[btag]:
-                        self.btags[btag][item] = None
-                    #self.btags[btag][item] = expr # remove me?
-                    if btag == 'xpath':
-                        d[item] = (btag, expr)
-                    elif btag == 'variable':
-                        d[item] = (btag, self.btags['variable'][item])
-                except ValueError:
-                    return(d)
-        return(d)
-
-

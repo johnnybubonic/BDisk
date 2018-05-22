@@ -442,6 +442,8 @@ class ConfGenerator(object):
             tarball_elem.attrib['flags'] = 'latest'
             tarball_elem.text = tarball['full_url']
             print('\n++ SOURCES || {0} || CHECKSUM ++'.format(arch.upper()))
+            # TODO: explicit not being set for explicitly-set sums,
+            # and checksum string not actually added to those. investigate.
             chksum = lxml.etree.SubElement(source, 'checksum')
             _chksum_chk = prompt.confirm_or_no(prompt = (
                 '\nWould you like to add a checksum for the tarball? (BDisk '
@@ -502,7 +504,7 @@ class ConfGenerator(object):
                             print('Invalid selection. Starting over.')
                             continue
                     else:
-                        checksum_type == checksum_type[0]
+                        checksum_type = checksum_type[0]
                         chksum.attrib['explicit'] = "yes"
                         chksum.text = checksum
                     chksum.attrib['hash_algo'] = checksum_type
