@@ -1,6 +1,147 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="http://bdisk.square-r00t.net"
-           xmlns="http://bdisk.square-r00t.net"
+           targetNamespace="http://bdisk.square-r00t.net/"
+           xmlns="http://bdisk.square-r00t.net/"
            elementFormDefault="qualified">
+    <!-- ROOT ELEMENT ("BDISK") -->
+    <xs:element name="bdisk">
+        <xs:complexType>
+            <xs:choice>
+                <!-- BDISK/PROFILE -->
+                <xs:element name="profile" maxOccurs="unbounded" minOccurs="1">
+                    <xs:complexType>
+                        <xs:all>
+                            <!-- BDISK/PROFILE/META -->
+                            <xs:element name="meta" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:all>
+                                        <!-- BDISK/PROFILE/META/NAMES -->
+                                        <xs:element name="names" maxOccurs="1" minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- BDISK/PROFILE/META/NAMES/NAME -->
+                                                    <xs:element name="name" maxOccurs="1" minOccurs="1">
+                                                        <xs:simpleType>
+                                                            <xs:restriction base="xs:string">
+                                                                <xs:pattern
+                                                                        value="(\{(xpath|variable)%[A-Za-z0-9_]\}|[A-Z0-9]{1,8})"/>
+                                                            </xs:restriction>
+                                                        </xs:simpleType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/META/NAMES/NAME -->
+                                                    <!-- BDISK/PROFILE/META/NAMES/UXNAME -->
+                                                    <xs:element name="uxname" maxOccurs="1" minOccurs="1">
+                                                        <xs:simpleType>
+                                                            <xs:restriction base="xs:string">
+                                                                <xs:pattern
+                                                                        value="(\{(xpath|variable)%[A-Za-z0-9_]+\}|[A-Za-z0-9]{1,255})"/>
+                                                            </xs:restriction>
+                                                        </xs:simpleType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/META/NAMES/UXNAME -->
+                                                    <!-- BDISK/PROFILE/META/NAMES/PNAME -->
+                                                    <xs:element name="pname" maxOccurs="1" minOccurs="1">
+                                                        <xs:simpleType>
+                                                            <xs:restriction base="xs:string">
+                                                                <!-- https://stackoverflow.com/a/9805789/733214 -->
+                                                                <xs:pattern value="\p{IsBasicLatin}*"/>
+                                                            </xs:restriction>
+                                                        </xs:simpleType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/META/NAMES/PNAME -->
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/META/NAMES -->
+                                        <!-- BDISK/PROFILE/META/DESC -->
+                                        <xs:element name="desc" maxOccurs="1" minOccurs="1" type="xs:string"/>
+                                        <!-- END BDISK/PROFILE/META/DESC -->
+                                        <!-- BDISK/PROFILE/META/DEV -->
+                                        <xs:element name="dev" maxOccurs="1" minOccurs="1" type="xs:string"/>
+                                        <!-- END BDISK/PROFILE/META/DEV -->
+                                        <!-- BDISK/PROFILE/META/URI -->
+                                        <xs:element name="uri" maxOccurs="1" minOccurs="1" type="xs:anyURI"/>
+                                        <!-- END BDISK/PROFILE/META/URI -->
+                                        <!-- BDISK/PROFILE/META/VER -->
+                                        <xs:element name="ver" maxOccurs="1" minOccurs="1" type="xs:string"/>
+                                        <!-- END BDISK/PROFILE/META/VER -->
+                                        <!-- BDISK/PROFILE/META/MAX_RECURSE -->
+                                        <xs:element name="max_recurse" maxOccurs="1" minOccurs="1"
+                                                    type="xs:positiveInteger"/>
+                                        <!-- END BDISK/PROFILE/META/MAX_RECURSE -->
+                                        <!-- BDISK/PROFILE/META/REGEXES -->
+                                        <xs:element name="regexes" maxOccurs="1" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <!-- BDISK/PROFILE/META/REGEXES/PATTERN -->
+                                                    <xs:element name="pattern" maxOccurs="unbounded" minOccurs="1">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:string">
+                                                                    <xs:attribute name="id" type="xs:string"
+                                                                                  use="required"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/META/REGEXES/PATTERN -->
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/META/REGEXES -->
+                                        <!-- BDISK/PROFILE/META/VARIABLES -->
+                                        <xs:element name="variables" maxOccurs="1" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <!-- BDISK/PROFILE/META/VARIABLES/VARIABLE -->
+                                                    <xs:element name="variable" maxOccurs="unbounded" minOccurs="1">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="xs:string">
+                                                                    <xs:attribute name="id" type="xs:string"
+                                                                                  use="required"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/META/VARIABLES/VARIABLE -->
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/META/VARIABLES -->
+                                    </xs:all>
+                                </xs:complexType>
+                            </xs:element>
+                            <!-- END BDISK/PROFILE/META -->
+                            <!-- BDISK/PROFILE/ACCOUNTS -->
+                            <xs:element name="accounts" maxOccurs="1" minOccurs="1"/>
+                            <!-- END BDISK/PROFILE/ACCOUNTS -->
+                            <!-- BDISK/PROFILE/BUILD-->
+                            <xs:element name="build" maxOccurs="1" minOccurs="1"/>
+                            <!-- END BDISK/PROFILE/BUILD -->
+                            <!-- BDISK/PROFILE/ISO -->
+                            <xs:element name="iso" maxOccurs="1" minOccurs="1"/>
+                            <!-- END BDISK/PROFILE/ISO -->
+                            <!-- BDISK/PROFILE/IPXE -->
+                            <xs:element name="ipxe" maxOccurs="1" minOccurs="1"/>
+                            <!-- END BDISK/PROFILE/IPXE -->
+                            <!-- BDISK/PROFILE/GPG -->
+                            <xs:element name="gpg" maxOccurs="1" minOccurs="1"/>
+                            <!-- END BDISK/PROFILE/GPG -->
+                            <!-- BDISK/PROFILE/PKI -->
+                            <xs:element name="pki" maxOccurs="1" minOccurs="1"/>
+                            <!-- END BDISK/PROFILE/PKI -->
+                            <!-- BDISK/PROFILE/SYNC -->
+                            <xs:element name="sync" maxOccurs="1" minOccurs="1"/>
+                            <!-- END BDISK/PROFILE/SYNC -->
+                        </xs:all>
+                        <xs:attribute name="id" type="xs:positiveInteger"/>
+                        <xs:attribute name="name" type="xs:string"/>
+                    </xs:complexType>
+                </xs:element>
+                <!-- END BDISK/PROFILE -->
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <!-- END BDISK -->
 </xs:schema>

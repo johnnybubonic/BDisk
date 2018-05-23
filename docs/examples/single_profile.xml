@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<bdisk>
+<bdisk xmlns:bdisk="http://bdisk.square-r00t.net/"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://bdisk.square-r00t.net bdisk.xsd">
     <profile name="default" id="1" uuid="8cdd6bcb-c147-4a63-9779-b5433c510dbc">
         <meta>
             <names>
@@ -27,7 +29,8 @@
                  items. See the manual for more information. NO btags within the patterns is allowed. -->
             <regexes>
                 <pattern id="tarball_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz$</pattern>
-                <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$</pattern>
+                <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$
+                </pattern>
                 <pattern id="tarball_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz$</pattern>
                 <pattern id="sig_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz\.sig$</pattern>
             </regexes>
@@ -38,7 +41,9 @@
         </meta>
         <accounts>
             <!-- Salted/hashed password is "test" -->
-            <rootpass hashed="yes">$6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1</rootpass>
+            <rootpass hashed="yes">
+                $6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1
+            </rootpass>
             <user sudo="yes">
                 <username>{xpath%//meta/names/uxname/text()}</username>
                 <!-- You can also use substitution from different profiles in this same configuration: -->
@@ -46,14 +51,16 @@
                 <comment>{xpath%//meta/dev/author/text()}</comment>
                 <password hashed="no"
                           hash_algo="sha512"
-                          salt="auto">testpassword</password>
+                          salt="auto">testpassword
+                </password>
             </user>
             <user sudo="no">
                 <username>testuser</username>
                 <name>Test User</name>
                 <password hashed="no"
                           hash_algo="sha512"
-                          salt="auto">anothertestpassword</password>
+                          salt="auto">anothertestpassword
+                </password>
             </user>
         </accounts>
         <sources>
@@ -62,20 +69,25 @@
                 <rootpath>/iso/latest</rootpath>
                 <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
                 <checksum hash_algo="sha1"
-                          explicit="no">sha1sums.txt</checksum>
-                <sig keys="7F2D434B9741E8AC"    
+                          explicit="no">sha1sums.txt
+                </checksum>
+                <sig keys="7F2D434B9741E8AC"
                      keyserver="hkp://pool.sks-keyservers.net"
-                     flags="regex,latest">{regex%sig_x86_64}</sig>
+                     flags="regex,latest">{regex%sig_x86_64}
+                </sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <rootpath>/iso/latest</rootpath>
                 <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
                 <checksum hash_algo="sha512"
-                          explicit="yes">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
+                          explicit="yes">
+                    cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+                </checksum>
                 <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
                      keyserver="hkp://pool.sks-keyservers.net"
-                     flags="regex,latest">{regex%sig_i686}</sig>
+                     flags="regex,latest">{regex%sig_i686}
+                </sig>
             </source>
         </sources>
         <build its_full_of_stars="yes">
@@ -95,7 +107,7 @@
             </paths>
             <basedistro>archlinux</basedistro>
         </build>
-        <iso sign="yes" multi_arch="yes" />
+        <iso sign="yes" multi_arch="yes"/>
         <ipxe sign="yes" iso="yes">
             <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
         </ipxe>
@@ -109,7 +121,7 @@
                      then provide a path.
                      e.g.:
                         <csr>{xpath%build/paths/ssl/text()}/ca.csr</csr> -->
-                <csr />
+                <csr/>
                 <!-- If you use an index file (or want to) to serialize client certificates, specify it here. -->
                 <!-- It must conform to CADB spec (https://pki-tutorial.readthedocs.io/en/latest/cadb.html). -->
                 <!-- You should probably also specify a serial file if so. -->
@@ -121,7 +133,8 @@
                      be (securely) prompted for the passphrase to unlock it/add a passphrase to it. -->
                 <key cipher="none"
                      passphrase="none"
-                     keysize="4096">{xpath%../../../build/paths/pki/text()}/ca.key</key>
+                     keysize="4096">{xpath%../../../build/paths/pki/text()}/ca.key
+                </key>
                 <subject>
                     <commonName>domain.tld</commonName>
                     <countryName>XX</countryName>
@@ -133,11 +146,14 @@
                 </subject>
             </ca>
             <client>
-                <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt</cert>
-                <csr />
+                <cert hash_algo="sha512">
+                    {xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt
+                </cert>
+                <csr/>
                 <key cipher="none"
                      passphrase="none"
-                     keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
+                     keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key
+                </key>
                 <subject>
                     <commonName>some client name</commonName>
                     <countryName>XX</countryName>
@@ -159,7 +175,9 @@
             <key algo="rsa" keysize="4096" expire="0">
                 <name>{xpath%../../../meta/dev/author/text()}</name>
                 <email>{xpath%../../../meta/dev/email/text()}</email>
-                <comment>for {xpath%../../../meta/names/pname/text()} [autogenerated] | {xpath%../../../meta/uri/text()} | {xpath%../../../meta/desc/text()}</comment>
+                <comment>for {xpath%../../../meta/names/pname/text()} [autogenerated] | {xpath%../../../meta/uri/text()}
+                    | {xpath%../../../meta/desc/text()}
+                </comment>
             </key>
         </gpg>
         <sync>
@@ -168,7 +186,8 @@
             <tftp enabled="yes">/tftproot/{xpath%../../meta/names/uxname/text()}</tftp>
             <iso enabled="yes">/srv/http/isos/{xpath%../../meta/names/uxname/text()}</iso>
             <gpg enabled="yes"
-                 format="asc">/srv/http/{xpath%../../meta/names/uxname/text()}/pubkey.asc</gpg>
+                 format="asc">/srv/http/{xpath%../../meta/names/uxname/text()}/pubkey.asc
+            </gpg>
             <rsync enabled="yes">
                 <user>root</user>
                 <host>mirror.domain.tld</host>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<bdisk>
+<bdisk xmlns:bdisk="http://bdisk.square-r00t.net/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://bdisk.square-r00t.net bdisk.xsd">
   <profile name="default" id="1" uuid="8cdd6bcb-c147-4a63-9779-b5433c510dbc">
     <meta>
       <names>
