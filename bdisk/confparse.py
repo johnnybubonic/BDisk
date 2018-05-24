@@ -168,7 +168,7 @@ class Conf(object):
         ## PROFILE/BUILD(/PATHS)
         self.cfg['build'] = {'paths': {}}
         build = self.profile.xpath('./build')[0]
-        _optimize = build.get('its_full_of_stars', 'no')
+        _optimize = build.get('its_full_of_stars', 'false')
         self.cfg['build']['optimize'] = transform.xml2py(_optimize)
         for path in build.xpath('./paths/*'):
             self.cfg['build']['paths'][path.tag] = path.text
@@ -185,7 +185,7 @@ class Conf(object):
             # We enable all features by default.
             elem = self.profile.xpath('./{0}'.format(x))[0]
             for a in self.cfg[x]:
-                self.cfg[x][a] = transform.xml2py(elem.get(a, 'yes'))
+                self.cfg[x][a] = transform.xml2py(elem.get(a, 'true'))
             if x == 'ipxe':
                 self.cfg[x]['uri'] = elem.xpath('./uri/text()')[0]
         return()

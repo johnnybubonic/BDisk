@@ -3,9 +3,247 @@
            targetNamespace="http://bdisk.square-r00t.net/"
            xmlns="http://bdisk.square-r00t.net/"
            elementFormDefault="qualified">
+
+    <!-- CUSTOM TYPES -->
+    <!-- t_btag_uri: a string that will allow btags (xpath or variable only) or a URI string (but NOT a URN). -->
+    <!--             We can't use xs:anyURI because it is too loose (allows things like relative paths, etc.) -->
+    <!--             but ALSO too restrictive in that btags fail validation ({ and } are invalid for anyURI, -->
+    <!--             ironically). -->
+    <xs:simpleType name="t_btag_uri">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\w+:(/?/?)[^\s]+"/>
+            <xs:pattern value=".*\{variable%[A-Za-z0-9_]\}.*"/>
+            <xs:pattern value=".*\{xpath%[A-Za-z0-9_/\(\)\.\*@\-]+\}.*"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_btag_uri -->
+
+    <!-- t_filename: a POSIX fully-portable filename. -->
+    <xs:simpleType name="t_filename">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([a-z0-9._-]+){1,255}"/>
+            <xs:pattern value=".*\{variable%[A-Za-z0-9_]\}.*"/>
+            <xs:pattern value=".*\{xpath%[A-Za-z0-9_/\(\)\.\*@\-]+\}.*"/>
+            <!-- We don't allow (string)(regex) or (regex)(string) or (string)(regex)(string) or multiple regexes -->
+            <!-- because that's just... not feasible to manage from a parsing perspective. -->
+            <xs:pattern value="\{regex%.+\}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_filename -->
+
+    <!-- t_gpg_keyid: a set of various patterns that match GPG key IDs. -->
+    <xs:simpleType name="t_gpg_keyid">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(none|new)"/>
+            <xs:pattern value="(auto|default)"/>
+            <xs:pattern value="(0x)?[0-9A-Fa-f]{40}"/>
+            <xs:pattern value="(0x)?[0-9A-Fa-f]{16}"/>
+            <xs:pattern value="(0x)?[0-9A-Fa-f]{8}"/>
+            <xs:pattern value="([0-9A-Fa-f ]{4}){5} ?([0-9A-Fa-f ]{4}){4}[0-9A-Fa-f]{4}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_gpg_keyid -->
+
+    <!-- t_gpg_keyid_list: a type for a list of key IDs. -->
+    <xs:simpleType name="t_gpg_keyid_list">
+        <xs:list itemType="t_gpg_keyid"/>
+    </xs:simpleType>
+    <!-- END t_gpg_key_list -->
+
+    <!-- t_net_loc: a remote host. Used for PKI Subject's commonName and host for rsync. -->
+    <xs:simpleType name="t_net_loc">
+        <xs:restriction base="xs:string">
+            <xs:pattern
+                    value="(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_net_loc -->
+
+    <!-- t_pass_hash_algo: used for t_password. -->
+    <xs:simpleType name="t_pass_hash_algo">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="des"/>
+            <xs:enumeration value="md5"/>
+            <xs:enumeration value="sha256"/>
+            <xs:enumeration value="sha512"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_pass_hash_algo -->
+
+    <!-- t_pass_salt: used for t_password. -->
+    <xs:simpleType name="t_pass_salt">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="($[156]($rounds=[0-9]+)?$[a-zA-Z0-9./]{1,16}$?|auto|)"/>
+            <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
+            <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_pass_salt -->
+
+    <!-- t_password: used for rootpass and user/password elements. -->
+    <xs:complexType name="t_password">
+        <!-- The below will need some fleshing out and testing. It may not be possible strictly via XSD. -->
+        <!-- TODO: restrict the value further with a union or multi-group regex that checks for a valid length? -->
+        <!-- des: ????? -->
+        <!-- md5: "[a-zA-Z0-9./]{22}" -->
+        <!-- sha256: "[a-zA-Z0-9./]{43}" -->
+        <!-- sha512: "[a-zA-Z0-9./]{86}" -->
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="hash_algo" type="t_pass_hash_algo"/>
+                <xs:attribute name="hashed" type="xs:boolean" use="required"/>
+                <xs:attribute name="salt" type="t_pass_salt"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!-- END t_password -->
+
+    <!-- t_path: for specifying subdirectories (either local filesystem or remote paths). -->
+    <xs:simpleType name="t_path">
+        <xs:restriction base="xs:string">
+            <!-- We include blank to operate on default actions (or default filepaths). -->
+            <xs:pattern value=""/>
+            <xs:pattern value="(.+)/([^/]+)"/>
+            <xs:pattern value="((.+)/([^/]+))?\{variable%[A-Za-z0-9_]\}((.+)/([^/]+))?"/>
+            <xs:pattern value="((.+)/([^/]+))?\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}((.+)/([^/]+))?"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_path -->
+
+    <!-- t_pki_cert: used for pki/ca/cert and pki/client/cert. -->
+    <xs:complexType name="t_pki_cert">
+        <xs:simpleContent>
+            <xs:extension base="t_path">
+                <xs:attribute name="hash_algo" use="required">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="blake2b512"/>
+                            <xs:enumeration value="blake2s256"/>
+                            <xs:enumeration value="gost"/>
+                            <xs:enumeration value="md4"/>
+                            <xs:enumeration value="md5"/>
+                            <xs:enumeration value="mdc2"/>
+                            <xs:enumeration value="rmd160"/>
+                            <xs:enumeration value="sha1"/>
+                            <xs:enumeration value="sha224"/>
+                            <xs:enumeration value="sha256"/>
+                            <xs:enumeration value="sha384"/>
+                            <xs:enumeration value="sha512"/>
+                            <xs:enumeration value="none"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!-- END t_pki_cert -->
+
+    <!-- t_pki_key: used for pki/ca/key and pki/client/key -->
+    <xs:complexType name="t_pki_key">
+        <xs:simpleContent>
+            <xs:extension base="t_path">
+                <xs:attribute name="cipher" use="required">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="aes128"/>
+                            <xs:enumeration value="aes192"/>
+                            <xs:enumeration value="bf"/>
+                            <xs:enumeration value="blowfish"/>
+                            <xs:enumeration value="camellia128"/>
+                            <xs:enumeration value="camellia192"/>
+                            <xs:enumeration value="camellia256"/>
+                            <xs:enumeration value="des"/>
+                            <xs:enumeration value="rc2"/>
+                            <xs:enumeration value="seed"/>
+                            <xs:enumeration value="none"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+                <xs:attribute name="passphrase" type="xs:string"/>
+                <xs:attribute name="keysize"
+                              type="xs:positiveInteger"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!-- END t_pki_key -->
+
+    <!-- t_pki_subject: used for pki/ca/subject and pki/client/subject -->
+    <xs:complexType name="t_pki_subject">
+        <xs:all>
+            <!-- .../SUBJECT/COMMONNAME -->
+            <xs:element name="commonName" type="t_net_loc"/>
+            <!-- END .../SUBJECT/COMMONNAME -->
+            <!-- .../SUBJECT/COUNTRYNAME -->
+            <xs:element name="countryName">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <!-- We can't validate an actual ISO-3166 ALPHA-2 code, but we can validate the format. -->
+                        <!-- TODO: maybe cron the generation of an external namespace? -->
+                        <xs:pattern value="[A-Z]{2}"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <!-- END .../SUBJECT/COUNTRYNAME -->
+            <!-- .../SUBJECT/LOCALITYNAME -->
+            <xs:element name="localityName" type="xs:string"/>
+            <!-- END .../SUBJECT/LOCALITYNAME -->
+            <!-- .../SUBJECT/STATEORPROVINCENAME -->
+            <xs:element name="stateOrProvinceName"
+                        type="xs:string"/>
+            <!-- END .../SUBJECT/STATEORPROVINCENAME -->
+            <!-- .../SUBJECT/ORGANIZATION -->
+            <xs:element name="organization" type="xs:string"/>
+            <!-- END .../SUBJECT/ORGANIZATION -->
+            <!-- .../SUBJECT/ORGANIZATIONALUNITNAME -->
+            <xs:element name="organizationalUnitName"
+                        type="xs:string"/>
+            <!-- END .../SUBJECT/ORGANIZATIONALUNITNAME -->
+            <!-- .../SUBJECT/EMAILADDRESS -->
+            <xs:element name="emailAddress" type="xs:string"/>
+            <!-- END .../SUBJECT/EMAILADDRESS -->
+        </xs:all>
+    </xs:complexType>
+    <!-- END t_pki_subject -->
+
+    <!-- t_remote_file: an element that lets us define both a file pattern for remote content and flags attribute. -->
+    <xs:complexType name="t_remote_file">
+        <xs:simpleContent>
+            <xs:extension base="t_filename">
+                <xs:attribute name="flags" type="t_remote_file_flags" use="optional"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <!-- END t_remote_file -->
+
+    <!-- t_remote_file_flags: a type to match a list of known flags. -->
+    <xs:simpleType name="t_remote_file_flags">
+        <xs:list>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <!-- Currently we only support two flags. -->
+                    <xs:enumeration value="regex"/>
+                    <xs:enumeration value="latest"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:list>
+    </xs:simpleType>
+    <!-- END t_remote_file_flags -->
+
+    <!-- t_username: enforce a POSIX-compliant username. Used for user/username elements. -->
+    <xs:simpleType name="t_username">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}$)"/>
+            <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
+            <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- END t_username -->
+    <!-- END CUSTOM TYPES -->
+
     <!-- ROOT ELEMENT ("BDISK") -->
     <xs:element name="bdisk">
         <xs:complexType>
+            <!-- Should this be xs:sequence instead? -->
             <xs:choice>
                 <!-- BDISK/PROFILE -->
                 <xs:element name="profile" maxOccurs="unbounded" minOccurs="1">
@@ -23,8 +261,9 @@
                                                     <xs:element name="name" maxOccurs="1" minOccurs="1">
                                                         <xs:simpleType>
                                                             <xs:restriction base="xs:string">
-                                                                <xs:pattern
-                                                                        value="(\{(xpath|variable)%[A-Za-z0-9_]\}|[A-Z0-9]{1,8})"/>
+                                                                <xs:pattern value="[A-Z0-9]{1,8}"/>
+                                                                <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
+                                                                <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
                                                             </xs:restriction>
                                                         </xs:simpleType>
                                                     </xs:element>
@@ -33,8 +272,12 @@
                                                     <xs:element name="uxname" maxOccurs="1" minOccurs="1">
                                                         <xs:simpleType>
                                                             <xs:restriction base="xs:string">
-                                                                <xs:pattern
-                                                                        value="(\{(xpath|variable)%[A-Za-z0-9_]+\}|[A-Za-z0-9]{1,255})"/>
+                                                                <!-- refer to the 2009 POSIX spec, "3.282 Portable Filename Character Set" -->
+                                                                <!-- http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_282 -->
+                                                                <!-- (We use this string to name some files.) -->
+                                                                <xs:pattern value="([a-z0-9._-]+){1,255}"/>
+                                                                <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
+                                                                <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
                                                             </xs:restriction>
                                                         </xs:simpleType>
                                                     </xs:element>
@@ -43,6 +286,7 @@
                                                     <xs:element name="pname" maxOccurs="1" minOccurs="1">
                                                         <xs:simpleType>
                                                             <xs:restriction base="xs:string">
+                                                                <!-- TODO: Can I use UTF-8 instead? -->
                                                                 <!-- https://stackoverflow.com/a/9805789/733214 -->
                                                                 <xs:pattern value="\p{IsBasicLatin}*"/>
                                                             </xs:restriction>
@@ -57,10 +301,30 @@
                                         <xs:element name="desc" maxOccurs="1" minOccurs="1" type="xs:string"/>
                                         <!-- END BDISK/PROFILE/META/DESC -->
                                         <!-- BDISK/PROFILE/META/DEV -->
-                                        <xs:element name="dev" maxOccurs="1" minOccurs="1" type="xs:string"/>
+                                        <xs:element name="dev" maxOccurs="1" minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- BDISK/PROFILE/META/DEV/AUTHOR -->
+                                                    <xs:element name="author" maxOccurs="1" minOccurs="1"
+                                                                type="xs:string"/>
+                                                    <!-- END BDISK/PROFILE/META/DEV/AUTHOR -->
+                                                    <!-- BDISK/PROFILE/META/DEV/EMAIL -->
+                                                    <!-- The following does NOT WORK. Shame, really. -->
+                                                    <!-- It seems to be an invalid pattern per my XSD validator (xmllint). -->
+                                                    <!--<xs:pattern value="([!#-&apos;*+/-9=?A-Z^-~-]+(\.[!#-&apos;*+/-9=?A-Z^-~-]+)*|&quot;([]!#-[^-~ \t]|(\\[\t -~]))+&quot;)@([!#-&apos;*+/-9=?A-Z^-~-]+(\.[!#-&apos;*+/-9=?A-Z^-~-]+)*|\[[\t -Z^-~]*])"/>-->
+                                                    <xs:element name="email" maxOccurs="1" minOccurs="1"
+                                                                type="xs:string"/>
+                                                    <!-- END BDISK/PROFILE/META/DEV/EMAIL -->
+                                                    <!-- BDISK/PROFILE/META/DEV/WEBSITE -->
+                                                    <xs:element name="website" maxOccurs="1" minOccurs="1"
+                                                                type="t_btag_uri"/>
+                                                    <!-- END BDISK/PROFILE/META/DEV/WEBSITE -->
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
                                         <!-- END BDISK/PROFILE/META/DEV -->
                                         <!-- BDISK/PROFILE/META/URI -->
-                                        <xs:element name="uri" maxOccurs="1" minOccurs="1" type="xs:anyURI"/>
+                                        <xs:element name="uri" maxOccurs="1" minOccurs="1" type="t_btag_uri"/>
                                         <!-- END BDISK/PROFILE/META/URI -->
                                         <!-- BDISK/PROFILE/META/VER -->
                                         <xs:element name="ver" maxOccurs="1" minOccurs="1" type="xs:string"/>
@@ -114,29 +378,427 @@
                             </xs:element>
                             <!-- END BDISK/PROFILE/META -->
                             <!-- BDISK/PROFILE/ACCOUNTS -->
-                            <xs:element name="accounts" maxOccurs="1" minOccurs="1"/>
+                            <xs:element name="accounts" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <!-- BDISK/PROFILE/ACCOUNTS/ROOTPASS -->
+                                        <xs:element name="rootpass" maxOccurs="1" minOccurs="1" type="t_password"/>
+                                        <!-- END BDISK/PROFILE/ACCOUNTS/ROOTPASS -->
+                                        <!-- BDISK/PROFILE/ACCOUNTS/USER -->
+                                        <xs:element name="user" maxOccurs="unbounded" minOccurs="0">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- BDISK/PROFILE/ACCOUNTS/USER/USERNAME -->
+                                                    <xs:element name="username" type="t_username" minOccurs="1"
+                                                                maxOccurs="1"/>
+                                                    <!-- END BDISK/PROFILE/ACCOUNTS/USER/USERNAME -->
+                                                    <!-- BDISK/PROFILE/ACCOUNTS/USER/COMMENT -->
+                                                    <xs:element name="comment" type="xs:string" maxOccurs="1"
+                                                                minOccurs="0"/>
+                                                    <!-- END BDISK/PROFILE/ACCOUNTS/USER/COMMENT -->
+                                                    <!-- BDISK/PROFILE/ACCOUNTS/USER/PASSWORD -->
+                                                    <xs:element name="password" type="t_password" maxOccurs="1"
+                                                                minOccurs="1"/>
+                                                    <!-- END BDISK/PROFILE/ACCOUNTS/USER/PASSWORD -->
+                                                </xs:all>
+                                                <xs:attribute name="sudo" type="xs:boolean" use="optional"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/ACCOUNTS/USER -->
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
                             <!-- END BDISK/PROFILE/ACCOUNTS -->
-                            <!-- BDISK/PROFILE/BUILD-->
-                            <xs:element name="build" maxOccurs="1" minOccurs="1"/>
+                            <!-- BDISK/PROFILE/SOURCES -->
+                            <xs:element name="sources" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <!-- BDisk only supports two different architectures (x86/i686 and x86_64, respectively) currently. -->
+                                        <!-- TODO: future improvements may let us include e.g. two different x86_64 environments (e.g. CentOS and Debian on the same media), but this is like, still in development stages. -->
+                                        <!-- BDISK/PROFILE/SOURCES/SOURCE -->
+                                        <xs:element name="source" minOccurs="1" maxOccurs="2">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- We cheat here. TECHNICALLY it should ONLY be scheme://location (no /path...), but there isn't a data type for that. -->
+                                                    <!-- Currently we enforce only one item. Future BDisk versions may be able to make use of multiple <mirror>s and select best one based on speed. -->
+                                                    <!-- BDISK/PROFILE/SOURCES/SOURCE/MIRROR -->
+                                                    <xs:element name="mirror" type="t_btag_uri" maxOccurs="1"
+                                                                minOccurs="1"/>
+                                                    <!-- END BDISK/PROFILE/SOURCES/SOURCE/MIRROR -->
+                                                    <!-- BDISK/PROFILE/SOURCES/SOURCE/ROOTPATH -->
+                                                    <xs:element name="rootpath" maxOccurs="1" minOccurs="1"
+                                                                type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/SOURCES/SOURCE/ROOTPATH -->
+                                                    <!-- BDISK/PROFILE/SOURCES/SOURCE/TARBALL -->
+                                                    <xs:element name="tarball" maxOccurs="1" minOccurs="1"
+                                                                type="t_remote_file"/>
+                                                    <!-- END BDISK/PROFILE/SOURCES/SOURCE/TARBALL -->
+                                                    <!-- BDISK/PROFILE/SOURCES/SOURCE/CHECKSUM -->
+                                                    <xs:element name="checksum" maxOccurs="1" minOccurs="0">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="t_remote_file">
+                                                                    <!-- There is NO way we can validate this, because it will vary based on the algorithms supported by the build host. -->
+                                                                    <xs:attribute name="hash_algo" type="xs:string" use="required"/>
+                                                                    <xs:attribute name="explicit" type="xs:boolean" use="required"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/SOURCES/SOURCE/CHECKSUM -->
+                                                    <!-- BDISK/PROFILE/SOURCES/SOURCE/SIG -->
+                                                    <xs:element name="sig" maxOccurs="1" minOccurs="0">
+                                                        <xs:complexType>
+                                                            <xs:simpleContent>
+                                                                <xs:extension base="t_remote_file">
+                                                                    <!-- Required; otherwise there's no point using it. -->
+                                                                    <xs:attribute name="keys" type="t_gpg_keyid_list" use="required"/>
+                                                                    <xs:attribute name="keyserver" type="t_btag_uri"/>
+                                                                </xs:extension>
+                                                            </xs:simpleContent>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/SOURCES/SOURCE/SIG-->
+                                                </xs:all>
+                                                <xs:attribute name="arch">
+                                                    <xs:simpleType>
+                                                        <xs:restriction base="xs:string">
+                                                            <xs:pattern value="(i686|x86(_64)?|32|64)"/>
+                                                        </xs:restriction>
+                                                    </xs:simpleType>
+                                                </xs:attribute>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/SOURCES/SOURCE -->
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <!-- END BDISK/PROFILE/SOURCES -->
+                            <!-- BDISK/PROFILE/BUILD -->
+                            <xs:element name="build" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:all>
+                                        <!-- BDISK/PROFILE/BUILD/PATHS -->
+                                        <xs:element name="paths">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/BASE -->
+                                                    <xs:element name="base" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/BASE -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/CACHE -->
+                                                    <xs:element name="cache" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/CACHE -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/CHROOT -->
+                                                    <xs:element name="chroot" maxOccurs="1" minOccurs="1"
+                                                                type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/CHROOT -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/OVERLAY -->
+                                                    <xs:element name="overlay" maxOccurs="1" minOccurs="1"
+                                                                type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/OVERLAY -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/TEMPLATES -->
+                                                    <xs:element name="templates" maxOccurs="1" minOccurs="1"
+                                                                type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/TEMPLATES -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/MOUNT -->
+                                                    <xs:element name="mount" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/MOUNT -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/DISTROS -->
+                                                    <xs:element name="distros" maxOccurs="1" minOccurs="1"
+                                                                type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/DISTROS -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/DEST -->
+                                                    <xs:element name="dest" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/DEST -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/ISO -->
+                                                    <xs:element name="iso" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/ISO -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/HTTP -->
+                                                    <xs:element name="http" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/HTTP -->
+                                                    <!-- BDISK/PROFILE/BUILD/PATHS/TFTP -->
+                                                    <xs:element name="tftp" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/TFTP -->
+                                                    <!-- EBDISK/PROFILE/BUILD/PATHS/PKI -->
+                                                    <xs:element name="pki" maxOccurs="1" minOccurs="1" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/BUILD/PATHS/PKI -->
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/BUILD/PATHS -->
+                                        <!-- BDISK/PROFILE/BUILD/BASEDISTRO -->
+                                        <xs:element name="basedistro"/>
+                                        <!-- END BDISK/PROFILE/BUILD/BASEDISTRO -->
+                                    </xs:all>
+                                    <xs:attribute name="its_full_of_stars" type="xs:boolean"/>
+                                </xs:complexType>
+                            </xs:element>
                             <!-- END BDISK/PROFILE/BUILD -->
                             <!-- BDISK/PROFILE/ISO -->
-                            <xs:element name="iso" maxOccurs="1" minOccurs="1"/>
+                            <xs:element name="iso" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:attribute name="sign" type="xs:boolean"/>
+                                    <xs:attribute name="multi_arch">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:enumeration value="yes"/>
+                                                <xs:enumeration value="no"/>
+                                                <xs:enumeration value="true"/>
+                                                <xs:enumeration value="false"/>
+                                                <xs:enumeration value="x86_64"/>
+                                                <xs:enumeration value="x86"/>
+                                                <xs:enumeration value="64"/>
+                                                <xs:enumeration value="32"/>
+                                                <xs:enumeration value="i686"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
                             <!-- END BDISK/PROFILE/ISO -->
                             <!-- BDISK/PROFILE/IPXE -->
-                            <xs:element name="ipxe" maxOccurs="1" minOccurs="1"/>
+                            <xs:element name="ipxe" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:all>
+                                        <!-- BDISK/PROFILE/IPXE/URI -->
+                                        <xs:element name="uri" type="t_btag_uri" maxOccurs="1" minOccurs="1"/>
+                                        <!-- END BDISK/PROFILE/IPXE/URI -->
+                                    </xs:all>
+                                    <xs:attribute name="sign" type="xs:boolean"/>
+                                    <xs:attribute name="iso" type="xs:boolean"/>
+                                </xs:complexType>
+                            </xs:element>
                             <!-- END BDISK/PROFILE/IPXE -->
                             <!-- BDISK/PROFILE/GPG -->
-                            <xs:element name="gpg" maxOccurs="1" minOccurs="1"/>
+                            <xs:element name="gpg" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <!-- BDISK/PROFILE/GPG/KEY -->
+                                        <xs:element name="key" minOccurs="0" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- BDISK/PROFILE/GPG/KEY/NAME -->
+                                                    <xs:element name="name" type="xs:normalizedString" maxOccurs="1"
+                                                                minOccurs="1"/>
+                                                    <!-- END BDISK/PROFILE/GPG/KEY/NAME -->
+                                                    <!-- BDISK/PROFILE/GPG/KEY/EMAIL -->
+                                                    <xs:element name="email" type="xs:normalizedString" maxOccurs="1"
+                                                                minOccurs="1"/>
+                                                    <!-- END BDISK/PROFILE/GPG/KEY/EMAIL -->
+                                                    <!-- BDISK/PROFILE/GPG/KEY/COMMENT -->
+                                                    <xs:element name="comment" type="xs:string" maxOccurs="1"
+                                                                minOccurs="0"/>
+                                                    <!-- END BDISK/PROFILE/GPG/KEY/COMMENT -->
+                                                </xs:all>
+                                                <xs:attribute name="algo">
+                                                    <xs:simpleType>
+                                                        <xs:restriction base="xs:string">
+                                                            <xs:enumeration value="rsa"/>
+                                                            <xs:enumeration value="dsa"/>
+                                                        </xs:restriction>
+                                                    </xs:simpleType>
+                                                </xs:attribute>
+                                                <!-- We COULD constrain this further, but it's conditional upon the algo type. So we'll do that in BDisk itself. -->
+                                                <!-- But it may be possible? https://stackoverflow.com/a/39045446/733214 -->
+                                                <xs:attribute name="keysize" type="xs:positiveInteger"/>
+                                                <!-- XSD doesn't have a datatype for Epoch vs. 0 (for no expire). -->
+                                                <xs:attribute name="expire">
+                                                    <xs:simpleType>
+                                                        <!--This is xs:integer instead of xs:positiveInteger because 0 will fail validation then. -->
+                                                        <xs:restriction base="xs:integer">
+                                                            <xs:pattern value="(0|[0-9]{10})"/>
+                                                        </xs:restriction>
+                                                    </xs:simpleType>
+                                                </xs:attribute>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/GPG/KEY -->
+                                    </xs:sequence>
+                                    <xs:attribute name="keyid" type="t_gpg_keyid"/>
+                                    <xs:attribute name="publish" type="xs:boolean"/>
+                                    <xs:attribute name="prompt_passphrase" type="xs:boolean"/>
+                                    <xs:attribute name="gnupghome">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:pattern value="(.+)/([^/]+)"/>
+                                                <xs:pattern
+                                                        value="((.+)/([^/]+))?\{variable%[A-Za-z0-9_]\}((.+)/([^/]+))?"/>
+                                                <xs:pattern
+                                                        value="((.+)/([^/]+))?\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}((.+)/([^/]+))?"/>
+                                                <xs:pattern value="(none|)"/>
+                                                <xs:pattern value="(auto|default)"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
+                                </xs:complexType>
+                            </xs:element>
                             <!-- END BDISK/PROFILE/GPG -->
                             <!-- BDISK/PROFILE/PKI -->
-                            <xs:element name="pki" maxOccurs="1" minOccurs="1"/>
+                            <xs:element name="pki" maxOccurs="1" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <!-- BDISK/PROFILE/PKI/CA -->
+                                        <xs:element name="ca" maxOccurs="1" minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- BDISK/PROFILE/PKI/CA/CERT -->
+                                                    <xs:element name="cert" maxOccurs="1" minOccurs="1"
+                                                                type="t_pki_cert"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CA/CERT -->
+                                                    <!-- BDISK/PROFILE/PKI/CA/CSR -->
+                                                    <xs:element name="csr" maxOccurs="1" minOccurs="0" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CA/CSR -->
+                                                    <!-- BDISK/PROFILE/PKI/CA/INDEX -->
+                                                    <xs:element name="index" maxOccurs="1" minOccurs="0" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CA/INDEX -->
+                                                    <!-- BDISK/PROFILE/PKI/CA/SERIAL -->
+                                                    <xs:element name="serial" maxOccurs="1" minOccurs="0"
+                                                                type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CA/SERIAL -->
+                                                    <!-- BDISK/PROFILE/PKI/CA/KEY -->
+                                                    <xs:element name="key" minOccurs="1" maxOccurs="1"
+                                                                type="t_pki_key"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CA/CSR -->
+                                                    <!-- BDISK/PROFILE/PKI/CA/SUBJECT -->
+                                                    <xs:element name="subject" maxOccurs="1" minOccurs="0"
+                                                                type="t_pki_subject"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CA/SUBJECT -->
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/PKI/CA -->
+                                        <!-- BDISK/PROFILE/PKI/CLIENT -->
+                                        <xs:element name="client" maxOccurs="1" minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:all>
+                                                    <!-- BDISK/PROFILE/PKI/CLIENT/CERT -->
+                                                    <xs:element name="cert" maxOccurs="1" minOccurs="1"
+                                                                type="t_pki_cert"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CLIENT/CERT -->
+                                                    <!-- BDISK/PROFILE/PKI/CLIENT/CSR -->
+                                                    <xs:element name="csr" maxOccurs="1" minOccurs="0" type="t_path"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CLIENT/CSR -->
+                                                    <!-- BDISK/PROFILE/PKI/CLIENT/KEY -->
+                                                    <xs:element name="key" minOccurs="1" maxOccurs="1"
+                                                                type="t_pki_key"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CLIENT/CSR -->
+                                                    <!-- BDISK/PROFILE/PKI/CLIENT/SUBJECT -->
+                                                    <xs:element name="subject" maxOccurs="1" minOccurs="0"
+                                                                type="t_pki_subject"/>
+                                                    <!-- END BDISK/PROFILE/PKI/CLIENT/SUBJECT -->
+                                                </xs:all>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/PKI/CLIENT -->
+                                    </xs:sequence>
+                                    <xs:attribute name="overwrite" type="xs:boolean"/>
+                                </xs:complexType>
+                            </xs:element>
                             <!-- END BDISK/PROFILE/PKI -->
                             <!-- BDISK/PROFILE/SYNC -->
-                            <xs:element name="sync" maxOccurs="1" minOccurs="1"/>
+                            <xs:element name="sync" maxOccurs="1" minOccurs="1">
+                                <xs:complexType>
+                                    <xs:all>
+                                        <!-- BDISK/PROFILE/SYNC/IPXE -->
+                                        <xs:element name="ipxe">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="t_path">
+                                                        <xs:attribute name="enabled" type="xs:boolean"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/SYNC/IPXE -->
+                                        <!-- BDISK/PROFILE/SYNC/TFTP -->
+                                        <xs:element name="tftp">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="t_path">
+                                                        <xs:attribute name="enabled" type="xs:boolean"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/SYNC/TFTP -->
+                                        <!-- BDISK/PROFILE/SYNC/ISO -->
+                                        <xs:element name="iso">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="t_path">
+                                                        <xs:attribute name="enabled" type="xs:boolean"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/SYNC/ISO -->
+                                        <!-- BDISK/PROFILE/SYNC/GPG -->
+                                        <xs:element name="gpg">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="t_path">
+                                                        <xs:attribute name="enabled" type="xs:boolean"/>
+                                                        <xs:attribute name="format">
+                                                            <xs:simpleType>
+                                                                <xs:restriction base="xs:string">
+                                                                    <xs:enumeration value="asc"/>
+                                                                    <xs:enumeration value="bin"/>
+                                                                </xs:restriction>
+                                                            </xs:simpleType>
+                                                        </xs:attribute>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/SYNC/GPG -->
+                                        <!-- BDISK/PROFILE/SYNC/RSYNC -->
+                                        <xs:element name="rsync">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <!-- BDISK/PROFILE/SYNC/RSYNC/USER -->
+                                                    <xs:element name="user" type="t_username"/>
+                                                    <!-- END BDISK/PROFILE/SYNC/RSYNC/USER -->
+                                                    <!-- BDISK/PROFILE/SYNC/RSYNC/HOST -->
+                                                    <xs:element name="host" type="t_net_loc"/>
+                                                    <!-- END BDISK/PROFILE/SYNC/RSYNC/HOST -->
+                                                    <!-- BDISK/PROFILE/SYNC/RSYNC/PORT -->
+                                                    <xs:element name="port">
+                                                        <xs:simpleType>
+                                                            <xs:restriction base="xs:positiveInteger">
+                                                                <xs:minInclusive value="1"/>
+                                                                <xs:maxInclusive value="65535"/>
+                                                            </xs:restriction>
+                                                        </xs:simpleType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/SYNC/RSYNC/PORT -->
+                                                    <xs:choice>
+                                                        <!-- BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
+                                                        <xs:element name="pubkey" type="t_path"/>
+                                                        <!-- END BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
+                                                        <!-- BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
+                                                        <xs:element name="password"/>
+                                                        <!-- END BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
+                                                    </xs:choice>
+                                                </xs:sequence>
+                                                <xs:attribute name="enabled" type="xs:boolean"/>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/SYNC/IPXE -->
+                                    </xs:all>
+                                </xs:complexType>
+                            </xs:element>
                             <!-- END BDISK/PROFILE/SYNC -->
                         </xs:all>
                         <xs:attribute name="id" type="xs:positiveInteger"/>
                         <xs:attribute name="name" type="xs:string"/>
+                        <xs:attribute name="uuid">
+                            <xs:simpleType>
+                                <xs:restriction base="xs:string">
+                                    <xs:pattern
+                                            value="[0-9a-f]{8}\-[0-9a-f]{4}\-4[0-9a-f]{3}\-[89ab][0-9a-f]{3}\-[0-9a-f]{12}"/>
+                                </xs:restriction>
+                            </xs:simpleType>
+                        </xs:attribute>
                     </xs:complexType>
                 </xs:element>
                 <!-- END BDISK/PROFILE -->

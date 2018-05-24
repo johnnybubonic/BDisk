@@ -15,6 +15,7 @@ import uuid
 import validators
 import zlib
 import lxml.etree
+import lxml.objectify
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 from dns import resolver
@@ -446,12 +447,12 @@ class transform(object):
     def py2xml(self, value, attrib = True):
         if value in (False, ''):
             if attrib:
-                return("no")
+                return("false")
             else:
                 return(None)
         elif isinstance(value, bool):
             # We handle the False case above.
-            return("yes")
+            return("true")
         elif isinstance(value, str):
             return(value)
         else:
@@ -469,7 +470,6 @@ class transform(object):
         text_out = re.sub('[^\w]', '', text_out)
         return(text_out)
 
-    # noinspection PyDictCreation
     def url_to_dict(self, orig_url, no_None = False):
         def _getuserinfo(uinfo_str):
             if len(uinfo_str) == 0:
@@ -659,8 +659,8 @@ class transform(object):
         return(acct)
 
     def xml2py(self, value, attrib = True):
-        yes = re.compile('^\s*(y(es)?|true|1)\s*$', re.IGNORECASE)
-        no = re.compile('^\s*(no?|false|0)\s*$', re.IGNORECASE)
+        yes = re.compile('^\s*(true|1)\s*$', re.IGNORECASE)
+        no = re.compile('^\s*(false|0)\s*$', re.IGNORECASE)
         none = re.compile('^\s*(none|)\s*$', re.IGNORECASE)
         if no.search(value):
             if attrib:
@@ -819,12 +819,18 @@ class xml_supplicant(object):
         # This is retained so we can "refresh" the profile if needed.
         self.orig_profile = profile
         try:
-            self.xml = lxml.etree.fromstring(raw)
+            self.orig_xml = lxml.etree.fromstring(raw)
+            # We need to strip the naked namespace for XPath to work.
+            self.xml = copy.deepcopy(self.orig_xml)
+            self.roottree = self.xml.getroottree()
+            self.tree = self.roottree.getroot()
+            self.strip_naked_ns()
         except lxml.etree.XMLSyntaxError:
             raise ValueError('The configuration provided does not seem to be '
                              'valid')
         self.get_profile(profile = profile)
-        self.xml = lxml.etree.fromstring(raw)
+        # This is disabled; we set it above.
+        #self.xml = lxml.etree.fromstring(raw)
         self.fmt = XPathFmt()
         self.max_recurse = int(self.profile.xpath(
                                         '//meta/max_recurse/text()')[0])
@@ -968,6 +974,23 @@ class xml_supplicant(object):
                     'Could not find a path for the expression {0}'
                 ).format(element.text))
         return(path)
+
+    def return_naked_ns(self):
+        # It's so stupid I have to do this.
+        return(self.orig_xml.nsmap)
+
+    def strip_naked_ns(self):
+        # I cannot *believe* that LXML doesn't have this built-in, considering
+        # how common naked namespaces are.
+        # https://stackoverflow.com/a/18160164/733214
+        for elem in self.roottree.getiterator():
+            if not hasattr(elem.tag, 'find'):
+                continue
+            i = elem.tag.find('}')
+            if i >= 0:
+                elem.tag = elem.tag[i + 1:]
+        lxml.objectify.deannotate(self.roottree, cleanup_namespaces = True)
+        return()
 
     def substitute(self, element, recurse_count = 0):
         if recurse_count >= self.max_recurse:

@@ -1,286 +1,285 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<bdisk xmlns:bdisk="http://bdisk.square-r00t.net/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://bdisk.square-r00t.net bdisk.xsd">
-  <profile name="default" id="1" uuid="8cdd6bcb-c147-4a63-9779-b5433c510dbc">
-    <meta>
-      <names>
-        <name>BDisk</name>
-        <uxname>bdisk</uxname>
-        <!-- Just like with previous versions of BDisk, you can reference other values...
+<bdisk xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://bdisk.square-r00t.net/" xsi:schemaLocation="http://bdisk.square-r00t.net bdisk.xsd">
+    <profile name="default" id="1" uuid="8cdd6bcb-c147-4a63-9779-b5433c510dbc">
+        <meta>
+            <names>
+                <name>BDISK</name>
+                <uxname>bdisk</uxname>
+                <!-- Just like with previous versions of BDisk, you can reference other values...
                      but now with the neat benefits of XPath! Everything you could do in build.ini's and more.
                      See https://www.w3schools.com/xml/xpath_syntax.asp
                      If you need a literal curly brace, double them (e.g. for "{foo}", use "{{foo}}"),
                      UNLESS it's in a <regexes><pattern> as part of the expression. Those are taken as literal strings.  -->
-        <pname>{xpath%../name/text()}</pname>
-      </names>
-      <desc>A rescue/restore live environment.</desc>
-      <dev>
-        <author>A. Dev Eloper</author>
-        <email>dev@domain.tld</email>
-        <website>https://domain.tld/~dev</website>
-      </dev>
-      <uri>https://domain.tld/projname</uri>
-      <ver>1.0.0</ver>
-      <!-- This is the VERY FIRST value parsed, and is required. It controls how many levels of {xpath%...} to recurse. -->
-      <!-- If the maximum level is reached, the substitution will evaluate as blank. -->
-      <max_recurse>5</max_recurse>
-      <!-- You need to store regex patterns here and reference them in a special way later, and it's only valid for certain
+                <pname>{xpath%../name/text()}</pname>
+            </names>
+            <desc>A rescue/restore live environment.</desc>
+            <dev>
+                <author>A. Dev Eloper</author>
+                <email>dev@domain.tld</email>
+                <website>https://domain.tld/~dev</website>
+            </dev>
+            <uri>https://domain.tld/projname</uri>
+            <ver>1.0.0</ver>
+            <!-- This is the VERY FIRST value parsed, and is required. It controls how many levels of {xpath%...} to recurse. -->
+            <!-- If the maximum level is reached, the substitution will evaluate as blank. -->
+            <max_recurse>5</max_recurse>
+            <!-- You need to store regex patterns here and reference them in a special way later, and it's only valid for certain
                  items. See the manual for more information. NO btags within the patterns is allowed. -->
-      <regexes>
-        <pattern id="tarball_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz$</pattern>
-        <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$</pattern>
-        <pattern id="tarball_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz$</pattern>
-        <pattern id="sig_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz\.sig$</pattern>
-      </regexes>
-      <!-- You can also define variables. NO xpath or regex btags, and they can't be used within other btags! -->
-      <variables>
-        <variable id="bdisk_root">/var/tmp/BDisk</variable>
-      </variables>
-    </meta>
-    <accounts>
-      <!-- Salted/hashed password is "test" -->
-      <rootpass hashed="yes">$6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1</rootpass>
-      <user sudo="yes">
-        <username>{xpath%//meta/names/uxname/text()}</username>
-        <!-- You can also use substitution from different profiles in this same configuration: -->
-        <!-- <username>{xpath%//profile[@name='another_profile']/meta/names/uxname"}</username> -->
-        <comment>{xpath%//meta/dev/author/text()}</comment>
-        <password hashed="no" hash_algo="sha512" salt="auto">testpassword</password>
-      </user>
-      <user sudo="no">
-        <username>testuser</username>
-        <name>Test User</name>
-        <password hashed="no" hash_algo="sha512" salt="auto">anothertestpassword</password>
-      </user>
-    </accounts>
-    <sources>
-      <source arch="x86_64">
-        <mirror>http://archlinux.mirror.domain.tld</mirror>
-        <rootpath>/iso/latest</rootpath>
-        <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
-        <checksum hash_algo="sha1" explicit="no">sha1sums.txt</checksum>
-        <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
-      </source>
-      <source arch="i686">
-        <mirror>http://archlinux32.mirror.domain.tld</mirror>
-        <rootpath>/iso/latest</rootpath>
-        <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
-        <checksum hash_algo="sha512" explicit="yes">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
-        <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_i686}</sig>
-      </source>
-    </sources>
-    <build its_full_of_stars="yes">
-      <paths>
-        <base>{variable%bdisk_root}/base</base>
-        <cache>{variable%bdisk_root}/cache</cache>
-        <chroot>{variable%bdisk_root}/chroots</chroot>
-        <overlay>{variable%bdisk_root}/overlay</overlay>
-        <templates>{variable%bdisk_root}/templates</templates>
-        <mount>/mnt/{xpath%//meta/names/uxname/text()}</mount>
-        <distros>{variable%bdisk_root}/distros</distros>
-        <dest>{variable%bdisk_root}/results</dest>
-        <iso>{variable%bdisk_root}/iso_overlay</iso>
-        <http>{variable%bdisk_root}/http</http>
-        <tftp>{variable%bdisk_root}/tftp</tftp>
-        <pki>{variable%bdisk_root}/pki</pki>
-      </paths>
-      <basedistro>archlinux</basedistro>
-    </build>
-    <iso sign="yes" multi_arch="yes"/>
-    <ipxe sign="yes" iso="yes">
-      <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
-    </ipxe>
-    <pki overwrite="no">
-      <!-- http://ipxe.org/crypto -->
-      <ca>
-        <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
-        <!-- If csr is self-enclosed (<csr />), we'll just generate and use a CSR in-memory.
+            <regexes>
+                <pattern id="tarball_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz$</pattern>
+                <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$</pattern>
+                <pattern id="tarball_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz$</pattern>
+                <pattern id="sig_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz\.sig$</pattern>
+            </regexes>
+            <!-- You can also define variables. NO xpath or regex btags, and they can't be used within other btags! -->
+            <variables>
+                <variable id="bdisk_root">/var/tmp/BDisk</variable>
+            </variables>
+        </meta>
+        <accounts>
+            <!-- Salted/hashed password is "test" -->
+            <rootpass hashed="true">$6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1</rootpass>
+            <user sudo="true">
+                <username>{xpath%//meta/names/uxname/text()}</username>
+                <!-- You can also use substitution from different profiles in this same configuration: -->
+                <!-- <username>{xpath%//profile[@name='another_profile']/meta/names/uxname"}</username> -->
+                <comment>{xpath%//meta/dev/author/text()}</comment>
+                <password hashed="false" hash_algo="sha512" salt="auto">testpassword</password>
+            </user>
+            <user sudo="false">
+                <username>testuser</username>
+                <comment>Test User</comment>
+                <password hashed="false" hash_algo="sha512" salt="auto">anothertestpassword</password>
+            </user>
+        </accounts>
+        <sources>
+            <source arch="x86_64">
+                <mirror>http://archlinux.mirror.domain.tld</mirror>
+                <rootpath>/iso/latest</rootpath>
+                <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
+                <checksum hash_algo="sha1" explicit="false">sha1sums.txt</checksum>
+                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
+            </source>
+            <source arch="i686">
+                <mirror>http://archlinux32.mirror.domain.tld</mirror>
+                <rootpath>/iso/latest</rootpath>
+                <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
+                <checksum hash_algo="sha512" explicit="true">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
+                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_i686}</sig>
+            </source>
+        </sources>
+        <build its_full_of_stars="true">
+            <paths>
+                <base>{variable%bdisk_root}/base</base>
+                <cache>{variable%bdisk_root}/cache</cache>
+                <chroot>{variable%bdisk_root}/chroots</chroot>
+                <overlay>{variable%bdisk_root}/overlay</overlay>
+                <templates>{variable%bdisk_root}/templates</templates>
+                <mount>/mnt/{xpath%//meta/names/uxname/text()}</mount>
+                <distros>{variable%bdisk_root}/distros</distros>
+                <dest>{variable%bdisk_root}/results</dest>
+                <iso>{variable%bdisk_root}/iso_overlay</iso>
+                <http>{variable%bdisk_root}/http</http>
+                <tftp>{variable%bdisk_root}/tftp</tftp>
+                <pki>{variable%bdisk_root}/pki</pki>
+            </paths>
+            <basedistro>archlinux</basedistro>
+        </build>
+        <iso sign="true" multi_arch="true"/>
+        <ipxe sign="true" iso="true">
+            <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
+        </ipxe>
+        <pki overwrite="no">
+            <!-- http://ipxe.org/crypto -->
+            <ca>
+                <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
+                <!-- If csr is self-enclosed (<csr />), we'll just generate and use a CSR in-memory.
                      Assuming we need to generate a certificate, anyways.
                      If you want to write it out to disk (for debugging, etc.) OR use one already generated,
                      then provide a path.
                      e.g.:
                         <csr>{xpath%build/paths/ssl/text()}/ca.csr</csr> -->
-        <csr/>
-        <!-- If you use an index file (or want to) to serialize client certificates, specify it here. -->
-        <!-- It must conform to CADB spec (https://pki-tutorial.readthedocs.io/en/latest/cadb.html). -->
-        <!-- You should probably also specify a serial file if so. -->
-        <!-- Both of these are entirely optional if you aren't using an existing PKI. -->
-        <index>{xpath%../../../build/paths/pki/text()}/index.txt</index>
-        <serial>{xpath%../../../build/paths/pki/text()}/serial</serial>
-        <!-- If you specify a cipher, the key will be encrypted to the passphrase provided by the passphrase attribute.
+                <csr/>
+                <!-- If you use an index file (or want to) to serialize client certificates, specify it here. -->
+                <!-- It must conform to CADB spec (https://pki-tutorial.readthedocs.io/en/latest/cadb.html). -->
+                <!-- You should probably also specify a serial file if so. -->
+                <!-- Both of these are entirely optional if you aren't using an existing PKI. -->
+                <index>{xpath%../../../build/paths/pki/text()}/index.txt</index>
+                <serial>{xpath%../../../build/paths/pki/text()}/serial</serial>
+                <!-- If you specify a cipher, the key will be encrypted to the passphrase provided by the passphrase attribute.
                      If the key is encrypted (either a pre-existing or a created one) but passphrase is not provided, you will
                      be (securely) prompted for the passphrase to unlock it/add a passphrase to it. -->
-        <key cipher="none" passphrase="none" keysize="4096">{xpath%../../../build/paths/pki/text()}/ca.key</key>
-        <subject>
-          <commonName>domain.tld</commonName>
-          <countryName>XX</countryName>
-          <localityName>Some City</localityName>
-          <stateOrProvinceName>Some State</stateOrProvinceName>
-          <organization>Some Org, Inc.</organization>
-          <organizationalUnitName>Department Name</organizationalUnitName>
-          <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
-        </subject>
-      </ca>
-      <client>
-        <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt</cert>
-        <csr/>
-        <key cipher="none" passphrase="none" keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
-        <subject>
-          <commonName>some client name</commonName>
-          <countryName>XX</countryName>
-          <localityName>Some City</localityName>
-          <stateOrProvinceName>Some State</stateOrProvinceName>
-          <organization>Some Org, Inc.</organization>
-          <organizationalUnitName>Department Name</organizationalUnitName>
-          <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
-        </subject>
-      </client>
-    </pki>
-    <!-- If prompt_passphrase is "no" and passphrase attribute is not given for a gpg element, we will try to use a
+                <key cipher="none" passphrase="none" keysize="4096">{xpath%../../../build/paths/pki/text()}/ca.key</key>
+                <subject>
+                    <commonName>domain.tld</commonName>
+                    <countryName>XX</countryName>
+                    <localityName>Some City</localityName>
+                    <stateOrProvinceName>Some State</stateOrProvinceName>
+                    <organization>Some Org, Inc.</organization>
+                    <organizationalUnitName>Department Name</organizationalUnitName>
+                    <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
+                </subject>
+            </ca>
+            <client>
+                <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt</cert>
+                <csr/>
+                <key cipher="none" passphrase="none" keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
+                <subject>
+                    <commonName>some client name</commonName>
+                    <countryName>XX</countryName>
+                    <localityName>Some City</localityName>
+                    <stateOrProvinceName>Some State</stateOrProvinceName>
+                    <organization>Some Org, Inc.</organization>
+                    <organizationalUnitName>Department Name</organizationalUnitName>
+                    <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
+                </subject>
+            </client>
+        </pki>
+        <!-- If prompt_passphrase is "no" and passphrase attribute is not given for a gpg element, we will try to use a
              blank passphrase for all operations. -->
-    <gpg keyid="none" gnupghome="none" publish="no" prompt_passphrase="no">
-      <!-- The below is only used if we are generating a key (i.e. keyid="none"). -->
-      <key algo="rsa" keysize="4096" expire="0">
-        <name>{xpath%../../../meta/dev/author/text()}</name>
-        <email>{xpath%../../../meta/dev/email/text()}</email>
-        <comment>for {xpath%../../../meta/names/pname/text()} [autogenerated] | {xpath%../../../meta/uri/text()} | {xpath%../../../meta/desc/text()}</comment>
-      </key>
-    </gpg>
-    <sync>
-      <!-- ipxe includes the http directory. or should, anyways. -->
-      <ipxe enabled="yes">/srv/http/{xpath%../../meta/names/uxname/text()}</ipxe>
-      <tftp enabled="yes">/tftproot/{xpath%../../meta/names/uxname/text()}</tftp>
-      <iso enabled="yes">/srv/http/isos/{xpath%../../meta/names/uxname/text()}</iso>
-      <gpg enabled="yes" format="asc">/srv/http/{xpath%../../meta/names/uxname/text()}/pubkey.asc</gpg>
-      <rsync enabled="yes">
-        <user>root</user>
-        <host>mirror.domain.tld</host>
-        <port>22</port>
-        <pubkey>~/.ssh/id_ed25519</pubkey>
-      </rsync>
-    </sync>
-  </profile>
-  <profile name="alternate" id="2" uuid="2ed07c19-2071-4d66-8569-da40475ba716">
-    <meta>
-      <names>
-        <name>AnotherCD</name>
-        <uxname>bdisk_alt</uxname>
-        <pname>{xpath%../name/text()}</pname>
-      </names>
-      <desc>Another rescue/restore live environment.</desc>
-      <dev>
-        <author>Another Dev Eloper</author>
-        <!-- You can reference other profiles within the same configuration. -->
-        <email>{xpath%//profile[@name="default"]/meta/dev/email/text()}</email>
-        <website>{xpath%//profile[@name="default"]/meta/dev/website/text()}</website>
-      </dev>
-      <uri>https://domain.tld/projname</uri>
-      <ver>0.0.1</ver>
-      <max_recurse>5</max_recurse>
-      <regexes>
-        <pattern id="tarball_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz$</pattern>
-        <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$</pattern>
-        <pattern id="tarball_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz$</pattern>
-        <pattern id="sig_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz\.sig$</pattern>
-      </regexes>
-      <variables>
-        <variable id="bdisk_root">/var/tmp/BDisk</variable>
-      </variables>
-    </meta>
-    <accounts>
-      <rootpass hashed="no">atotallyinsecurepassword</rootpass>
-      <user sudo="no">
-        <username>testuser</username>
-        <comment>Test User</comment>
-        <password hashed="no" hash_algo="sha512" salt="auto">atestpassword</password>
-      </user>
-    </accounts>
-    <sources>
-      <source arch="x86_64">
-        <mirror>http://archlinux.mirror.domain.tld</mirror>
-        <rootpath>/iso/latest</rootpath>
-        <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
-        <checksum hash_algo="sha1" explicit="no">sha1sums.txt</checksum>
-        <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
-      </source>
-      <source arch="i686">
-        <mirror>http://archlinux32.mirror.domain.tld</mirror>
-        <rootpath>/iso/latest</rootpath>
-        <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
-        <checksum hash_algo="sha512" explicit="yes">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
-        <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_i686}</sig>
-      </source>
-    </sources>
-    <build its_full_of_stars="yes">
-      <paths>
-        <base>{variable%bdisk_root}/base</base>
-        <cache>{variable%bdisk_root}/cache</cache>
-        <chroot>{variable%bdisk_root}/chroots</chroot>
-        <overlay>{variable%bdisk_root}/overlay</overlay>
-        <templates>{variable%bdisk_root}/templates</templates>
-        <mount>/mnt/{xpath%//meta/names/uxname/text()}</mount>
-        <distros>{variable%bdisk_root}/distros</distros>
-        <dest>{variable%bdisk_root}/results</dest>
-        <iso>{variable%bdisk_root}/iso_overlay</iso>
-        <http>{variable%bdisk_root}/http</http>
-        <tftp>{variable%bdisk_root}/tftp</tftp>
-        <pki>{variable%bdisk_root}/pki</pki>
-      </paths>
-      <basedistro>archlinux</basedistro>
-    </build>
-    <iso sign="yes" multi_arch="yes"/>
-    <ipxe sign="yes" iso="yes">
-      <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
-    </ipxe>
-    <pki overwrite="no">
-      <ca>
-        <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
-        <csr/>
-        <index>{xpath%../../../build/paths/pki/text()}/index.txt</index>
-        <serial>{xpath%../../../build/paths/pki/text()}/serial</serial>
-        <key cipher="none" passphrase="none" keysize="4096">{xpath%../../../build/paths/pki/text()}/ca.key</key>
-        <subject>
-          <commonName>domain.tld</commonName>
-          <countryName>XX</countryName>
-          <localityName>Some City</localityName>
-          <stateOrProvinceName>Some State</stateOrProvinceName>
-          <organization>Some Org, Inc.</organization>
-          <organizationalUnitName>Department Name</organizationalUnitName>
-          <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
-        </subject>
-      </ca>
-      <client>
-        <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt</cert>
-        <csr/>
-        <key cipher="none" passphrase="none" keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
-        <subject>
-          <commonName>some client name</commonName>
-          <countryName>XX</countryName>
-          <localityName>Some City</localityName>
-          <stateOrProvinceName>Some State</stateOrProvinceName>
-          <organization>Some Org, Inc.</organization>
-          <organizationalUnitName>Department Name</organizationalUnitName>
-          <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
-        </subject>
-      </client>
-    </pki>
-    <gpg keyid="none" gnupghome="none" publish="no" prompt_passphrase="no">
-      <key algo="rsa" keysize="4096" expire="0">
-        <name>{xpath%../../../meta/dev/author/text()}</name>
-        <email>{xpath%../../../meta/dev/email/text()}</email>
-        <comment>for {xpath%../../../meta/names/pname/text()} [autogenerated] | {xpath%../../../meta/uri/text()} | {xpath%../../../meta/desc/text()}</comment>
-      </key>
-    </gpg>
-    <sync>
-      <ipxe enabled="yes">/srv/http/{xpath%../../meta/names/uxname/text()}</ipxe>
-      <tftp enabled="yes">/tftproot/{xpath%../../meta/names/uxname/text()}</tftp>
-      <iso enabled="yes">/srv/http/isos/{xpath%../../meta/names/uxname/text()}</iso>
-      <gpg enabled="yes" format="asc">/srv/http/{xpath%../../meta/names/uxname/text()}/pubkey.asc</gpg>
-      <rsync enabled="yes">
-        <user>root</user>
-        <host>mirror.domain.tld</host>
-        <port>22</port>
-        <pubkey>~/.ssh/id_ed25519</pubkey>
-      </rsync>
-    </sync>
-  </profile>
+        <gpg keyid="none" gnupghome="none" publish="no" prompt_passphrase="no">
+            <!-- The below is only used if we are generating a key (i.e. keyid="none"). -->
+            <key algo="rsa" keysize="4096" expire="0">
+                <name>{xpath%../../../meta/dev/author/text()}</name>
+                <email>{xpath%../../../meta/dev/email/text()}</email>
+                <comment>for {xpath%../../../meta/names/pname/text()} [autogenerated] | {xpath%../../../meta/uri/text()} | {xpath%../../../meta/desc/text()}</comment>
+            </key>
+        </gpg>
+        <sync>
+            <!-- ipxe includes the http directory. or should, anyways. -->
+            <ipxe enabled="true">/srv/http/{xpath%../../meta/names/uxname/text()}</ipxe>
+            <tftp enabled="true">/tftproot/{xpath%../../meta/names/uxname/text()}</tftp>
+            <iso enabled="true">/srv/http/isos/{xpath%../../meta/names/uxname/text()}</iso>
+            <gpg enabled="true" format="asc">/srv/http/{xpath%../../meta/names/uxname/text()}/pubkey.asc</gpg>
+            <rsync enabled="true">
+                <user>root</user>
+                <host>mirror.domain.tld</host>
+                <port>22</port>
+                <pubkey>~/.ssh/id_ed25519</pubkey>
+            </rsync>
+        </sync>
+    </profile>
+<profile name="alternate" id="2" uuid="2ed07c19-2071-4d66-8569-da40475ba716">
+        <meta>
+            <names>
+                <name>AnotherCD</name>
+                <uxname>bdisk_alt</uxname>
+                <pname>{xpath%../name/text()}</pname>
+            </names>
+            <desc>Another rescue/restore live environment.</desc>
+            <dev>
+                <author>Another Dev Eloper</author><!-- You can reference other profiles within the same configuration. -->
+                <email>{xpath%//profile[@name="default"]/meta/dev/email/text()}</email>
+                <website>{xpath%//profile[@name="default"]/meta/dev/website/text()}</website>
+            </dev>
+            <uri>https://domain.tld/projname</uri>
+            <ver>0.0.1</ver>
+            <max_recurse>5</max_recurse>
+            <regexes>
+                <pattern id="tarball_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz$</pattern>
+                <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$</pattern>
+                <pattern id="tarball_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz$</pattern>
+                <pattern id="sig_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz\.sig$</pattern>
+            </regexes>
+            <variables>
+                <variable id="bdisk_root">/var/tmp/BDisk</variable>
+            </variables>
+        </meta>
+        <accounts>
+            <rootpass hashed="false">atotallyinsecurepassword</rootpass>
+            <user sudo="false">
+                <username>testuser</username>
+                <comment>Test User</comment>
+                <password hashed="false" hash_algo="sha512" salt="auto">atestpassword</password>
+            </user>
+            </accounts>
+        <sources>
+            <source arch="x86_64">
+                <mirror>http://archlinux.mirror.domain.tld</mirror>
+                <rootpath>/iso/latest</rootpath>
+                <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
+                <checksum hash_algo="sha1" explicit="false">sha1sums.txt</checksum>
+                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
+            </source>
+            <source arch="i686">
+                <mirror>http://archlinux32.mirror.domain.tld</mirror>
+                <rootpath>/iso/latest</rootpath>
+                <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
+                <checksum hash_algo="sha512" explicit="true">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
+                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_i686}</sig>
+            </source>
+        </sources>
+        <build its_full_of_stars="true">
+            <paths>
+                <base>{variable%bdisk_root}/base</base>
+                <cache>{variable%bdisk_root}/cache</cache>
+                <chroot>{variable%bdisk_root}/chroots</chroot>
+                <overlay>{variable%bdisk_root}/overlay</overlay>
+                <templates>{variable%bdisk_root}/templates</templates>
+                <mount>/mnt/{xpath%//meta/names/uxname/text()}</mount>
+                <distros>{variable%bdisk_root}/distros</distros>
+                <dest>{variable%bdisk_root}/results</dest>
+                <iso>{variable%bdisk_root}/iso_overlay</iso>
+                <http>{variable%bdisk_root}/http</http>
+                <tftp>{variable%bdisk_root}/tftp</tftp>
+                <pki>{variable%bdisk_root}/pki</pki>
+            </paths>
+            <basedistro>archlinux</basedistro>
+        </build>
+        <iso sign="true" multi_arch="true"/>
+        <ipxe sign="true" iso="true">
+            <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
+        </ipxe>
+        <pki overwrite="no">
+            <ca>
+                <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
+                <csr/>
+                <index>{xpath%../../../build/paths/pki/text()}/index.txt</index>
+                <serial>{xpath%../../../build/paths/pki/text()}/serial</serial>
+                <key cipher="none" passphrase="none" keysize="4096">{xpath%../../../build/paths/pki/text()}/ca.key</key>
+                <subject>
+                    <commonName>domain.tld</commonName>
+                    <countryName>XX</countryName>
+                    <localityName>Some City</localityName>
+                    <stateOrProvinceName>Some State</stateOrProvinceName>
+                    <organization>Some Org, Inc.</organization>
+                    <organizationalUnitName>Department Name</organizationalUnitName>
+                    <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
+                </subject>
+            </ca>
+            <client>
+                <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.crt</cert>
+                <csr/>
+                <key cipher="none" passphrase="none" keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
+                <subject>
+                    <commonName>some client name</commonName>
+                    <countryName>XX</countryName>
+                    <localityName>Some City</localityName>
+                    <stateOrProvinceName>Some State</stateOrProvinceName>
+                    <organization>Some Org, Inc.</organization>
+                    <organizationalUnitName>Department Name</organizationalUnitName>
+                    <emailAddress>{xpath%../../../../meta/dev/email/text()}</emailAddress>
+                </subject>
+            </client>
+        </pki>
+        <gpg keyid="none" gnupghome="none" publish="no" prompt_passphrase="no">
+            <key algo="rsa" keysize="4096" expire="0">
+                <name>{xpath%../../../meta/dev/author/text()}</name>
+                <email>{xpath%../../../meta/dev/email/text()}</email>
+                <comment>for {xpath%../../../meta/names/pname/text()} [autogenerated] | {xpath%../../../meta/uri/text()} | {xpath%../../../meta/desc/text()}</comment>
+            </key>
+        </gpg>
+        <sync>
+            <ipxe enabled="true">/srv/http/{xpath%../../meta/names/uxname/text()}</ipxe>
+            <tftp enabled="true">/tftproot/{xpath%../../meta/names/uxname/text()}</tftp>
+            <iso enabled="true">/srv/http/isos/{xpath%../../meta/names/uxname/text()}</iso>
+            <gpg enabled="true" format="asc">/srv/http/{xpath%../../meta/names/uxname/text()}/pubkey.asc</gpg>
+            <rsync enabled="true">
+                <user>root</user>
+                <host>mirror.domain.tld</host>
+                <port>22</port>
+                <pubkey>~/.ssh/id_ed25519</pubkey>
+            </rsync>
+        </sync>
+    </profile>
 </bdisk>
