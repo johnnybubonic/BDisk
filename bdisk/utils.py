@@ -977,13 +977,14 @@ class xml_supplicant(object):
 
     def return_full(self):
         #nsmap = self.return_naked_ns()
+        # https://stackoverflow.com/a/22553145/733214
         local_xml = lxml.etree.Element('bdisk',
                                        nsmap = self.orig_xml.nsmap,
                                        attrib = self.orig_xml.attrib)
         local_xml.text = '\n    '
         for elem in self.xml.xpath('/bdisk/profile'):
             local_xml.append(copy.deepcopy(elem))
-        return(local_xml)
+        return(lxml.etree.tostring(local_xml))
 
     def return_naked_ns(self):
         # It's so stupid I have to do this.

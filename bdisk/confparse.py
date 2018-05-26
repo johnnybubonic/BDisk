@@ -308,19 +308,11 @@ class Conf(object):
 
     def validate(self):
         # TODO: perform further validations that we can't do in XSD.
-        # TODO: FIX ME. ALWAYS RETURNS INVALID:
-        # lxml.etree.DocumentInvalid: Element 'bdisk': No matching global declaration available for the validation root.
         xsd = self.get_xsd()
         self.xsd = etree.XMLSchema(xsd)
         # This would return a bool if it validates or not.
         #self.xsd.validate(self.xml)
         # We want to get a more detailed exception.
-        #xml = self.xml_suppl.return_full().getroottree()
-        xml = self.xml_suppl.return_full()
-        with open('/tmp/bdisk.xml', 'wb') as f:
-            f.write(etree.tostring(xml))
-        with open('/tmp/bdisk.xsd', 'wb') as f:
-            f.write(etree.tostring(xsd))
+        xml = etree.fromstring(self.xml_suppl.return_full())
         self.xsd.assertValid(xml)
-        #print(self.xsd.validate(xml))
         return()
