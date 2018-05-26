@@ -13,7 +13,7 @@
         <xs:restriction base="xs:string">
             <xs:pattern value="\w+:(/?/?)[^\s]+"/>
             <xs:pattern value=".*\{variable%[A-Za-z0-9_]\}.*"/>
-            <xs:pattern value=".*\{xpath%[A-Za-z0-9_/\(\)\.\*@\-]+\}.*"/>
+            <xs:pattern value=".*\{xpath%[&quot;'A-Za-z0-9_/\(\)\.\*@\-\[\]=]+\}.*"/>
         </xs:restriction>
     </xs:simpleType>
     <!-- END t_btag_uri -->
@@ -23,7 +23,7 @@
         <xs:restriction base="xs:string">
             <xs:pattern value="([a-z0-9._-]+){1,255}"/>
             <xs:pattern value=".*\{variable%[A-Za-z0-9_]\}.*"/>
-            <xs:pattern value=".*\{xpath%[A-Za-z0-9_/\(\)\.\*@\-]+\}.*"/>
+            <xs:pattern value=".*\{xpath%[&quot;'A-Za-z0-9_/\(\)\.\*@\-\[\]=]+\}.*"/>
             <!-- We don't allow (string)(regex) or (regex)(string) or (string)(regex)(string) or multiple regexes -->
             <!-- because that's just... not feasible to manage from a parsing perspective. -->
             <xs:pattern value="\{regex%.+\}"/>
@@ -75,7 +75,7 @@
         <xs:restriction base="xs:string">
             <xs:pattern value="($[156]($rounds=[0-9]+)?$[a-zA-Z0-9./]{1,16}$?|auto|)"/>
             <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
-            <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
+            <xs:pattern value="\{xpath%[&quot;'A-Za-z0-9_\(\)\.\*\-/\[\]=]+\}"/>
         </xs:restriction>
     </xs:simpleType>
     <!-- END t_pass_salt -->
@@ -90,9 +90,9 @@
         <!-- sha512: "[a-zA-Z0-9./]{86}" -->
         <xs:simpleContent>
             <xs:extension base="xs:string">
-                <xs:attribute name="hash_algo" type="t_pass_hash_algo"/>
+                <xs:attribute name="hash_algo" type="t_pass_hash_algo" use="optional"/>
                 <xs:attribute name="hashed" type="xs:boolean" use="required"/>
-                <xs:attribute name="salt" type="t_pass_salt"/>
+                <xs:attribute name="salt" type="t_pass_salt" use="optional"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
@@ -105,7 +105,7 @@
             <xs:pattern value=""/>
             <xs:pattern value="(.+)/([^/]+)"/>
             <xs:pattern value="((.+)/([^/]+))?\{variable%[A-Za-z0-9_]\}((.+)/([^/]+))?"/>
-            <xs:pattern value="((.+)/([^/]+))?\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}((.+)/([^/]+))?"/>
+            <xs:pattern value="((.+)/([^/]+))?\{xpath%[&quot;'A-Za-z0-9_\(\)\.\*\-/\[\]=]+\}((.+)/([^/]+))?"/>
         </xs:restriction>
     </xs:simpleType>
     <!-- END t_path -->
@@ -180,6 +180,8 @@
                         <!-- We can't validate an actual ISO-3166 ALPHA-2 code, but we can validate the format. -->
                         <!-- TODO: maybe cron the generation of an external namespace? -->
                         <xs:pattern value="[A-Z]{2}"/>
+                        <xs:pattern value=".*\{variable%[A-Za-z0-9_]\}.*"/>
+                        <xs:pattern value=".*\{xpath%[&quot;'A-Za-z0-9_/\(\)\.\*@\-\[\]=]+\}.*"/>
                     </xs:restriction>
                 </xs:simpleType>
             </xs:element>
@@ -234,7 +236,7 @@
         <xs:restriction base="xs:string">
             <xs:pattern value="[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}$)"/>
             <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
-            <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
+            <xs:pattern value="\{xpath%[&quot;'A-Za-z0-9_\(\)\.\*\-/\[\]=]+\}"/>
         </xs:restriction>
     </xs:simpleType>
     <!-- END t_username -->
@@ -244,7 +246,7 @@
     <xs:element name="bdisk">
         <xs:complexType>
             <!-- Should this be xs:sequence instead? -->
-            <xs:choice>
+            <xs:sequence>
                 <!-- BDISK/PROFILE -->
                 <xs:element name="profile" maxOccurs="unbounded" minOccurs="1">
                     <xs:complexType>
@@ -275,7 +277,7 @@
                                                                 <!-- refer to the 2009 POSIX spec, "3.282 Portable Filename Character Set" -->
                                                                 <!-- http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_282 -->
                                                                 <!-- (We use this string to name some files.) -->
-                                                                <xs:pattern value="([a-z0-9._-]+){1,255}"/>
+                                                                <xs:pattern value="([A-Za-z0-9._-]+){1,255}"/>
                                                                 <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
                                                                 <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
                                                             </xs:restriction>
@@ -306,14 +308,14 @@
                                                 <xs:all>
                                                     <!-- BDISK/PROFILE/META/DEV/AUTHOR -->
                                                     <xs:element name="author" maxOccurs="1" minOccurs="1"
-                                                                type="xs:string"/>
+                                                                type="xs:normalizedString"/>
                                                     <!-- END BDISK/PROFILE/META/DEV/AUTHOR -->
                                                     <!-- BDISK/PROFILE/META/DEV/EMAIL -->
                                                     <!-- The following does NOT WORK. Shame, really. -->
                                                     <!-- It seems to be an invalid pattern per my XSD validator (xmllint). -->
                                                     <!--<xs:pattern value="([!#-&apos;*+/-9=?A-Z^-~-]+(\.[!#-&apos;*+/-9=?A-Z^-~-]+)*|&quot;([]!#-[^-~ \t]|(\\[\t -~]))+&quot;)@([!#-&apos;*+/-9=?A-Z^-~-]+(\.[!#-&apos;*+/-9=?A-Z^-~-]+)*|\[[\t -Z^-~]*])"/>-->
                                                     <xs:element name="email" maxOccurs="1" minOccurs="1"
-                                                                type="xs:string"/>
+                                                                type="xs:normalizedString"/>
                                                     <!-- END BDISK/PROFILE/META/DEV/EMAIL -->
                                                     <!-- BDISK/PROFILE/META/DEV/WEBSITE -->
                                                     <xs:element name="website" maxOccurs="1" minOccurs="1"
@@ -327,11 +329,25 @@
                                         <xs:element name="uri" maxOccurs="1" minOccurs="1" type="t_btag_uri"/>
                                         <!-- END BDISK/PROFILE/META/URI -->
                                         <!-- BDISK/PROFILE/META/VER -->
-                                        <xs:element name="ver" maxOccurs="1" minOccurs="1" type="xs:string"/>
+                                        <xs:element name="ver" maxOccurs="1" minOccurs="1">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:normalizedString">
+                                                    <!-- Like ../names/uxname, this is also used to name certain files so, POSIX portable filename. -->
+                                                    <xs:pattern value="([A-Za-z0-9._-]+){1,255}"/>
+                                                    <xs:pattern value="\{variable%[A-Za-z0-9_]\}"/>
+                                                    <xs:pattern value="\{xpath%[A-Za-z0-9_\(\)\.\*\-/]+\}"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
                                         <!-- END BDISK/PROFILE/META/VER -->
                                         <!-- BDISK/PROFILE/META/MAX_RECURSE -->
-                                        <xs:element name="max_recurse" maxOccurs="1" minOccurs="1"
-                                                    type="xs:positiveInteger"/>
+                                        <xs:element name="max_recurse" maxOccurs="1" minOccurs="1">
+                                            <xs:simpleType>
+                                                <xs:restriction base="xs:positiveInteger">
+                                                    <xs:maxExclusive value="1000"/>
+                                                </xs:restriction>
+                                            </xs:simpleType>
+                                        </xs:element>
                                         <!-- END BDISK/PROFILE/META/MAX_RECURSE -->
                                         <!-- BDISK/PROFILE/META/REGEXES -->
                                         <xs:element name="regexes" maxOccurs="1" minOccurs="0">
@@ -389,12 +405,20 @@
                                             <xs:complexType>
                                                 <xs:all>
                                                     <!-- BDISK/PROFILE/ACCOUNTS/USER/USERNAME -->
-                                                    <xs:element name="username" type="t_username" minOccurs="1"
-                                                                maxOccurs="1"/>
+                                                    <xs:element name="username" type="t_username" maxOccurs="1"
+                                                                minOccurs="1"/>
                                                     <!-- END BDISK/PROFILE/ACCOUNTS/USER/USERNAME -->
                                                     <!-- BDISK/PROFILE/ACCOUNTS/USER/COMMENT -->
-                                                    <xs:element name="comment" type="xs:string" maxOccurs="1"
-                                                                minOccurs="0"/>
+                                                    <!-- https://en.wikipedia.org/wiki/Gecos_field -->
+                                                    <!-- Through experimentation, this *seems* to cap at 990 chars. -->
+                                                    <xs:element name="comment" maxOccurs="1"
+                                                                minOccurs="0">
+                                                        <xs:simpleType>
+                                                            <xs:restriction base="xs:normalizedString">
+                                                                <xs:maxLength value="990"/>
+                                                            </xs:restriction>
+                                                        </xs:simpleType>
+                                                    </xs:element>
                                                     <!-- END BDISK/PROFILE/ACCOUNTS/USER/COMMENT -->
                                                     <!-- BDISK/PROFILE/ACCOUNTS/USER/PASSWORD -->
                                                     <xs:element name="password" type="t_password" maxOccurs="1"
@@ -439,8 +463,10 @@
                                                             <xs:simpleContent>
                                                                 <xs:extension base="t_remote_file">
                                                                     <!-- There is NO way we can validate this, because it will vary based on the algorithms supported by the build host. -->
-                                                                    <xs:attribute name="hash_algo" type="xs:string" use="required"/>
-                                                                    <xs:attribute name="explicit" type="xs:boolean" use="required"/>
+                                                                    <xs:attribute name="hash_algo" type="xs:string"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="explicit" type="xs:boolean"
+                                                                                  use="required"/>
                                                                 </xs:extension>
                                                             </xs:simpleContent>
                                                         </xs:complexType>
@@ -452,15 +478,17 @@
                                                             <xs:simpleContent>
                                                                 <xs:extension base="t_remote_file">
                                                                     <!-- Required; otherwise there's no point using it. -->
-                                                                    <xs:attribute name="keys" type="t_gpg_keyid_list" use="required"/>
-                                                                    <xs:attribute name="keyserver" type="t_btag_uri"/>
+                                                                    <xs:attribute name="keys" type="t_gpg_keyid_list"
+                                                                                  use="required"/>
+                                                                    <xs:attribute name="keyserver" type="t_btag_uri"
+                                                                                  use="optional"/>
                                                                 </xs:extension>
                                                             </xs:simpleContent>
                                                         </xs:complexType>
                                                     </xs:element>
                                                     <!-- END BDISK/PROFILE/SOURCES/SOURCE/SIG-->
                                                 </xs:all>
-                                                <xs:attribute name="arch">
+                                                <xs:attribute name="arch" use="required">
                                                     <xs:simpleType>
                                                         <xs:restriction base="xs:string">
                                                             <xs:pattern value="(i686|x86(_64)?|32|64)"/>
@@ -590,7 +618,7 @@
                                                                 minOccurs="0"/>
                                                     <!-- END BDISK/PROFILE/GPG/KEY/COMMENT -->
                                                 </xs:all>
-                                                <xs:attribute name="algo">
+                                                <xs:attribute name="algo" use="optional">
                                                     <xs:simpleType>
                                                         <xs:restriction base="xs:string">
                                                             <xs:enumeration value="rsa"/>
@@ -600,9 +628,9 @@
                                                 </xs:attribute>
                                                 <!-- We COULD constrain this further, but it's conditional upon the algo type. So we'll do that in BDisk itself. -->
                                                 <!-- But it may be possible? https://stackoverflow.com/a/39045446/733214 -->
-                                                <xs:attribute name="keysize" type="xs:positiveInteger"/>
+                                                <xs:attribute name="keysize" type="xs:positiveInteger" use="optional"/>
                                                 <!-- XSD doesn't have a datatype for Epoch vs. 0 (for no expire). -->
-                                                <xs:attribute name="expire">
+                                                <xs:attribute name="expire" use="optional">
                                                     <xs:simpleType>
                                                         <!--This is xs:integer instead of xs:positiveInteger because 0 will fail validation then. -->
                                                         <xs:restriction base="xs:integer">
@@ -614,10 +642,10 @@
                                         </xs:element>
                                         <!-- END BDISK/PROFILE/GPG/KEY -->
                                     </xs:sequence>
-                                    <xs:attribute name="keyid" type="t_gpg_keyid"/>
-                                    <xs:attribute name="publish" type="xs:boolean"/>
-                                    <xs:attribute name="prompt_passphrase" type="xs:boolean"/>
-                                    <xs:attribute name="gnupghome">
+                                    <xs:attribute name="keyid" type="t_gpg_keyid" use="required"/>
+                                    <xs:attribute name="publish" type="xs:boolean" use="optional"/>
+                                    <xs:attribute name="prompt_passphrase" type="xs:boolean" use="required"/>
+                                    <xs:attribute name="gnupghome" use="optional">
                                         <xs:simpleType>
                                             <xs:restriction base="xs:string">
                                                 <xs:pattern value="(.+)/([^/]+)"/>
@@ -691,7 +719,7 @@
                                         </xs:element>
                                         <!-- END BDISK/PROFILE/PKI/CLIENT -->
                                     </xs:sequence>
-                                    <xs:attribute name="overwrite" type="xs:boolean"/>
+                                    <xs:attribute name="overwrite" type="xs:boolean" use="required"/>
                                 </xs:complexType>
                             </xs:element>
                             <!-- END BDISK/PROFILE/PKI -->
@@ -700,45 +728,45 @@
                                 <xs:complexType>
                                     <xs:all>
                                         <!-- BDISK/PROFILE/SYNC/IPXE -->
-                                        <xs:element name="ipxe">
+                                        <xs:element name="ipxe" maxOccurs="1" minOccurs="0">
                                             <xs:complexType>
                                                 <xs:simpleContent>
                                                     <xs:extension base="t_path">
-                                                        <xs:attribute name="enabled" type="xs:boolean"/>
+                                                        <xs:attribute name="enabled" type="xs:boolean" use="optional"/>
                                                     </xs:extension>
                                                 </xs:simpleContent>
                                             </xs:complexType>
                                         </xs:element>
                                         <!-- END BDISK/PROFILE/SYNC/IPXE -->
                                         <!-- BDISK/PROFILE/SYNC/TFTP -->
-                                        <xs:element name="tftp">
+                                        <xs:element name="tftp" maxOccurs="1" minOccurs="0">
                                             <xs:complexType>
                                                 <xs:simpleContent>
                                                     <xs:extension base="t_path">
-                                                        <xs:attribute name="enabled" type="xs:boolean"/>
+                                                        <xs:attribute name="enabled" type="xs:boolean" use="optional"/>
                                                     </xs:extension>
                                                 </xs:simpleContent>
                                             </xs:complexType>
                                         </xs:element>
                                         <!-- END BDISK/PROFILE/SYNC/TFTP -->
                                         <!-- BDISK/PROFILE/SYNC/ISO -->
-                                        <xs:element name="iso">
+                                        <xs:element name="iso" maxOccurs="1" minOccurs="0">
                                             <xs:complexType>
                                                 <xs:simpleContent>
                                                     <xs:extension base="t_path">
-                                                        <xs:attribute name="enabled" type="xs:boolean"/>
+                                                        <xs:attribute name="enabled" type="xs:boolean" use="optional"/>
                                                     </xs:extension>
                                                 </xs:simpleContent>
                                             </xs:complexType>
                                         </xs:element>
                                         <!-- END BDISK/PROFILE/SYNC/ISO -->
                                         <!-- BDISK/PROFILE/SYNC/GPG -->
-                                        <xs:element name="gpg">
+                                        <xs:element name="gpg" maxOccurs="1" minOccurs="0">
                                             <xs:complexType>
                                                 <xs:simpleContent>
                                                     <xs:extension base="t_path">
-                                                        <xs:attribute name="enabled" type="xs:boolean"/>
-                                                        <xs:attribute name="format">
+                                                        <xs:attribute name="enabled" type="xs:boolean" use="optional"/>
+                                                        <xs:attribute name="format" use="required">
                                                             <xs:simpleType>
                                                                 <xs:restriction base="xs:string">
                                                                     <xs:enumeration value="asc"/>
@@ -752,17 +780,19 @@
                                         </xs:element>
                                         <!-- END BDISK/PROFILE/SYNC/GPG -->
                                         <!-- BDISK/PROFILE/SYNC/RSYNC -->
-                                        <xs:element name="rsync">
+                                        <xs:element name="rsync" maxOccurs="1" minOccurs="1">
                                             <xs:complexType>
                                                 <xs:sequence>
                                                     <!-- BDISK/PROFILE/SYNC/RSYNC/USER -->
-                                                    <xs:element name="user" type="t_username"/>
+                                                    <xs:element name="user" type="t_username" maxOccurs="1"
+                                                                minOccurs="1"/>
                                                     <!-- END BDISK/PROFILE/SYNC/RSYNC/USER -->
                                                     <!-- BDISK/PROFILE/SYNC/RSYNC/HOST -->
-                                                    <xs:element name="host" type="t_net_loc"/>
+                                                    <xs:element name="host" type="t_net_loc" maxOccurs="1"
+                                                                minOccurs="1"/>
                                                     <!-- END BDISK/PROFILE/SYNC/RSYNC/HOST -->
                                                     <!-- BDISK/PROFILE/SYNC/RSYNC/PORT -->
-                                                    <xs:element name="port">
+                                                    <xs:element name="port" maxOccurs="1" minOccurs="0">
                                                         <xs:simpleType>
                                                             <xs:restriction base="xs:positiveInteger">
                                                                 <xs:minInclusive value="1"/>
@@ -773,14 +803,15 @@
                                                     <!-- END BDISK/PROFILE/SYNC/RSYNC/PORT -->
                                                     <xs:choice>
                                                         <!-- BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
-                                                        <xs:element name="pubkey" type="t_path"/>
+                                                        <xs:element name="pubkey" type="t_path" maxOccurs="1"
+                                                                    minOccurs="1"/>
                                                         <!-- END BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
                                                         <!-- BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
-                                                        <xs:element name="password"/>
+                                                        <xs:element name="password" maxOccurs="1" minOccurs="1"/>
                                                         <!-- END BDISK/PROFILE/SYNC/RSYNC/PUBKEY -->
                                                     </xs:choice>
                                                 </xs:sequence>
-                                                <xs:attribute name="enabled" type="xs:boolean"/>
+                                                <xs:attribute name="enabled" type="xs:boolean" use="required"/>
                                             </xs:complexType>
                                         </xs:element>
                                         <!-- END BDISK/PROFILE/SYNC/IPXE -->
@@ -789,9 +820,9 @@
                             </xs:element>
                             <!-- END BDISK/PROFILE/SYNC -->
                         </xs:all>
-                        <xs:attribute name="id" type="xs:positiveInteger"/>
-                        <xs:attribute name="name" type="xs:string"/>
-                        <xs:attribute name="uuid">
+                        <xs:attribute name="id" type="xs:positiveInteger" use="optional"/>
+                        <xs:attribute name="name" type="xs:string" use="optional"/>
+                        <xs:attribute name="uuid" use="optional">
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:pattern
@@ -802,7 +833,7 @@
                     </xs:complexType>
                 </xs:element>
                 <!-- END BDISK/PROFILE -->
-            </xs:choice>
+            </xs:sequence>
         </xs:complexType>
     </xs:element>
     <!-- END BDISK -->

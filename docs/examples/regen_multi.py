@@ -40,7 +40,7 @@ alt_profile.attrib['name'] = 'alternate'
 alt_profile.attrib['id'] = '2'
 alt_profile.attrib['uuid'] = '2ed07c19-2071-4d66-8569-da40475ba716'
 
-meta_tags = {'name': 'AnotherCD',
+meta_tags = {'name': 'ALTCD',
              'uxname': 'bdisk_alt',
              'pname': '{xpath%../name/text()}',
              'desc': 'Another rescue/restore live environment.',

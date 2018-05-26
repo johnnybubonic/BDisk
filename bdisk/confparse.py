@@ -12,7 +12,8 @@ transform = utils.transform()
 valid = utils.valid()
 
 class Conf(object):
-    def __init__(self, cfg, profile = None, validate = False):
+    def __init__(self, cfg, profile = None, validate_cfg = False,
+                 xsd_file = None):
         """
         A configuration object.
 
@@ -40,6 +41,9 @@ class Conf(object):
                         You can provide any combination of these
                         (e.g. "profile={'id': 2, 'name' = 'some_profile'}").
         """
+        if validate_cfg == 'pre':
+            # Validate before attempting any other operations
+            self.validate()
         self.xml_suppl = utils.xml_supplicant(cfg, profile = profile)
         self.xml = self.xml_suppl.xml
         for e in self.xml_suppl.xml.iter():
@@ -48,12 +52,11 @@ class Conf(object):
         with open('/tmp/parsed.xml', 'wb') as f:
             f.write(lxml.etree.tostring(self.xml_suppl.xml))
         self.profile = self.xml_suppl.profile
-        self.xsd = None
+        self.xsd = xsd_file
         self.cfg = {}
-        #if validate:
-            #if not self.validate():  # Need to write the XSD
-            #    raise ValueError('The configuration did not pass XSD/schema '
-            #                     'validation')
+        if validate_cfg:
+            # Validation post-substitution
+            self.validate()
 
     def get_pki_obj(self, pki, pki_type):
         elem = {}
@@ -99,7 +102,7 @@ class Conf(object):
                 _source_item['hash_algo'] = None
         if item == 'sig':
             if elem.get('keys', False):
-                _keys = [i.strip() for i in elem.attrib['keys'].split(',')]
+                _keys = [i.strip() for i in elem.attrib['keys'].split()]
                 _source_item['keys'] = _keys
             else:
                 _source_item['keys'] = []
@@ -108,9 +111,9 @@ class Conf(object):
             else:
                 _source_item['keyserver'] = None
         _item = elem.text
-        _flags = elem.get('flags', [])
+        _flags = elem.get('flags', '')
         if _flags:
-            for f in _flags.split(','):
+            for f in _flags.split():
                 if f.strip().lower() == 'none':
                     continue
                 _source_item['flags'].append(f.strip().lower())
@@ -129,10 +132,12 @@ class Conf(object):
         return(_source_item)
 
     def get_xsd(self):
-        path = os.path.join(os.path.dirname(__file__),
-                            'bdisk.xsd')
-        with open(path, 'r') as f:
-            xsd = f.read()
+        if not self.xsd:
+            path = os.path.join(os.path.dirname(__file__), 'bdisk.xsd')
+        else:
+            path = os.path.abspath(os.path.expanduser(self.xsd))
+        with open(path, 'rb') as f:
+            xsd = lxml.etree.parse(f)
         return(xsd)
 
     def parse_accounts(self):
@@ -302,5 +307,20 @@ class Conf(object):
         return()
 
     def validate(self):
-        self.xsd = etree.XMLSchema(self.get_xsd())
-        return(self.xsd.validate(self.xml))
+        # TODO: perform further validations that we can't do in XSD.
+        # TODO: FIX ME. ALWAYS RETURNS INVALID:
+        # lxml.etree.DocumentInvalid: Element 'bdisk': No matching global declaration available for the validation root.
+        xsd = self.get_xsd()
+        self.xsd = etree.XMLSchema(xsd)
+        # This would return a bool if it validates or not.
+        #self.xsd.validate(self.xml)
+        # We want to get a more detailed exception.
+        #xml = self.xml_suppl.return_full().getroottree()
+        xml = self.xml_suppl.return_full()
+        with open('/tmp/bdisk.xml', 'wb') as f:
+            f.write(etree.tostring(xml))
+        with open('/tmp/bdisk.xsd', 'wb') as f:
+            f.write(etree.tostring(xsd))
+        self.xsd.assertValid(xml)
+        #print(self.xsd.validate(xml))
+        return()

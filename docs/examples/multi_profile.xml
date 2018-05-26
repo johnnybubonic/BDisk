@@ -4,6 +4,7 @@
         <meta>
             <names>
                 <name>BDISK</name>
+                <!--<name>{xpath%../uxname/text()}</name>-->
                 <uxname>bdisk</uxname>
                 <!-- Just like with previous versions of BDisk, you can reference other values...
                      but now with the neat benefits of XPath! Everything you could do in build.ini's and more.
@@ -56,16 +57,16 @@
             <source arch="x86_64">
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
                 <rootpath>/iso/latest</rootpath>
-                <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
-                <checksum hash_algo="sha1" explicit="false">sha1sums.txt</checksum>
-                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
+                <tarball flags="regex latest">{regex%tarball_x86_64}</tarball>
+                <checksum hash_algo="sha1" explicit="false" flags="latest">sha1sums.txt</checksum>
+                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex latest">{regex%sig_x86_64}</sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <rootpath>/iso/latest</rootpath>
-                <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
+                <tarball flags="regex latest">{regex%tarball_i686}</tarball>
                 <checksum hash_algo="sha512" explicit="true">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
-                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_i686}</sig>
+                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex latest">{regex%sig_i686}</sig>
             </source>
         </sources>
         <build its_full_of_stars="true">
@@ -89,7 +90,7 @@
         <ipxe sign="true" iso="true">
             <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
         </ipxe>
-        <pki overwrite="no">
+        <pki overwrite="false">
             <!-- http://ipxe.org/crypto -->
             <ca>
                 <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
@@ -125,7 +126,7 @@
                 <csr/>
                 <key cipher="none" passphrase="none" keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
                 <subject>
-                    <commonName>some client name</commonName>
+                    <commonName>website.tld</commonName>
                     <countryName>XX</countryName>
                     <localityName>Some City</localityName>
                     <stateOrProvinceName>Some State</stateOrProvinceName>
@@ -137,7 +138,7 @@
         </pki>
         <!-- If prompt_passphrase is "no" and passphrase attribute is not given for a gpg element, we will try to use a
              blank passphrase for all operations. -->
-        <gpg keyid="none" gnupghome="none" publish="no" prompt_passphrase="no">
+        <gpg keyid="none" gnupghome="none" publish="false" prompt_passphrase="false">
             <!-- The below is only used if we are generating a key (i.e. keyid="none"). -->
             <key algo="rsa" keysize="4096" expire="0">
                 <name>{xpath%../../../meta/dev/author/text()}</name>
@@ -162,7 +163,7 @@
 <profile name="alternate" id="2" uuid="2ed07c19-2071-4d66-8569-da40475ba716">
         <meta>
             <names>
-                <name>AnotherCD</name>
+                <name>ALTCD</name>
                 <uxname>bdisk_alt</uxname>
                 <pname>{xpath%../name/text()}</pname>
             </names>
@@ -197,16 +198,16 @@
             <source arch="x86_64">
                 <mirror>http://archlinux.mirror.domain.tld</mirror>
                 <rootpath>/iso/latest</rootpath>
-                <tarball flags="regex,latest">{regex%tarball_x86_64}</tarball>
-                <checksum hash_algo="sha1" explicit="false">sha1sums.txt</checksum>
-                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_x86_64}</sig>
+                <tarball flags="regex latest">{regex%tarball_x86_64}</tarball>
+                <checksum hash_algo="sha1" explicit="false" flags="latest">sha1sums.txt</checksum>
+                <sig keys="7F2D434B9741E8AC" keyserver="hkp://pool.sks-keyservers.net" flags="regex latest">{regex%sig_x86_64}</sig>
             </source>
             <source arch="i686">
                 <mirror>http://archlinux32.mirror.domain.tld</mirror>
                 <rootpath>/iso/latest</rootpath>
-                <tarball flags="regex,latest">{regex%tarball_i686}</tarball>
+                <tarball flags="regex latest">{regex%tarball_i686}</tarball>
                 <checksum hash_algo="sha512" explicit="true">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
-                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex,latest">{regex%sig_i686}</sig>
+                <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506" keyserver="hkp://pool.sks-keyservers.net" flags="regex latest">{regex%sig_i686}</sig>
             </source>
         </sources>
         <build its_full_of_stars="true">
@@ -230,7 +231,7 @@
         <ipxe sign="true" iso="true">
             <uri>{xpath%//meta/dev/website/text()}/ipxe</uri>
         </ipxe>
-        <pki overwrite="no">
+        <pki overwrite="false">
             <ca>
                 <cert hash_algo="sha512">{xpath%../../../build/paths/pki/text()}/ca.crt</cert>
                 <csr/>
@@ -252,7 +253,7 @@
                 <csr/>
                 <key cipher="none" passphrase="none" keysize="4096">{xpath%//build/paths/pki/text()}/{xpath%../../../meta/names/uxname/text()}.key</key>
                 <subject>
-                    <commonName>some client name</commonName>
+                    <commonName>website.tld</commonName>
                     <countryName>XX</countryName>
                     <localityName>Some City</localityName>
                     <stateOrProvinceName>Some State</stateOrProvinceName>
@@ -262,7 +263,7 @@
                 </subject>
             </client>
         </pki>
-        <gpg keyid="none" gnupghome="none" publish="no" prompt_passphrase="no">
+        <gpg keyid="none" gnupghome="none" publish="false" prompt_passphrase="false">
             <key algo="rsa" keysize="4096" expire="0">
                 <name>{xpath%../../../meta/dev/author/text()}</name>
                 <email>{xpath%../../../meta/dev/email/text()}</email>
