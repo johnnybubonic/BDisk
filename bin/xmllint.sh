@@ -1,3 +1,3 @@
 #!/bin/bash
 
-xmllint -schema ../bdisk/bdisk.xsd ../docs/examples/multi_profile.xml --noout
+xmllint -schema /opt/dev/bdisk/bdisk/bdisk.xsd /opt/dev/bdisk/docs/examples/multi_profile.xml --noout

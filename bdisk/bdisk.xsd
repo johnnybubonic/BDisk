@@ -645,6 +645,13 @@
                                     <xs:attribute name="keyid" type="t_gpg_keyid" use="required"/>
                                     <xs:attribute name="publish" type="xs:boolean" use="optional"/>
                                     <xs:attribute name="prompt_passphrase" type="xs:boolean" use="required"/>
+                                    <xs:attribute name="passphrase" use="optional">
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:string">
+                                                <xs:pattern value="[!&quot;#$%&amp;\\'\(\)\*\+,\-\./0123456789:;&lt;=&gt;\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]\^_`abcdefghijklmnopqrstuvwxyz\{\|\}~ ]+"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:attribute>
                                     <xs:attribute name="gnupghome" use="optional">
                                         <xs:simpleType>
                                             <xs:restriction base="xs:string">

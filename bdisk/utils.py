@@ -77,6 +77,8 @@ class detect(object):
 
     def password_hash_salt(self, salted_hash):
         _hash_list = salted_hash.split('$')
+        if len(_hash_list) < 3:
+            return(None)
         salt = _hash_list[2]
         return(salt)
 
@@ -630,10 +632,28 @@ class transform(object):
                     if _hash:
                         acct['hash_algo'] = _hash
                     else:
-                        raise ValueError(
-                                'Invalid salted password hash: {0}'.format(
-                                        elem.text)
-                                )
+                        acct['hash_algo'] = None
+                        # We no longer raise ValueError. Per shadow(5):
+                        #######################################################
+                        # If the password field contains some string that is
+                        # not a valid result of crypt(3), for instance ! or *,
+                        # the user will not be able to use a unix password to
+                        # log in (but the user may log in the system by other
+                        # means).
+                        # This field may be empty, in which case no passwords
+                        # are required to authenticate as the specified login
+                        #  name. However, some applications which read the
+                        # /etc/shadow file may decide not to permit any access
+                        # at all if the password field is empty.
+                        # A password field which starts with an exclamation
+                        # mark means that the password is locked. The remaining
+                        # characters on the line represent the password field
+                        # before the password was locked.
+                        #######################################################
+                        # raise ValueError(
+                        #         'Invalid salted password hash: {0}'.format(
+                        #                 elem.text)
+                        #         )
                 acct['salt_hash'] = elem.text
                 acct['passphrase'] = None
             else:
@@ -873,13 +893,13 @@ class xml_supplicant(object):
         return(cfg)
 
     def _parse_regexes(self):
-        for regex in self.profile.xpath('//meta/regexes/pattern'):
+        for regex in self.profile.xpath('./meta/regexes/pattern'):
             _key = 'regex%{0}'.format(regex.attrib['id'])
             self.btags['regex'][_key] = regex.text
         return()
 
     def _parse_variables(self):
-        for variable in self.profile.xpath('//meta/variables/variable'):
+        for variable in self.profile.xpath('./meta/variables/variable'):
             self.btags['variable'][
                                 'variable%{0}'.format(variable.attrib['id'])
                                     ] = variable.text
@@ -976,7 +996,6 @@ class xml_supplicant(object):
         return(path)
 
     def return_full(self):
-        #nsmap = self.return_naked_ns()
         # https://stackoverflow.com/a/22553145/733214
         local_xml = lxml.etree.Element('bdisk',
                                        nsmap = self.orig_xml.nsmap,

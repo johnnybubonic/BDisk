@@ -56,7 +56,7 @@ class Conf(object):
         self.cfg = {}
         if validate_cfg:
             # Validation post-substitution
-            self.validate()
+            self.validate(parsed = False)
 
     def get_pki_obj(self, pki, pki_type):
         elem = {}
@@ -82,8 +82,7 @@ class Conf(object):
         return(elem)
 
     def get_source(self, source, item, _source):
-        _source_item = {'flags': [],
-                         'fname': None}
+        _source_item = {'flags': [], 'fname': None}
         elem = source.xpath('./{0}'.format(item))[0]
         if item == 'checksum':
             if elem.get('explicit', False):
@@ -132,6 +131,8 @@ class Conf(object):
         return(_source_item)
 
     def get_xsd(self):
+        if isinstance(self.xsd, lxml.etree.XMLSchema):
+            return(self.xsd)
         if not self.xsd:
             path = os.path.join(os.path.dirname(__file__), 'bdisk.xsd')
         else:
@@ -231,10 +232,12 @@ class Conf(object):
             for e in self.profile.xpath(_xpath):
                 for se in e:
                     if not isinstance(se, lxml.etree._Comment):
-                        self.cfg[t][se.tag] = se.text
+                        self.cfg[t][se.tag] = transform.xml2py(se.text,
+                                                               attrib = False)
         for e in ('desc', 'uri', 'ver', 'max_recurse'):
             _xpath = './meta/{0}/text()'.format(e)
-            self.cfg[e] = self.profile.xpath(_xpath)[0]
+            self.cfg[e] = transform.xml2py(self.profile.xpath(_xpath)[0],
+                                           attrib = False)
         # HERE is where we would handle regex patterns.
         # But we don't, because they're in self.xml_suppl.btags['regex'].
         #self.cfg['regexes'] = {}
@@ -249,7 +252,7 @@ class Conf(object):
         self.cfg['pki'] = {'clients': []}
         elem = self.profile.xpath('./pki')[0]
         self.cfg['pki']['overwrite'] = transform.xml2py(
-                                                elem.get('overwrite', 'no'))
+                                                elem.get('overwrite', 'false'))
         ca = elem.xpath('./ca')[0]
         clients = elem.xpath('./client')
         self.cfg['pki']['ca'] = self.get_pki_obj(ca, 'ca')
@@ -266,7 +269,9 @@ class Conf(object):
                                'uuid': None}
         for a in self.cfg['profile']:
             if a in self.profile.attrib:
-                self.cfg['profile'][a] = self.profile.attrib[a]
+                self.cfg['profile'][a] = transform.xml2py(
+                                                        self.profile.attrib[a],
+                                                        attrib = True)
         return()
 
     def parse_sources(self):
@@ -306,13 +311,49 @@ class Conf(object):
                                                         attrib = False)
         return()
 
-    def validate(self):
-        # TODO: perform further validations that we can't do in XSD.
+    def validate(self, parsed = False):
         xsd = self.get_xsd()
-        self.xsd = etree.XMLSchema(xsd)
+        if not isinstance(xsd, lxml.etree.XMLSchema):
+            self.xsd = etree.XMLSchema(xsd)
+        else:
+            pass
         # This would return a bool if it validates or not.
         #self.xsd.validate(self.xml)
         # We want to get a more detailed exception.
         xml = etree.fromstring(self.xml_suppl.return_full())
         self.xsd.assertValid(xml)
+        if parsed:
+            # TODO: perform further validations that we can't do in XSD.
+            # We wait until after it's parsed to evaluate because otherwise we
+            # can't use utils.valid().
+            # We only bother with stuff that would hinder building, though -
+            # e.g. we don't check that profile's UUID is a valid UUID4.
+            # URLs
+            for url in (self.cfg['uri'], self.cfg['dev']['website']):
+                if not valid.url(url):
+                    raise ValueError('{0} is not a valid URL.'.format(url))
+            # Emails
+            for k in self.cfg['gpg']['keys']:
+                if not valid.email(k['email']):
+                    raise ValueError(
+                            'GPG key {0}: {1} is not a valid email '
+                            'address'.format(k['name'], k['email']))
+            if not valid.email(self.cfg['dev']['email']):
+                raise ValueError('{0} is not a valid email address'.format(
+                                                    self.cfg['dev']['email']))
+            if self.cfg['pki']:
+                if 'subject' in self.cfg['pki']['ca']:
+                    if not valid.email(
+                            self.cfg['pki']['ca']['subject']['emailAddress']):
+                        raise ValueError('{0} is not a valid email '
+                                         'address'.format(
+                            self.cfg['pki']['ca']['subject']['emailAddress']))
+
+                    if not self.cfg['pki'][x]['subject']:
+                        continue
+                    if not valid.email(
+                            self.cfg['pki'][x]['subject']['emailAddress']):
+                        raise ValueError('{0} is not a valid email '
+                                         'address'.format(
+                                self.cfg['pki'][x]['subject']['email']))
         return()

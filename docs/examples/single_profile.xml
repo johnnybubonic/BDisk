@@ -43,10 +43,10 @@
             <!-- Salted/hashed password is "test" -->
             <rootpass hashed="true">$6$7KfIdtHTcXwVrZAC$LZGNeMNz7v5o/cYuA48FAxtZynpIwO5B1CPGXnOW5kCTVpXVt4SypRqfM.AoKkFt/O7MZZ8ySXJmxpELKmdlF1</rootpass>
             <user sudo="true">
-                <username>{xpath%//meta/names/uxname/text()}</username>
+                <username>{xpath%../../../meta/names/uxname/text()}</username>
                 <!-- You can also use substitution from different profiles in this same configuration: -->
                 <!-- <username>{xpath%//profile[@name='another_profile']/meta/names/uxname"}</username> -->
-                <comment>{xpath%//meta/dev/author/text()}</comment>
+                <comment>{xpath%../../../meta/dev/author/text()}</comment>
                 <password hashed="false"
                           hash_algo="sha512"
                           salt="auto">testpassword</password>
@@ -153,7 +153,7 @@
                 </subject>
             </client>
         </pki>
-        <!-- If prompt_passphrase is "no" and passphrase attribute is not given for a gpg element, we will try to use a
+        <!-- If prompt_passphrase is "false" and passphrase attribute is not given for a gpg element, we will try to use a
              blank passphrase for all operations. -->
         <gpg keyid="none"
              gnupghome="none"
