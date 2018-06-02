@@ -30,7 +30,8 @@
                  items. See the manual for more information. NO btags within the patterns is allowed. -->
             <regexes>
                 <pattern id="tarball_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz$</pattern>
-                <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$</pattern>
+                <pattern id="sig_x86_64">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-x86_64\.tar\.gz\.sig$
+                </pattern>
                 <pattern id="tarball_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz$</pattern>
                 <pattern id="sig_i686">archlinux-bootstrap-[0-9]{4}\.[0-9]{2}\.[0-9]{2}-i686\.tar\.gz\.sig$</pattern>
             </regexes>
@@ -76,12 +77,15 @@
                 <rootpath>/iso/latest</rootpath>
                 <tarball flags="regex latest">{regex%tarball_i686}</tarball>
                 <checksum hash_algo="sha512"
-                          explicit="true">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e</checksum>
+                          explicit="true">cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e                </checksum>
                 <sig keys="248BF41F9BDD61D41D060AE774EDA3C6B06D0506"
                      keyserver="hkp://pool.sks-keyservers.net"
                      flags="regex latest">{regex%sig_i686}</sig>
             </source>
         </sources>
+        <packages>
+            <package repo="core">openssh</package>
+        </packages>
         <build its_full_of_stars="true">
             <paths>
                 <base>{variable%bdisk_root}/base</base>

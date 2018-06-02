@@ -502,6 +502,54 @@
                                 </xs:complexType>
                             </xs:element>
                             <!-- END BDISK/PROFILE/SOURCES -->
+                            <!-- BDISK/PROFILE/PACKAGES -->
+                            <xs:element name="packages" maxOccurs="1" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <!-- BDISK/PROFILE/PACKAGES/PACKAGE -->
+                                        <xs:element name="package" maxOccurs="unbounded" minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <xs:attribute name="version" type="xs:string" use="optional"/>
+                                                        <xs:attribute name="repo" type="xs:string" use="optional"/>
+                                                        <!-- Default is "both" -->
+                                                        <xs:attribute name="arch" use="optional">
+                                                            <xs:simpleType>
+                                                                <xs:restriction base="xs:string">
+                                                                    <xs:pattern value="(i686|x86(_64)?|32|64|both)"/>
+                                                                </xs:restriction>
+                                                            </xs:simpleType>
+                                                        </xs:attribute>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/PACKAGES/PACKAGE -->
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <!-- END BDISK/PROFILE/PACKAGES -->
+                            <!-- BDISK/PROFILE/SERVICES -->
+                            <xs:element name="services" maxOccurs="1" minOccurs="0">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <!-- BDISK/PROFILE/SERVICES/SERVICE -->
+                                        <xs:element name="service" maxOccurs="unbounded" minOccurs="1">
+                                            <xs:complexType>
+                                                <xs:simpleContent>
+                                                    <xs:extension base="xs:string">
+                                                        <xs:attribute name="enabled" type="xs:boolean" use="required"/>
+                                                        <xs:attribute name="blacklisted" type="xs:boolean" use="optional"/>
+                                                    </xs:extension>
+                                                </xs:simpleContent>
+                                            </xs:complexType>
+                                        </xs:element>
+                                        <!-- END BDISK/PROFILE/SERVICES/SERVICE -->
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <!-- END BDISK/PROFILE/SERVICES -->
                             <!-- BDISK/PROFILE/BUILD -->
                             <xs:element name="build" maxOccurs="1" minOccurs="1">
                                 <xs:complexType>
@@ -648,7 +696,8 @@
                                     <xs:attribute name="passphrase" use="optional">
                                         <xs:simpleType>
                                             <xs:restriction base="xs:string">
-                                                <xs:pattern value="[!&quot;#$%&amp;\\'\(\)\*\+,\-\./0123456789:;&lt;=&gt;\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]\^_`abcdefghijklmnopqrstuvwxyz\{\|\}~ ]+"/>
+                                                <xs:pattern
+                                                        value="[!&quot;#$%&amp;\\'\(\)\*\+,\-\./0123456789:;&lt;=&gt;\?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\[\]\^_`abcdefghijklmnopqrstuvwxyz\{\|\}~ ]+"/>
                                             </xs:restriction>
                                         </xs:simpleType>
                                     </xs:attribute>
