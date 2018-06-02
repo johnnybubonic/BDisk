@@ -10,11 +10,47 @@
 # shepherd
 initsys = 'systemd'
 
+def extern_prep(cfg, cur_arch = 'x86_64'):
+    import os
+    import re
+    mirrorlist = os.path.join(cfg['build']['paths']['chroot'],
+                              cur_arch,
+                              'etc/pacman.d/mirrorlist')
+    with open(mirrorlist, 'r') as f:
+        mirrors = []
+        for i in f.readlines():
+            m = re.sub('^\s*#.*$', '', i.strip())
+            if m != '':
+                mirrors.append(m)
+    if not mirrors:
+        # We do this as a fail-safe.
+        mirror = ('\n\n# Added by BDisk\n'
+                  'Server = https://arch.mirror.square-r00t.net/'
+                  '$repo/os/$arch\n')
+        with open(mirrorlist, 'a') as f:
+            f.write(mirror)
+    return()
+
 # This will be run before the regular packages are installed. It can be
 # whatever script you like, as long as it has the proper shebang and doesn't
 # need additional packages installed.
+# In Arch's case, we use it for initializing the keyring and installing an AUR
+# helper.
 pkg_mgr_prep = """#!/bin/bash
 
+pacman -Syy
+pacman-key --init
+pacman-key --populate archlinux
+pacman -S --noconfirm --needed base-devel multilib-devel git linux-headers \
+                               mercurial subversion vala xorg-server-devel
+cd /tmp
+sqrt="https://git.square-r00t.net/BDisk/plain/external"
+# Temporary until there's another AUR helper that allows dropping privs AND
+# automatically importing GPG keys.
+pkg="${sqrt}/apacman-current.pkg.tar.xz?h=4.x_rewrite"
+curl -sL -o apacman-current.pkg.tar.xz ${pkg}
+pacman -U --noconfirm apacman-current.pkg.tar.xz
+rm apacman*
 """
 
 # Special values:
@@ -55,5 +91,5 @@ prereqs = ['arch-install-scripts', 'archiso', 'bzip2', 'coreutils',
            'mtools', 'net-tools', 'netctl', 'networkmanager', 'pv',
            'python', 'python-pyroute2', 'rsync', 'sed', 'shorewall',
            'squashfs-tools', 'sudo', 'sysfsutils',
-           'syslinux', 'traceroute']
+           'syslinux', 'traceroute', 'vi']
 
