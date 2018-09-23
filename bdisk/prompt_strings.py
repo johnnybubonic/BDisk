@@ -11,18 +11,31 @@ class PromptStrings(object):
         'attribs': {
             'algo': {
                 'text': 'the subkey\'s encryption type/algorithm',
-                'choices': ['rsa', 'dsa'],
-                'default': 'rsa'
+                # The following can ONLY be used for encryption, not signing: elg, cv
+                #'choices': ['rsa', 'dsa', 'elg', 'ed', 'cv', 'nistp', 'brainpool.1', 'secp.k1'],
+                'choices': ['rsa', 'dsa', 'ed', 'nist', 'brainpool.1', 'sec.k1'],
+                #'default': 'rsa'
+                'default': 'ed'
                 },
             'keysize': {
                 'text': 'the subkey\'s key size (in bits)',
                 'choices': {
                     'rsa': ['1024', '2048', '4096'],
-                    'dsa': ['768', '2048', '3072']
+                    'dsa': ['768', '2048', '3072'],
+                    #'elg': ['1024', '2048', '4096'],  # Invalid for signing, etc.
+                    'ed': ['25519'],
+                    #'cv': ['25519'],
+                    'nistp': ['256', '384', '521'],
+                    'brainpool.1': ['256', '384', '512'],
+                    'sec.k1': ['256']
                     },
                 'default': {
                     'rsa': '4096',
-                    'dsa': '3072'
+                    'dsa': '3072',
+                    'ed': '25519',
+                    'nistp': '521',
+                    'brainpool.1': '512',
+                    'sec.k1': '256'
                     }
                 }
             },

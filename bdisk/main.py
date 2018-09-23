@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 
 import argparse
 import confparse
@@ -14,8 +14,10 @@ def parseArgs():
                                    epilog = ('https://git.square-r00t.net'))
     return(args)
 
-def run():
-    pass
+def run(cfg):
+    cfg = confparse.Conf(cfg, validate_cfg = True)
+    cfg.parse_all()
+
 
 def run_interactive():
     args = vars(parseArgs().parse_args())

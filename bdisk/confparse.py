@@ -40,6 +40,8 @@ class Conf(object):
 
                         You can provide any combination of these
                         (e.g. "profile={'id': 2, 'name' = 'some_profile'}").
+                        Non-greedy matching (meaning ALL attributes specified
+                        must match).
         """
         if validate_cfg == 'pre':
             # Validate before attempting any other operations
@@ -57,6 +59,7 @@ class Conf(object):
         if validate_cfg:
             # Validation post-substitution
             self.validate(parsed = False)
+        # TODO: populate checksum{} with hash_algo if explicit
 
     def get_pki_obj(self, pki, pki_type):
         elem = {}
@@ -272,6 +275,9 @@ class Conf(object):
                 self.cfg['profile'][a] = transform.xml2py(
                                                         self.profile.attrib[a],
                                                         attrib = True)
+        # Small bug in transform.xml2py that we unfortunately can't fix, so we manually fix.
+        if 'id' in self.cfg['profile'] and isinstance(self.cfg['profile']['id'], bool):
+            self.cfg['profile']['id'] = int(self.cfg['profile']['id'])
         return()
 
     def parse_sources(self):
@@ -323,11 +329,12 @@ class Conf(object):
         xml = etree.fromstring(self.xml_suppl.return_full())
         self.xsd.assertValid(xml)
         if parsed:
-            # TODO: perform further validations that we can't do in XSD.
             # We wait until after it's parsed to evaluate because otherwise we
             # can't use utils.valid().
             # We only bother with stuff that would hinder building, though -
             # e.g. we don't check that profile's UUID is a valid UUID4.
+            # The XSD can catch a lot of stuff, but it's not so hot with things like URI validation,
+            # email validation, etc.
             # URLs
             for url in (self.cfg['uri'], self.cfg['dev']['website']):
                 if not valid.url(url):
@@ -335,25 +342,41 @@ class Conf(object):
             # Emails
             for k in self.cfg['gpg']['keys']:
                 if not valid.email(k['email']):
-                    raise ValueError(
-                            'GPG key {0}: {1} is not a valid email '
-                            'address'.format(k['name'], k['email']))
+                    raise ValueError('GPG key {0}: {1} is not a valid email address'.format(k['name'], k['email']))
             if not valid.email(self.cfg['dev']['email']):
-                raise ValueError('{0} is not a valid email address'.format(
-                                                    self.cfg['dev']['email']))
+                raise ValueError('{0} is not a valid email address'.format(self.cfg['dev']['email']))
             if self.cfg['pki']:
                 if 'subject' in self.cfg['pki']['ca']:
-                    if not valid.email(
-                            self.cfg['pki']['ca']['subject']['emailAddress']):
-                        raise ValueError('{0} is not a valid email '
-                                         'address'.format(
-                            self.cfg['pki']['ca']['subject']['emailAddress']))
-
-                    if not self.cfg['pki'][x]['subject']:
+                    if not valid.email(self.cfg['pki']['ca']['subject']['emailAddress']):
+                        raise ValueError('{0} is not a valid email address'.format(
+                                                                    self.cfg['pki']['ca']['subject']['emailAddress']))
+                for cert in self.cfg['pki']['clients']:
+                    if not cert['subject']:
                         continue
-                    if not valid.email(
-                            self.cfg['pki'][x]['subject']['emailAddress']):
-                        raise ValueError('{0} is not a valid email '
-                                         'address'.format(
-                                self.cfg['pki'][x]['subject']['email']))
+                    if not valid.email(cert['subject']['emailAddress']):
+                        raise ValueError('{0} is not a valid email address'.format(cert['subject']['email']))
+            # Salts/hashes
+            if self.cfg['root']['salt']:
+                if not valid.salt_hash(self.cfg['root']['salt']):
+                    raise ValueError('{0} is not a valid salt'.format(self.cfg['root']['salt']))
+            if self.cfg['root']['hashed']:
+                if not valid.salt_hash_full(self.cfg['root']['salt_hash'], self.cfg['root']['hash_algo']):
+                    raise ValueError('{0} is not a valid hash of type {1}'.format(self.cfg['root']['salt_hash'],
+                                                                                  self.cfg['root']['hash_algo']))
+            for u in self.cfg['users']:
+                if u['salt']:
+                    if not valid.salt_hash(u['salt']):
+                        raise ValueError('{0} is not a valid salt'.format(u['salt']))
+                if u['hashed']:
+                    if not valid.salt_hash_full(u['salt_hash'], u['hash_algo']):
+                        raise ValueError('{0} is not a valid hash of type {1}'.format(u['salt_hash'], u['hash_algo']))
+            # GPG Key IDs
+            if self.cfg['gpg']['keyid']:
+                if not valid.gpgkeyID(self.cfg['gpg']['keyid']):
+                    raise ValueError('{0} is not a valid GPG Key ID/fingerprint'.format(self.cfg['gpg']['keyid']))
+            for s in self.cfg['sources']:
+                if 'sig' in s:
+                    for k in s['sig']['keys']:
+                        if not valid.gpgkeyID(k):
+                            raise ValueError('{0} is not a valid GPG Key ID/fingerprint'.format(k))
         return()

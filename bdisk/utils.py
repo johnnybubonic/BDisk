@@ -1,3 +1,5 @@
+# Yes, this is messy. They doesn't belong anywhere else, leave me alone.
+
 import _io
 import copy
 import crypt
@@ -14,6 +16,7 @@ import string
 import uuid
 import validators
 import zlib
+import requests
 import lxml.etree
 import lxml.objectify
 from bs4 import BeautifulSoup
@@ -30,7 +33,7 @@ passlib_schemes = ['des_crypt', 'md5_crypt', 'sha256_crypt', 'sha512_crypt']
 # Build various hash digest name lists
 digest_schemes = list(hashlib.algorithms_available)
 # Provided by zlib
-# TODO
+# TODO?
 digest_schemes.append('adler32')
 digest_schemes.append('crc32')
 
@@ -38,6 +41,54 @@ crypt_map = {'sha512': crypt.METHOD_SHA512,
              'sha256': crypt.METHOD_SHA256,
              'md5': crypt.METHOD_MD5,
              'des': crypt.METHOD_CRYPT}
+
+
+class Download(object):
+    def __init__(self, url, progress = True, offset = None, chunksize = 1024):
+        self.cnt_len = None
+        self.head = requests.head(url, allow_redirects = True).headers
+        self.req_headers = {}
+        self.range = False
+        self.url = url
+        self.offset = offset
+        self.chunksize = chunksize
+        self.progress = progress
+        if 'accept-ranges' in self.head:
+            if self.head['accept-ranmges'].lower() != 'none':
+                self.range = True
+            if 'content-length' in self.head:
+                try:
+                    self.cnt_len = int(self.head['content-length'])
+                except TypeError:
+                    pass
+            if self.cnt_len and self.offset and self.range:
+                if not self.offset <= self.cnt_len:
+                    raise ValueError(('The offset requested ({0}) is greater than '
+                                      'the content-length value').format(self.offset, self.cnt_len))
+                self.req_headers['range'] = 'bytes={0}-'.format(self.offset)
+
+    def fetch(self):
+        if not self.progress:
+            self.req = requests.get(self.url, allow_redirects = True, headers = self.req_headers)
+            self.bytes_obj = self.req.content
+        else:
+            self.req = requests.get(self.url, allow_redirects = True, stream = True, headers = self.req_headers)
+            self.bytes_obj = bytes()
+            _bytelen = 0
+            # TODO: better handling for logging instead of print()s?
+            for chunk in self.req.iter_content(chunk_size = self.chunksize):
+                self.bytes_obj += chunk
+                if self.cnt_len:
+                    print('\033[F')
+                    print('{0:.2f}'.format((_bytelen / float(self.head['content-length'])) * 100),
+                          end = '%',
+                          flush = True)
+                    _bytelen += self.chunksize
+                else:
+                    print('.', end = '')
+            print()
+        return(self.bytes_obj)
+
 
 class XPathFmt(string.Formatter):
     def get_field(self, field_name, args, kwargs):
@@ -50,18 +101,19 @@ class detect(object):
     def __init__(self):
         pass
 
-    def any_hash(self, hash_str):
+    def any_hash(self, hash_str, normalize = False):
         h = hashid.HashID()
         hashes = []
         for i in h.identifyHash(hash_str):
             if i.extended:
                 continue
             x = i.name
-            if x.lower() in ('crc-32', 'ripemd-160', 'sha-1', 'sha-224',
-                             'sha-256', 'sha-384', 'sha-512'):
+            if x.lower() in ('crc-32', 'ripemd-160', 'sha-1', 'sha-224', 'sha-256', 'sha-384', 'sha-512'):
                 # Gorram you, c0re.
                 x = re.sub('-', '', x.lower())
-            _hashes = [h.lower() for h in digest_schemes]
+            _hashes = [h.lower() for h in digest_schemes]  # TODO: move this outside so we don't define it every invoke
+            if normalize:
+                x = re.sub('(-|crypt|\s+)', '', x.lower())
             if x.lower() in sorted(list(set(_hashes))):
                 hashes.append(x)
         return(hashes)
@@ -83,8 +135,7 @@ class detect(object):
         return(salt)
 
     def remote_files(self, url_base, ptrn = None, flags = []):
-        with urlopen(url_base) as u:
-            soup = BeautifulSoup(u.read(), 'lxml')
+        soup = BeautifulSoup(Download(url_base, progress = False).bytes_obj, 'lxml')
         urls = []
         if 'regex' in flags:
             if not isinstance(ptrn, str):
@@ -113,8 +164,7 @@ class detect(object):
         return(urls)
 
     def gpgkeyID_from_url(self, url):
-        with urlopen(url) as u:
-            data = u.read()
+        data = Download(url, progress = False).bytes_obj
         g = GPG.GPGHandler()
         key_ids = g.get_sigs(data)
         del(g)
@@ -166,7 +216,7 @@ class detect(object):
         # Get any easy ones out of the way first.
         if name in digest_schemes:
             return(name)
-        # Otherwise grab the first one that matches, in order from the .
+        # Otherwise grab the first one that matches
         _digest_re = re.compile('^{0}$'.format(name.strip()), re.IGNORECASE)
         for h in digest_schemes:
             if _digest_re.search(h):
@@ -774,11 +824,16 @@ class valid(object):
         return(True)
 
     def salt_hash(self, salthash):
-        _idents = ''.join([i.ident for i in crypt_map if i.ident])
+        _idents = ''.join([i.ident for i in crypt_map.values() if i.ident])
         # noinspection PyStringFormat
-        _regex = re.compile('^(\$[{0}]\$)?[./0-9A-Za-z]{{0,16}}\$?'.format(
-                                                                    _idents))
+        _regex = re.compile('^(\$[{0}]\$)?[./0-9A-Za-z]{{0,16}}\$?'.format(_idents))
         if not _regex.search(salthash):
+            return(False)
+        return(True)
+
+    def salt_hash_full(self, salthash, hash_type):
+        h = [re.sub('-', '', i.lower()).split()[0] for i in detect.any_hash(self, salthash, normalize = True)]
+        if hash_type.lower() not in h:
             return(False)
         return(True)
 

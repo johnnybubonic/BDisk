@@ -669,8 +669,17 @@
                                                 <xs:attribute name="algo" use="optional">
                                                     <xs:simpleType>
                                                         <xs:restriction base="xs:string">
+                                                            <!-- rsa, dsa, and elgamal are "normal". Newer GnuPG supports ECC (yay!), so we have support for those in the XSD (you can get a list with gpg -with-colons -list-config curve | cut -f3 -d":" | tr ';' '\n'). -->
+                                                            <!-- We test in-code if the host supports it. -->
                                                             <xs:enumeration value="rsa"/>
                                                             <xs:enumeration value="dsa"/>
+                                                            <!-- The following only support encryption. The entire reason we'd be generating a key is to sign files, so we disable them. -->
+                                                            <!-- <xs:enumeration value="elg"/> -->
+                                                            <!-- <xs:enumeration value="cv"/> -->
+                                                            <xs:enumeration value="ed"/>
+                                                            <xs:enumeration value="nist"/>
+                                                            <xs:enumeration value="brainpool.1"/>
+                                                            <xs:enumeration value="sec.k1"/>
                                                         </xs:restriction>
                                                     </xs:simpleType>
                                                 </xs:attribute>

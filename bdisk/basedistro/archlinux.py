@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 
 # Supported initsys values:
 # systemd
@@ -41,6 +41,7 @@ pkg_mgr_prep = """#!/bin/bash
 pacman -Syy
 pacman-key --init
 pacman-key --populate archlinux
+pacman -S --noconfirm --needed base
 pacman -S --noconfirm --needed base-devel multilib-devel git linux-headers \
                                mercurial subversion vala xorg-server-devel
 cd /tmp
@@ -62,8 +63,8 @@ rm apacman*
 # should try to install it.
 #### AUR SUPPORT ####
 packager = {'pre_check': False,
-            'sys_update': ['/usr/bin/aurman', '-S', '-u'],
-            'sync_cmd': ['/usr/bin/aurman', '-S', '-y', '-y'],
+            'sys_update': ['/usr/bin/apacman', '-S', '-u'],
+            'sync_cmd': ['/usr/bin/apacman', '-S', '-y', '-y'],
             'check_cmds': {'versioned': ['/usr/bin/pacman',
                                          '-Q', '-s',
                                          '{PACKAGE}'],

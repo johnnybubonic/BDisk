@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 
 # Ironically enough, I think building a GUI for this would be *cleaner*.
 # Go figure.
