@@ -665,6 +665,34 @@
                                                     <xs:element name="comment" type="xs:string" maxOccurs="1"
                                                                 minOccurs="0"/>
                                                     <!-- END BDISK/PROFILE/GPG/KEY/COMMENT -->
+                                                    <!-- BDISK/PROFILE/GPG/KEY/SUBKEY -->
+                                                    <xs:element name="subkey" maxOccurs="1" minOccurs="0">
+                                                        <xs:complexType>
+                                                            <!-- See below for notes on attributes. -->
+                                                            <!-- TODO: convert into shared type for parent as well? -->
+                                                            <xs:attribute name="algo" use="optional">
+                                                                <xs:simpleType>
+                                                                    <xs:restriction base="xs:string">
+                                                                        <xs:enumeration value="rsa"/>
+                                                                        <xs:enumeration value="dsa"/>
+                                                                        <xs:enumeration value="ed"/>
+                                                                        <xs:enumeration value="nist"/>
+                                                                        <xs:enumeration value="brainpool.1"/>
+                                                                        <xs:enumeration value="sec.k1"/>
+                                                                    </xs:restriction>
+                                                                </xs:simpleType>
+                                                            </xs:attribute>
+                                                            <xs:attribute name="keysize" type="xs:positiveInteger" use="optional"/>
+                                                            <xs:attribute name="expire" use="optional">
+                                                                <xs:simpleType>
+                                                                    <xs:restriction base="xs:integer">
+                                                                        <xs:pattern value="(0|[0-9]{10})"/>
+                                                                    </xs:restriction>
+                                                                </xs:simpleType>
+                                                            </xs:attribute>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                    <!-- END BDISK/PROFILE/GPG/KEY/SUBKEY -->
                                                 </xs:all>
                                                 <xs:attribute name="algo" use="optional">
                                                     <xs:simpleType>

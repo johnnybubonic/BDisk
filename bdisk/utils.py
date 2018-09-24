@@ -135,7 +135,8 @@ class detect(object):
         return(salt)
 
     def remote_files(self, url_base, ptrn = None, flags = []):
-        soup = BeautifulSoup(Download(url_base, progress = False).bytes_obj, 'lxml')
+        soup = BeautifulSoup(Download(url_base, progress = False).fetch().decode('utf-8'),
+                             'lxml')
         urls = []
         if 'regex' in flags:
             if not isinstance(ptrn, str):

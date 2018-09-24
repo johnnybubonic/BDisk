@@ -1,3 +1,4 @@
+import copy
 import os
 import pprint
 import re
@@ -210,16 +211,24 @@ class Conf(object):
         for attr in elem.xpath('./@*'):
             self.cfg['gpg'][attr.attrname] = transform.xml2py(attr)
         for key in elem.xpath('./key'):
-            _key = {'algo': 'rsa',
-                    'keysize': '4096',
-                    'expire': '0',
-                    'name': None,
-                    'email': None,
-                    'comment': None}
+            _keytpl = {'algo': 'rsa',
+                       'keysize': '4096'}
+            _key = copy.deepcopy(_keytpl)
+            _key['name'] = None
+            _key['email'] = None
+            _key['comment'] = None
             for attr in key.xpath('./@*'):
                 _key[attr.attrname] = transform.xml2py(attr)
             for param in key.xpath('./*'):
-                _key[param.tag] = transform.xml2py(param.text, attrib = False)
+                if param.tag == 'subkey':
+                    # We only support one subkey (for key generation).
+                    if 'subkey' not in _key:
+                        _key['subkey'] = copy.deepcopy(_keytpl)
+                    for attr in param.xpath('./@*'):
+                        _key['subkey'][attr.attrname] = transform.xml2py(attr)
+                    print(_key)
+                else:
+                    _key[param.tag] = transform.xml2py(param.text, attrib = False)
             self.cfg['gpg']['keys'].append(_key)
         return()
 
