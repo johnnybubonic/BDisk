@@ -1,11 +1,12 @@
 - write classes/functions
 - XML-based config
 -x XML syntax
---- xregex btags - case-insensitive? this can be represented in-pattern:
-    xhttps://stackoverflow.com/a/9655186/733214
+--- x regex btags - case-insensitive? this can be represented in-pattern:
+    x https://stackoverflow.com/a/9655186/733214
+--- remove sources stuff - that should be in the guest definitions.
 -x configuration generator
---- xprint end result xml config to stderr for easier redirection? or print prompts to stderr and xml to stdout?
--- xXSD for validation
+--- x print end result xml config to stderr for easier redirection? or print prompts to stderr and xml to stdout?
+-- x XSD for validation
 -- Flask app for generating config?
 -- TKinter (or pygame?) GUI?
 --- https://docs.python.org/3/faq/gui.html
@@ -15,9 +16,12 @@
   at the very least document all the functions and such so pydoc's happy.
 
 - locking
+
 - for docs, 3.x (as of 3.10) was 2.4M.
-- xNeed ability to write/parse mtree specs (or a similar equivalent) for applying ownerships/permissions to overlay files
+
+- x Need ability to write/parse mtree specs (or a similar equivalent) for applying ownerships/permissions to overlay files
 -- parsing is done. writing may? come later.
+--- i think writing is mostly done/straightforward; still need to work on parsing mode octals for files
 
 
 - package for PyPI:

@@ -1,14 +1,47 @@
 #!/usr/bin/env python3
 
-# Supported initsys values:
-# systemd
-# Possible future inclusions:
-# openrc
-# runit
-# sinit
-# s6
-# shepherd
-initsys = 'systemd'
+from .. import download  # LOCAL # do i need to escalate two levels up?
+import os
+from .. import utils
+
+# TODO: can this be trimmed down?
+prereqs = ['arch-install-scripts', 'archiso', 'bzip2', 'coreutils', 'customizepkg-scripting', 'cronie', 'dhclient',
+           'dhcp', 'dhcpcd', 'dosfstools', 'dropbear', 'efibootmgr', 'efitools', 'efivar', 'file', 'findutils',
+           'iproute2', 'iputils', 'libisoburn', 'localepurge', 'lz4', 'lzo', 'lzop', 'mkinitcpio-nbd',
+           'mkinitcpio-nfs-utils', 'mkinitcpio-utils', 'nbd', 'ms-sys', 'mtools', 'net-tools', 'netctl',
+           'networkmanager', 'pv', 'python', 'python-pyroute2', 'rsync', 'sed', 'shorewall', 'squashfs-tools',
+           'sudo', 'sysfsutils', 'syslinux', 'traceroute', 'vi']
+
+class Manifest(object):
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.name = 'archlinux'
+        self.version = None  # rolling release
+        self.release = None  # rolling release
+        # https://www.archlinux.org/master-keys/
+        # Pierre Schmitz. https://www.archlinux.org/people/developers/#pierre
+        self.gpg_authorities = ['4AA4767BBC9C4B1D18AE28B77F2D434B9741E8AC']
+        self.tarball = None
+        self.sig = None
+        self.checksum = {'sha1': None,
+                         'md5': None}
+        self._get_filename()
+
+    def _get_filename(self):
+        # TODO: cache this info
+        webroot = 'iso/latest'
+        for m in self.cfg['mirrors']:
+            uri = os.path.join(m, webroot)
+            try:
+                self.tarball = utils.detect().remote_files(uri, ptrn = ('archlinux-'
+                                                                        'bootstrap-'
+                                                                        '[0-9]{4}\.'
+                                                                        '[0-9]{2}\.'
+                                                                        '[0-9]{2}-'
+                                                                        'x86_64\.tar\.gz$'))[0]
+            except Exception as e:
+                pass
+
 
 def extern_prep(cfg, cur_arch = 'x86_64'):
     import os

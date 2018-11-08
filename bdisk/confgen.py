@@ -3,13 +3,14 @@
 # Ironically enough, I think building a GUI for this would be *cleaner*.
 # Go figure.
 
-import confparse
 import datetime
 import getpass
 import os
-import utils
 import uuid
 import lxml.etree
+import utils  # LOCAL
+import confparse  # LOCAL
+
 
 detect = utils.detect()
 generate = utils.generate()

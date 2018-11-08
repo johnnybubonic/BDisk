@@ -1,14 +1,14 @@
 import hashlib
 import importlib  # needed for the guest-os-specific stuff...
 import os
-from . import utils
+import download  # LOCAL
 from urllib.parse import urljoin
 
 
 def hashsum_downloader(url, filename = None):
     # TODO: support "latest" and "regex" flags? or remove from specs (since the tarball can be specified by these)?
-    # move that to the utils.DOwnload() class?
-    d = utils.Download(url, progress = False)
+    # move that to the download.Download() class?
+    d = download.Download(url, progress = False)
     hashes = {os.path.basename(k):v for (v, k) in [line.split() for line in d.fetch().decode('utf-8').splitlines()]}
     if filename:
         if filename in hashes:
@@ -19,18 +19,25 @@ def hashsum_downloader(url, filename = None):
 
 
 class Prepper(object):
-    def __init__(self, dirs, sources, gpg = None):
-        # dirs is a ConfParse.cfg['build']['paths'] dict of dirs
-        self.CreateDirs(dirs)
-        # TODO: set up GPG env here so we can use it to import sig key and verify sources
-        for idx, s in enumerate(sources):
+    # Prepare sources, destinations, etc.
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.CreateDirs(self.cfg['build']['paths'])
+        if 'handler' not in self.cfg['gpg'] or not self.cfg['gpg']['handler']:
+            if self.cfg['gpg']['gnupghome']:
+                os.environ['GNUPGHOME'] = self.cfg['gpg']['gnupghome']
+            from . import GPG
+            self.cfg['gpg']['handler'] = GPG.GPGHandler(gnupg_homedir = self.cfg['gpg']['gnupghome'],
+                                                        key_id = self.cfg['gpg']['keyid'])
+        self.gpg = self.cfg['gpg']['handler']
+        for idx, s in enumerate(self.cfg['sources']):
             self._download(idx)
 
     def CreateDirs(self, dirs):
         for d in dirs:
             os.makedirs(d, exist_ok = True)
+            os.chmod(d, 0o700)
         return()
-
 
     def _download(self, source_idx):
         download = True
@@ -58,10 +65,12 @@ class Prepper(object):
                 if _hash.hexdigest().lower() != _source['checksum']['value'].lower():
                     return(False)
             return(True)
-        def _sig_verify(gpg_instance):  # TODO: move to utils.valid()? or just use as part of the bdisk.GPG module?
-            pass
+        def _sig_verify():  # TODO: move to utils.valid()?
+            if 'sig' in _source:
+                pass
+            return(True)
         if os.path.isfile(_tarball):
             download = _hash_verify()
             download = _sig_verify()
         if download:
-            d = utils.Download(_remote_tarball)
+            d = download.Download(_remote_tarball)

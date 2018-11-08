@@ -3,29 +3,29 @@
 import _io
 import copy
 import crypt
-import GPG
+import GPG  # LOCAL
 import getpass
 import hashid
 import hashlib
 import iso3166
 import os
 import pprint
-import prompt_strings
+import prompt_strings  # LOCAL
 import re
 import string
 import uuid
 import validators
 import zlib
-import requests
 import lxml.etree
 import lxml.objectify
 from bs4 import BeautifulSoup
 from collections import OrderedDict
 from dns import resolver
+from download import Download  # LOCAL
 from email.utils import parseaddr as emailparse
 from passlib.context import CryptContext as cryptctx
 from urllib.parse import urlparse
-from urllib.request import urlopen
+
 
 # Supported by all versions of GNU/Linux shadow
 passlib_schemes = ['des_crypt', 'md5_crypt', 'sha256_crypt', 'sha512_crypt']
@@ -41,53 +41,6 @@ crypt_map = {'sha512': crypt.METHOD_SHA512,
              'sha256': crypt.METHOD_SHA256,
              'md5': crypt.METHOD_MD5,
              'des': crypt.METHOD_CRYPT}
-
-
-class Download(object):
-    def __init__(self, url, progress = True, offset = None, chunksize = 1024):
-        self.cnt_len = None
-        self.head = requests.head(url, allow_redirects = True).headers
-        self.req_headers = {}
-        self.range = False
-        self.url = url
-        self.offset = offset
-        self.chunksize = chunksize
-        self.progress = progress
-        if 'accept-ranges' in self.head:
-            if self.head['accept-ranmges'].lower() != 'none':
-                self.range = True
-            if 'content-length' in self.head:
-                try:
-                    self.cnt_len = int(self.head['content-length'])
-                except TypeError:
-                    pass
-            if self.cnt_len and self.offset and self.range:
-                if not self.offset <= self.cnt_len:
-                    raise ValueError(('The offset requested ({0}) is greater than '
-                                      'the content-length value').format(self.offset, self.cnt_len))
-                self.req_headers['range'] = 'bytes={0}-'.format(self.offset)
-
-    def fetch(self):
-        if not self.progress:
-            self.req = requests.get(self.url, allow_redirects = True, headers = self.req_headers)
-            self.bytes_obj = self.req.content
-        else:
-            self.req = requests.get(self.url, allow_redirects = True, stream = True, headers = self.req_headers)
-            self.bytes_obj = bytes()
-            _bytelen = 0
-            # TODO: better handling for logging instead of print()s?
-            for chunk in self.req.iter_content(chunk_size = self.chunksize):
-                self.bytes_obj += chunk
-                if self.cnt_len:
-                    print('\033[F')
-                    print('{0:.2f}'.format((_bytelen / float(self.head['content-length'])) * 100),
-                          end = '%',
-                          flush = True)
-                    _bytelen += self.chunksize
-                else:
-                    print('.', end = '')
-            print()
-        return(self.bytes_obj)
 
 
 class XPathFmt(string.Formatter):
@@ -159,15 +112,15 @@ class detect(object):
         # But we CAN sort by filename.
         if 'latest' in flags:
             urls = sorted(list(set(urls)))
-            urls = urls[-1]
-        else:
-            urls = urls[0]
+        #     urls = urls[-1]
+        # else:
+        #     urls = urls[0]
         return(urls)
 
     def gpgkeyID_from_url(self, url):
         data = Download(url, progress = False).bytes_obj
         g = GPG.GPGHandler()
-        key_ids = g.get_sigs(data)
+        key_ids = g.GetSigs(data)
         del(g)
         return(key_ids)
 
@@ -758,17 +711,17 @@ class valid(object):
             return(False)
         return(True)
 
-    def dns(self, addr):
-        pass
+    def dns(self, record):
+        return (not isinstance(validators.domain(record)), validators.utils.ValidationFailure)
 
     def connection(self, conninfo):
         # conninfo should ideally be (host, port)
-        pass
+        pass  # TODO
 
     def email(self, addr):
-        return(
+        return (
             not isinstance(validators.email(emailparse(addr)[1]),
-                      validators.utils.ValidationFailure))
+                           validators.utils.ValidationFailure))
 
     def gpgkeyID(self, key_id):
         # Condense fingerprints into normalized 40-char "full" key IDs.
@@ -781,6 +734,33 @@ class valid(object):
         _key_re = re.compile(_re_str)
         if not _key_re.search(key_id):
             return(False)
+        return(True)
+
+    def gpgsigNotation(self, notations):
+        # RFC 4880 § 5.2.3.16
+        # A valid notation fmt: {'name@domain.tld': {'value': 'some str', 'flags': 1}}
+        if not isinstance(notations, dict):
+            return(False)
+        for n in notations:
+            # namespace
+            s = n.split('@')
+            if not len(s) != 2:
+                return(False)  # IETF namespaces not supported by GPGME?
+            dom = s[1]
+            if not self.dns(dom):
+                return(False)
+            # flags
+            # TODO: is there a better way to do this? basically confirm a value is a valid bitmask?
+            flags = sorted([const for const in vars(GPG.gpg.constants.sig.notation).values() if isinstance(const, int)])
+            if not isinstance(n['flags'], int):
+                return(False)
+            if not n['flags'] >= flags[0]: # at LEAST the lowest flag
+                return(False)
+            if not n['flags'] <= sum(flags):  # at MOST the highest sum of all flags
+                return(False)
+            # values
+            if not isinstance(n['value'], str):  # per RFC, non-text data for values currently is not supported
+                return(False)
         return(True)
 
     def integer(self, num):

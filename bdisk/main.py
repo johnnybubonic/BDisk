@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import confparse
+import confparse  # LOCAL
 
 """The primary user interface for BDisk. If we are running interactively,
 parse arguments first, then initiate a BDisk session."""

@@ -2,9 +2,10 @@ import copy
 import os
 import pprint
 import re
-import utils
 import lxml.etree
 from urllib.parse import urlparse
+import utils  # LOCAL
+
 
 etree = lxml.etree
 detect = utils.detect()
@@ -125,6 +126,7 @@ class Conf(object):
                 ptrn = _item.format(**self.xml_suppl.btags['regex'])
             else:
                 ptrn = None
+            # TODO: remove all this shit! we switch to just a mirror url.
             _source_item['fname'] = detect.remote_files(
                     '/'.join((_source['mirror'],
                               _source['rootpath'])),
@@ -182,7 +184,7 @@ class Conf(object):
         self.cfg['build']['optimize'] = transform.xml2py(_optimize)
         for path in build.xpath('./paths/*'):
             self.cfg['build']['paths'][path.tag] = path.text
-        self.cfg['build']['basedistro'] = build.get('basedistro', 'archlinux')
+        self.cfg['build']['guests'] = build.get('guests', 'archlinux')
         # iso and ipxe are their own basic profile elements, but we group them
         # in here because 1.) they're related, and 2.) they're simple to
         # import. This may change in the future if they become more complex.
