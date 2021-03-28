@@ -1,10 +1,10 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 
 # Ironically enough, I think building a GUI for this would be *cleaner*.
 # Go figure.
 
 import confparse
-import crypt
+import datetime
 import getpass
 import os
 import utils
@@ -134,7 +134,12 @@ class ConfGenerator(object):
             self.cfg = c.xml
             self.append = True
         else:
-            self.cfg = lxml.etree.Element('bdisk')
+            _ns = {None: 'http://bdisk.square-r00t.net/',
+                   'xsi': 'http://www.w3.org/2001/XMLSchema-instance'}
+            _xsi = {
+                '{http://www.w3.org/2001/XMLSchema-instance}schemaLocation':
+                    'http://bdisk.square-r00t.net bdisk.xsd'}
+            self.cfg = lxml.etree.Element('bdisk', nsmap = _ns, attrib = _xsi)
             self.append = False
         self.profile = lxml.etree.Element('profile')
         self.cfg.append(self.profile)
@@ -155,6 +160,13 @@ class ConfGenerator(object):
             self.get_pki()
             self.get_gpg()
             self.get_sync()
+            # TODO: make this more specific (script? gui? web? etc.)
+            # and append comment to bdisk element
+            _comment = lxml.etree.Comment(
+                    'Generated {0} by BDisk configuration generator'.format(
+                            str(datetime.datetime.now())
+                            )
+                    )
         except KeyboardInterrupt:
             exit('\n\nCaught KeyboardInterrupt; quitting...')
         return()
@@ -442,6 +454,8 @@ class ConfGenerator(object):
             tarball_elem.attrib['flags'] = 'latest'
             tarball_elem.text = tarball['full_url']
             print('\n++ SOURCES || {0} || CHECKSUM ++'.format(arch.upper()))
+            # TODO: explicit not being set for explicitly-set sums,
+            # and checksum string not actually added to those. investigate.
             chksum = lxml.etree.SubElement(source, 'checksum')
             _chksum_chk = prompt.confirm_or_no(prompt = (
                 '\nWould you like to add a checksum for the tarball? (BDisk '
@@ -470,7 +484,7 @@ class ConfGenerator(object):
                         print('Invalid selection. Starting over.')
                         continue
                     chksum.attrib['hash_algo'] = checksum_type
-                    chksum.attrib['explicit'] = "no"
+                    chksum.attrib['explicit'] = "false"
                     chksum.text = checksum['full_url']
                 else:
                     # Maybe it's a digest string.
@@ -502,8 +516,8 @@ class ConfGenerator(object):
                             print('Invalid selection. Starting over.')
                             continue
                     else:
-                        checksum_type == checksum_type[0]
-                        chksum.attrib['explicit'] = "yes"
+                        checksum_type = checksum_type[0]
+                        chksum.attrib['explicit'] = "true"
                         chksum.text = checksum
                     chksum.attrib['hash_algo'] = checksum_type
             print('\n++ SOURCES || {0} || GPG ++'.format(arch.upper()))
@@ -595,7 +609,7 @@ class ConfGenerator(object):
                                                 usage = (
                                 '{0} for yes, {1} for no...\n'))
         if _chk_optimizations:
-            build.attrib['its_full_of_stars'] = 'yes'
+            build.attrib['its_full_of_stars'] = 'true'
         print('\n++ BUILD || PATHS ++')
         # Thankfully, we can simplify a lot of this.
         _dir_strings = {'base': ('the base directory (used for files that are '
@@ -625,7 +639,7 @@ class ConfGenerator(object):
                                  'created that can be used to serve iPXE)'),
                         'tftp': ('the TFTP directory (where a TFTP/'
                                  'traditional PXE root is created)'),
-                        'ssl': ('the SSL/TLS PKI directory (where we store '
+                        'pki': ('the SSL/TLS PKI directory (where we store '
                                 'the PKI structure we use/re-use - MAKE SURE '
                                 'it is in a path that is well-protected!)')}
         has_paths = False
@@ -676,9 +690,9 @@ class ConfGenerator(object):
             self.profile.append(iso)
         # We have more than one arch, so we need to ask how they want to handle
         # it.
-        _ma_strings = {'yes': ('a multi-arch ISO (both architectures on one '
+        _ma_strings = {'true': ('a multi-arch ISO (both architectures on one '
                                'ISO)'),
-                       'no': ('separate image files for '
+                       'false': ('separate image files for '
                               '{0}').format(' and '.join(_arches))}
         for a in _arches:
             _ma_strings[a] = 'only build an image file for {0}'.format(a)
@@ -710,7 +724,7 @@ class ConfGenerator(object):
                 'option to configure it a bit later).\nWould you like to sign '
                 'the ISO/USB image files with GPG?\n'), usage = (
                                 '{0} for yes, {1} for no...\n'))
-            _gpg_sign = ('yes' if _gpg_input else 'no')
+            _gpg_sign = ('true' if _gpg_input else 'false')
         iso.attrib['sign'] = _gpg_sign
         self.profile.append(iso)
         return()
@@ -725,21 +739,21 @@ class ConfGenerator(object):
                 'see the manual for more information). Would you like to '
                 'build iPXE support?\n'), usage = (
                                 '{0} for yes, {1} for no...\n'))
-            _ipxe = ('yes' if _ipxe else 'no')
-        if _ipxe == 'yes':
+            _ipxe = ('true' if _ipxe else 'true')
+        if _ipxe == 'true':
             print('\n++ iPXE || MINI-ISO ++')
             _iso = prompt.confirm_or_no(prompt = (
                 '\nWould you like to build a "mini-ISO" (see the manual) for '
                 'bootstrapping iPXE booting from USB or optical media?\n'),
                                     usage = ('{0} for yes, {1} for no...\n'))
-            ipxe.attrib['iso'] = ('yes' if _iso else 'no')
+            ipxe.attrib['iso'] = ('true' if _iso else 'false')
             print('\n++ iPXE || SIGNING ++')
             _sign = prompt.confirm_or_no(prompt = (
                 '\nBDisk can sign the mini-ISO and other relevant files for '
                 'iPXE builds using GPG. Would you like to sign the iPXE build '
                 'distributables? (You\'ll have the chance to configure GPG '
                 'later).\n'), usage = ('{0} for yes, {1} for no...\n'))
-            ipxe.attrib['sign'] = ('yes' if _sign else 'no')
+            ipxe.attrib['sign'] = ('true' if _sign else 'false')
             _uri = None
             while not _uri:
                 print('\n++ iPXE || URL ++')
@@ -754,7 +768,7 @@ class ConfGenerator(object):
                 else:
                     uri = lxml.etree.SubElement(ipxe, 'uri')
                     uri.text = _uri
-        if _ipxe == 'yes':
+        if _ipxe == 'true':
             self.profile.append(ipxe)
         return()
     
@@ -780,7 +794,7 @@ class ConfGenerator(object):
                 'wish to keep persistent keys and certs), you should '
                 'DEFINITELY answer no here.\n'),
                     usage = ('{0} for yes, {1} for no...\n'))
-            pki.attrib['overwrite'] = ('yes' if _overwrite else 'no')
+            pki.attrib['overwrite'] = ('true' if _overwrite else 'false')
             for x in ('ca', 'client'):
                 print('\n++ SSL/TLS PKI || {0} ++'.format(x.upper()))
                 _x = None
@@ -804,7 +818,7 @@ class ConfGenerator(object):
         for x in _xpaths:
             _x = self.profile.xpath(x)
             for a in _x:
-                if a == 'yes':
+                if a == 'true':
                     _sigchk = True
                     break
             if _sigchk:
@@ -848,7 +862,7 @@ class ConfGenerator(object):
             '\nWould you like to push the key to the SKS keyserver pool '
             '(making it much easier for end-users to look it up)?\n'),
                                     usage = ('{0} for yes, {1} for no...\n'))
-        gpg.attrib['publish'] = ('yes' if _gpgpublish else 'no')
+        gpg.attrib['publish'] = ('true' if _gpgpublish else 'false')
         print('\n++ GPG || PASSWORD HANDLING ++')
         _gpgpass_prompt = prompt.confirm_or_no(prompt = (
             '\nWould you like BDisk to prompt you for a passphrase? If not, '
@@ -856,7 +870,8 @@ class ConfGenerator(object):
             'the configuration (HIGHLY unrecommended) or use a blank '
             'passphrase (also HIGHLY unrecommended).\n'),
                                     usage = ('{0} for yes, {1} for no...\n'))
-        gpg.attrib['prompt_passphrase'] = ('yes' if _gpgpass_prompt else 'no')
+        gpg.attrib['prompt_passphrase'] = ('true' if _gpgpass_prompt else
+                                           'false')
         _pass = None
         if not _gpgpass_prompt:
             while not _pass:
@@ -921,7 +936,7 @@ class ConfGenerator(object):
                         '\nWould you like to sync {0}?\n'.format(_syncs[s])),
                                     usage = ('{0} for yes, {1} for no...\n'))
             elem = lxml.etree.SubElement(sync, s)
-            elem.attrib['enabled'] = ('yes' if _item_sync_chk else 'no')
+            elem.attrib['enabled'] = ('true' if _item_sync_chk else 'false')
             if not _item_sync_chk:
                 continue
             if s == 'gpg':
@@ -935,12 +950,12 @@ class ConfGenerator(object):
                                 '\n\t'.join(_choices)
                                 ))).strip().lower()
                 if _export_type.startswith('a'):
-                    _export_type == 'asc'
+                    _export_type = 'asc'
                 elif _export_type.startswith('b'):
-                    _export_type == 'bin'
+                    _export_type = 'bin'
                 else:
                     print('Using the default.')
-                    _export_type == 'asc'
+                    _export_type = 'asc'
                 elem.attrib['format'] = _export_type
             _path = None
             while not _path:

@@ -1,28 +1,24 @@
 - write classes/functions
 - XML-based config
+-x XML syntax
+--- xregex btags - case-insensitive? this can be represented in-pattern:
+    xhttps://stackoverflow.com/a/9655186/733214
+-x configuration generator
+--- xprint end result xml config to stderr for easier redirection? or print prompts to stderr and xml to stdout?
+-- xXSD for validation
+-- Flask app for generating config?
+-- TKinter (or pygame?) GUI?
+--- https://docs.python.org/3/faq/gui.html
+--- https://www.pygame.org/wiki/gui
 - ensure we use docstrings in a Sphinx-compatible manner?
   https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
   at the very least document all the functions and such so pydoc's happy.
-- better prompt display. i might include them as constants in a separate file
-  and then import it for e.g. confgen. or maybe a Flask website/app?
+
 - locking
 - for docs, 3.x (as of 3.10) was 2.4M.
-- GUI? at least for generating config...
-- Need ability to write/parse mtree specs (or a similar equivalent) for applying ownerships/permissions to overlay files
+- xNeed ability to write/parse mtree specs (or a similar equivalent) for applying ownerships/permissions to overlay files
+-- parsing is done. writing may? come later.
 
-- SSL key gen:
-import OpenSSL
-k = OpenSSL.crypto.PKey()
-k.generate_key(OpenSSL.crypto.TYPE_RSA, 4096)
-x = OpenSSL.crypto.dump_privatekey(OpenSSL.crypto.FILETYPE_PEM,
-                                   k,
-                                   cipher = 'aes256',
-                                   passphrase = 'test')
-
-- need to package:
-  python-hashid (https://psypanda.github.io/hashID/,
-                 https://github.com/psypanda/hashID,
-                 https://pypi.org/project/hashID/)
 
 - package for PyPI:
 # https://packaging.python.org/tutorials/distributing-packages/
@@ -38,7 +34,6 @@ BUGS.SQUARE-R00T.NET bugs/tasks:
 #14: Use os.path.join() for more consistency/pythonicness
 #24: Run as regular user? (pychroot? fakeroot?)
 #34: Build-time support for only building single phase of build
-#36: Allow parsing pkg lists with inline comments
 #39: Fix UEFI
 #40: ISO overlay (to add e.g. memtest86+ to final ISO)
-#43: Support resuming partial tarball downloads (Accet-Ranges: bytes)
+#43: Support resuming partial tarball downloads (Accept-Ranges: bytes)

@@ -1,7 +1,25 @@
+import datetime
 import gpg
 import os
 import psutil
 import gpg.errors
+
+
+# This helps translate the input name from the conf to a string compatible with the gpg module.
+_algmaps = {#'cv': 'cv{keysize}',  # DISABLED, can't sign (only encrypt). Currently only 25519
+            'ed': 'ed{keysize}',  # Currently only 25519
+            #'elg': 'elg{}',  # DISABLED, can't sign (only encrypt). 1024, 2048, 4096
+            'nist': 'nistp{keysize}',  # 256, 384, 521
+            'brainpool.1': 'brainpoolP{keysize}r1',  # 256, 384, 512
+            'sec.k1': 'secp{keysize}k1',  # Currently only 256
+            'rsa': 'rsa{keysize}',  # Variable (1024 <> 4096), but we only support 1024, 2048, 4096
+            'dsa': 'dsa{keysize}'}  # Variable (768 <> 3072), but we only support 768, 2048, 3072
+
+# This is just a helper function to get a delta from a unix epoch.
+def _epoch_helper(epoch):
+    d = datetime.datetime.utcfromtimestamp(epoch) - datetime.datetime.utcnow()
+    return(abs(int(d.total_seconds())))  # Returns a positive integer even if negative...
+    #return(int(d.total_seconds()))
 
 # http://files.au.adversary.org/crypto/GPGMEpythonHOWTOen.html
 # https://www.gnupg.org/documentation/manuals/gpgme.pdf
@@ -60,7 +78,7 @@ class GPGHandler(object):
             self._prep_home()
         else:
             self._check_home()
-        self.ctx = self.get_context(home_dir = self.home)
+        self.ctx = self.GetContext(home_dir = self.home)
 
     def _check_home(self, home = None):
         if not home:
@@ -94,11 +112,12 @@ class GPGHandler(object):
                                       'write to')
         return()
 
-    def get_context(self, **kwargs):
+    def GetContext(self, **kwargs):
         ctx = gpg.Context(**kwargs)
         return(ctx)
 
-    def kill_stale_agent(self):
+    def KillStaleAgent(self):
+        # Is this even necessary since I switched to the native gpg module instead of the gpgme one?
         _process_list = []
         # TODO: optimize; can I search by proc name?
         for p in psutil.process_iter():
@@ -113,7 +132,64 @@ class GPGHandler(object):
 #            for p in plst:
 #                psutil.Process(p).terminate()
 
-    def get_sigs(self, data_in):
+    def CreateKey(self, name, algo, keysize, email = None, comment = None, passwd = None, key = None, expiry = None):
+        algo = _algmaps[algo].format(keysize = keysize)
+        userid = name
+        userid += ' ({0})'.format(comment) if comment else ''
+        userid += ' <{0}>'.format(email) if email else ''
+        if not expiry:
+            expires = False
+        else:
+            expires = True
+        self.ctx.create_key(userid,
+                            algorithm = algo,
+                            expires = expires,
+                            expires_in = _epoch_helper(expiry),
+                            sign = True)
+        # Even if expires is False, it still parses the expiry...
+        # except OverflowError:  # Only trips if expires is True and a negative expires occurred.
+        #     raise ValueError(('Expiration epoch must be 0 (to disable) or a future time! '
+        #                       'The specified epoch ({0}, {1}) is in the past '
+        #                       '(current time is {2}, {3}).').format(expiry,
+        #                                                             str(datetime.datetime.utcfromtimestamp(expiry)),
+        #                                                             datetime.datetime.utcnow().timestamp(),
+        #                                                             str(datetime.datetime.utcnow())))
+        return(k)
+        # We can't use self.ctx.create_key; it's a little limiting.
+        # It's a fairly thin wrapper to .op_createkey() (the C GPGME API gpgme_op_createkey) anyways.
+        flags = (gpg.constants.create.SIGN |
+                 gpg.constants.create.CERT)
+        if not expiry:
+            flags = (flags | gpg.constants.create.NOEXPIRE)
+        if not passwd:
+            flags = (flags | gpg.constants.create.NOPASSWD)
+        else:
+            # Thanks, gpg/core.py#Context.create_key()!
+            sys_pinentry = gpg.constants.PINENTRY_MODE_DEFAULT
+            old_pass_cb = getattr(self, '_passphrase_cb', None)
+            self.ctx.pinentry_mode = gpg.constants.PINENTRY_MODE_LOOPBACK
+            def passphrase_cb(hint, desc, prev_bad, hook = None):
+                return(passwd)
+            self.ctx.set_passphrase_cb(passphrase_cb)
+        try:
+            if not key:
+                try:
+                    self.ctx.op_createkey(userid, algo, 0, 0, flags)
+                    k = self.ctx.get_key(self.ctx.op_genkey_result().fpr, secret = True)
+            else:
+                if not isinstance(key, gpg.gpgme._gpgme_key):
+                    key = self.ctx.get_key(key)
+                if not key:
+                    raise ValueError('Key {0} does not exist'.format())
+                #self.ctx.op_createsubkey(key, )
+        finally:
+            if not passwd:
+                self.ctx.pinentry_mode = sys_pinentry
+                if old_pass_cb:
+                    self.ctx.set_passphrase_cb(*old_pass_cb[1:])
+        return(k)
+
+    def GetSigs(self, data_in):
         key_ids = []
         # Currently as of May 13, 2018 there's no way using the GPGME API to do
         # the equivalent of the CLI's --list-packets.
@@ -131,3 +207,9 @@ class GPGHandler(object):
                 l = [i.strip() for i in line.split(':')]
                 key_ids.append(l[0])
         return(key_ids)
+
+    def CheckSigs(self, keys, sig_data):
+        try:
+            self.ctx.verify(sig_data)
+        except:
+            pass  # TODO

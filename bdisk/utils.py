@@ -1,17 +1,25 @@
+# Yes, this is messy. They doesn't belong anywhere else, leave me alone.
+
 import _io
+import copy
 import crypt
 import GPG
+import getpass
 import hashid
 import hashlib
 import iso3166
 import os
 import pprint
+import prompt_strings
 import re
 import string
 import uuid
 import validators
 import zlib
+import requests
 import lxml.etree
+import lxml.objectify
+from bs4 import BeautifulSoup
 from collections import OrderedDict
 from dns import resolver
 from email.utils import parseaddr as emailparse
@@ -25,6 +33,7 @@ passlib_schemes = ['des_crypt', 'md5_crypt', 'sha256_crypt', 'sha512_crypt']
 # Build various hash digest name lists
 digest_schemes = list(hashlib.algorithms_available)
 # Provided by zlib
+# TODO?
 digest_schemes.append('adler32')
 digest_schemes.append('crc32')
 
@@ -33,12 +42,53 @@ crypt_map = {'sha512': crypt.METHOD_SHA512,
              'md5': crypt.METHOD_MD5,
              'des': crypt.METHOD_CRYPT}
 
-# These are *key* ciphers, for encrypting exported keys.
-openssl_ciphers = ['aes128', 'aes192', 'aes256', 'bf', 'blowfish',
-                   'camellia128', 'camellia192', 'camellia256', 'cast', 'des',
-                   'des3', 'idea', 'rc2', 'seed']
-openssl_digests = ['blake2b512', 'blake2s256', 'gost', 'md4', 'md5', 'mdc2',
-                   'rmd160', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512']
+
+class Download(object):
+    def __init__(self, url, progress = True, offset = None, chunksize = 1024):
+        self.cnt_len = None
+        self.head = requests.head(url, allow_redirects = True).headers
+        self.req_headers = {}
+        self.range = False
+        self.url = url
+        self.offset = offset
+        self.chunksize = chunksize
+        self.progress = progress
+        if 'accept-ranges' in self.head:
+            if self.head['accept-ranmges'].lower() != 'none':
+                self.range = True
+            if 'content-length' in self.head:
+                try:
+                    self.cnt_len = int(self.head['content-length'])
+                except TypeError:
+                    pass
+            if self.cnt_len and self.offset and self.range:
+                if not self.offset <= self.cnt_len:
+                    raise ValueError(('The offset requested ({0}) is greater than '
+                                      'the content-length value').format(self.offset, self.cnt_len))
+                self.req_headers['range'] = 'bytes={0}-'.format(self.offset)
+
+    def fetch(self):
+        if not self.progress:
+            self.req = requests.get(self.url, allow_redirects = True, headers = self.req_headers)
+            self.bytes_obj = self.req.content
+        else:
+            self.req = requests.get(self.url, allow_redirects = True, stream = True, headers = self.req_headers)
+            self.bytes_obj = bytes()
+            _bytelen = 0
+            # TODO: better handling for logging instead of print()s?
+            for chunk in self.req.iter_content(chunk_size = self.chunksize):
+                self.bytes_obj += chunk
+                if self.cnt_len:
+                    print('\033[F')
+                    print('{0:.2f}'.format((_bytelen / float(self.head['content-length'])) * 100),
+                          end = '%',
+                          flush = True)
+                    _bytelen += self.chunksize
+                else:
+                    print('.', end = '')
+            print()
+        return(self.bytes_obj)
+
 
 class XPathFmt(string.Formatter):
     def get_field(self, field_name, args, kwargs):
@@ -51,18 +101,19 @@ class detect(object):
     def __init__(self):
         pass
 
-    def any_hash(self, hash_str):
+    def any_hash(self, hash_str, normalize = False):
         h = hashid.HashID()
         hashes = []
         for i in h.identifyHash(hash_str):
             if i.extended:
                 continue
             x = i.name
-            if x.lower() in ('crc-32', 'ripemd-160', 'sha-1', 'sha-224',
-                             'sha-256', 'sha-384', 'sha-512'):
+            if x.lower() in ('crc-32', 'ripemd-160', 'sha-1', 'sha-224', 'sha-256', 'sha-384', 'sha-512'):
                 # Gorram you, c0re.
                 x = re.sub('-', '', x.lower())
-            _hashes = [h.lower() for h in digest_schemes]
+            _hashes = [h.lower() for h in digest_schemes]  # TODO: move this outside so we don't define it every invoke
+            if normalize:
+                x = re.sub('(-|crypt|\s+)', '', x.lower())
             if x.lower() in sorted(list(set(_hashes))):
                 hashes.append(x)
         return(hashes)
@@ -76,9 +127,45 @@ class detect(object):
             return(None)
         return()
 
+    def password_hash_salt(self, salted_hash):
+        _hash_list = salted_hash.split('$')
+        if len(_hash_list) < 3:
+            return(None)
+        salt = _hash_list[2]
+        return(salt)
+
+    def remote_files(self, url_base, ptrn = None, flags = []):
+        soup = BeautifulSoup(Download(url_base, progress = False).fetch().decode('utf-8'),
+                             'lxml')
+        urls = []
+        if 'regex' in flags:
+            if not isinstance(ptrn, str):
+                raise ValueError('"ptrn" must be a regex pattern to match '
+                                 'against')
+            else:
+                ptrn = re.compile(ptrn)
+        for u in soup.find_all('a'):
+            if not u.has_attr('href'):
+                continue
+            if 'regex' in flags:
+                if not ptrn.search(u.attrs['href']):
+                    continue
+            if u.has_attr('href'):
+                urls.append(u.attrs['href'])
+        if not urls:
+            return(None)
+        # We certainly can't intelligently parse the printed timestamp since it
+        # varies so much and that'd be a nightmare to get consistent...
+        # But we CAN sort by filename.
+        if 'latest' in flags:
+            urls = sorted(list(set(urls)))
+            urls = urls[-1]
+        else:
+            urls = urls[0]
+        return(urls)
+
     def gpgkeyID_from_url(self, url):
-        with urlopen(url) as u:
-            data = u.read()
+        data = Download(url, progress = False).bytes_obj
         g = GPG.GPGHandler()
         key_ids = g.get_sigs(data)
         del(g)
@@ -130,7 +217,7 @@ class detect(object):
         # Get any easy ones out of the way first.
         if name in digest_schemes:
             return(name)
-        # Otherwise grab the first one that matches, in order from the .
+        # Otherwise grab the first one that matches
         _digest_re = re.compile('^{0}$'.format(name.strip()), re.IGNORECASE)
         for h in digest_schemes:
             if _digest_re.search(h):
@@ -146,6 +233,9 @@ class generate(object):
             _salt = crypt.mksalt(algo)
         else:
             _salt = salt
+        if not password:
+            # Intentionally empty password.
+            return('')
         return(crypt.crypt(password, _salt))
 
     def hashlib_names(self):
@@ -156,13 +246,18 @@ class generate(object):
                 hashes.append(h)
         return(hashes)
 
-    def salt(self, algo = 'sha512'):
+    def salt(self, algo = None):
+        if not algo:
+            algo = 'sha512'
         algo = crypt_map[algo]
         return(crypt.mksalt(algo))
 
 class prompts(object):
     def __init__(self):
-        pass
+        self.promptstr = prompt_strings.PromptStrings()
+
+    # TODO: these strings should be indexed in a separate module and
+    # sourced/imported. we should generally just find a cleaner way to do this.
 
     def confirm_or_no(self, prompt = '', invert = False,
                       usage = '{0} to confirm, otherwise {1}...\n'):
@@ -194,21 +289,18 @@ class prompts(object):
         return(True)
 
     def gpg_keygen_attribs(self):
-        _attribs = {'algo': {'text': 'the subkey\'s encryption type/algorithm',
-                             'choices': ['rsa', 'dsa'],
-                             'default': 'rsa'},
-                    'keysize': {'text': 'the subkey\'s key size (in bits)',
-                                'choices': {'rsa': ['1024', '2048', '4096'],
-                                            'dsa': ['768', '2048', '3072']},
-                                'default': {'rsa': '4096',
-                                            'dsa': '3072'}}}
-        _params = {'name': None,
-                   'email': None,
-                   #'email': valid().email,  # Use this to force valid email.
-                   'comment': None}
+        _strs = self.promptstr.gpg
         gpg_vals = {'attribs': {},
                     'params': {}}
-        for a in _attribs:
+        _checks = {
+            'params': {
+                'name': {'error': 'name cannot be empty',
+                         'check': valid().nonempty_str},
+                'email': {'error': 'not a valid email address',
+                          'check': valid().email}
+                }
+            }
+        for a in _strs['attribs']:
             _a = None
             while not _a:
                 if 'algo' in gpg_vals['attribs'] and a == 'keysize':
@@ -261,6 +353,45 @@ class prompts(object):
                     continue
             else:
                 gpg_vals['params'][p] = _p
+=======
+                    _choices = _strs['attribs']['keysize']['choices'][_algo]
+                    _dflt = _strs['attribs']['keysize']['default'][_algo]
+                else:
+                    _choices = _strs['attribs'][a]['choices']
+                    _dflt = _strs['attribs'][a]['default']
+                _a = (input(
+                    ('\nWhat should be {0}? (Default is {1}.)\nChoices:\n'
+                     '\n\t{2}\n\n{3}: ').format(
+                                                _strs['attribs'][a]['text'],
+                                                _dflt,
+                                                '\n\t'.join(_choices),
+                                                a.title()
+                                                )
+                                            )).strip().lower()
+                if _a == '':
+                    _a = _dflt
+                elif _a not in _choices:
+                    print(
+                            ('Invalid selection; choosing default '
+                             '({0})').format(_dflt)
+                            )
+                    _a = _dflt
+            gpg_vals['attribs'][a] = _a
+        for p in _strs['params']:
+            _p = input(
+                    ('\nWhat is the {0} for the subkey?\n'
+                     '{1}: ').format(p, p.title())
+                    )
+            if p in _checks['params']:
+                while not _checks['params'][p]['check'](_p):
+                    print(
+                            ('Invalid entry ({0}). Please retry.').format(
+                                    _checks['params'][p]['error']
+                                    )
+                            )
+                    _p = input('{0}: '.format(_p.title()))
+            gpg_vals['params'][p] = _p
+>>>>>>> 69b6ec60d05d64a9e23e9a0707a0323f960a2936
         return(gpg_vals)
 
     def hash_select(self, prompt = '',
@@ -310,116 +441,81 @@ class prompts(object):
         ssl_vals = {'paths': {},
                     'attribs': {},
                     'subject': {}}
+        _checks = {
+            'subject': {
+                'countryName': valid().country_abbrev,
+                'emailAddress': valid().email
+                }
+            }
+        _strs = copy.deepcopy(self.promptstr.ssl)
         # pki_role should be 'ca' or 'client'
         if pki_role not in ('ca', 'client'):
             raise ValueError('pki_role must be either "ca" or "client"')
-        _attribs = {'cert': {'hash_algo': {'text': ('What hashing algorithm '
-                                'do you want to use? (Default is sha512.)'),
-                                           'prompt': 'Hashing algorithm: ',
-                                           'options': openssl_digests,
-                                           'default': 'sha512'}},
-                    'key': {'cipher': {'text': ('What encryption algorithm/'
-                                'cipher do you want to use? (Default is '
-                                                'aes256.)'),
-                                      'prompt': 'Cipher: ',
-                                      'options': openssl_ciphers,
-                                       'default': 'aes256'},
-                            # This can actually theoretically be anywhere from
-                            # 512 to... who knows how high. I couldn't find the
-                            # upper bound. So we just set it to sensible
-                            # defaults. If they want something higher, they can
-                            # edit the XML when they're done.
-                            'keysize': {'text': ('What keysize/length (in '
-                                'bits) do you want the key to be? (Default is '
-                                '4096; much higher values are possible but '
-                                'are untested and thus not supported by this '
-                                'tool; feel free to edit the generated '
-                                'configuration by hand.)'),
-                                        'prompt': 'Keysize: ',
-                                        'options': ['1024', '2048', '4096'],
-                                        'default': '4096'}}}
-        _paths = {'cert': '(or read from) the certificate',
-                  'key': '(or read from) the key',
-                  'csr': ('(or read from) the certificate signing request (if '
-                          'blank, we won\'t write to disk - the operation '
-                          'will occur entirely in memory assuming we need to '
-                          'generate/sign)')}
+        # NOTE: need to validate US and email
         if pki_role == 'ca':
-            _paths['index'] = ('(or read from) the CA DB index file (if left '
-                              'blank, one will not be used)')
-            _paths['serial'] = ('(or read from) the CA DB serial file (if '
-                                'left blank, one will not be used)')
-        for a in _attribs:
+            # this is getting triggered for clients?
+            _strs['paths'].update(_strs['paths_ca'])
+        for a in _strs['attribs']:
             ssl_vals['attribs'][a] = {}
-            for x in _attribs[a]:
+            for x in _strs['attribs'][a]:
                 ssl_vals['attribs'][a][x] = None
-        for p in _paths:
+        for p in _strs['paths']:
             if p == 'csr':
                 _allow_empty = True
             else:
                 _allow_empty = False
-            ssl_vals['paths'][p] = self.path(_paths[p],
+            ssl_vals['paths'][p] = self.path(_strs['paths'][p],
                                              empty_passthru = _allow_empty)
             print()
             if ssl_vals['paths'][p] == '':
                 ssl_vals['paths'][p] = None
-            if p in _attribs:
-                for x in _attribs[p]:
+            if p in _strs['attribs']:
+                for x in _strs['attribs'][p]:
                     while not ssl_vals['attribs'][p][x]:
-                        ssl_vals['attribs'][p][x] = (input(
-                            ('\n{0}\n\n\t{1}\n\n{2}').format(
-                                    _attribs[p][x]['text'],
-                                    '\n\t'.join(_attribs[p][x]['options']),
-                                    _attribs[p][x]['prompt'])
-                                )).strip().lower()
-                        if ssl_vals['attribs'][p][x] not in \
-                                                    _attribs[p][x]['options']:
-                            print(('\nInvalid selection; setting default '
-                                   '({0}).').format(_attribs[p][x]['default']))
-                            ssl_vals['attribs'][p][x] = \
-                                                    _attribs[p][x]['default']
-        _subject = {'countryName': {'text': ('the 2-letter country '
-                                             'abbreviation (must conform to '
-                                             'ISO3166 ALPHA-2)?\nCountry '
-                                             'code: '),
-                                    'check': 'func',
-                                    'func': valid().country_abbrev},
-                    'localityName': {'text': ('the city/town/borough/locality '
-                                              'name?\nLocality: '),
-                                     'check': None},
-                    'stateOrProvinceName': {'text': ('the state/region '
-                                                     'name (full string)?'
-                                                     '\nRegion: '),
-                                            'check': None},
-                    'organization': {'text': ('your organization\'s name?'
-                                              '\nOrganization: '),
-                                     'check': None},
-                    'organizationalUnitName': {'text': ('your department/role/'
-                                                        'team/department name?'
-                                                        '\nOrganizational '
-                                                        'Unit: '),
-                                               'check': None},
-                    'emailAddress': {'text': ('the email address to be '
-                                              'associated with this '
-                                              'certificate/PKI object?\n'
-                                              'Email: '),
-                                     'check': 'func',
-                                     'func': valid().email}}
-        for s in _subject:
+                        # cipher attrib is prompted for before this.
+                        if p == 'key' and x == 'passphrase':
+                            if ssl_vals['attribs']['key']['cipher'] == 'none':
+                                ssl_vals['attribs'][p][x] = 'none'
+                                continue
+                            ssl_vals['attribs'][p][x] = getpass.getpass(
+                                    ('{0}\n{1}').format(
+                                            _strs['attribs'][p][x]['text'],
+                                            _strs['attribs'][p][x]['prompt'])
+                                    )
+                            if ssl_vals['attribs'][p][x] == '':
+                                ssl_vals['attribs'][p][x] = 'none'
+                        else:
+                            ssl_vals['attribs'][p][x] = (input(
+                                ('\n{0}\n\n\t{1}\n\n{2}').format(
+                                                _strs['attribs'][p][x]['text'],
+                                                '\n\t'.join(
+                                            _strs['attribs'][p][x]['options']),
+                                            _strs['attribs'][p][x]['prompt']))
+                                                ).strip().lower()
+                            if ssl_vals['attribs'][p][x] not in \
+                                            _strs['attribs'][p][x]['options']:
+                                print(
+                                        ('\nInvalid selection; setting default '
+                                       '({0}).').format(
+                                            _strs['attribs'][p][x]['default']
+                                                )
+                                        )
+                                ssl_vals['attribs'][p][x] = \
+                                            _strs['attribs'][p][x]['default']
+        for s in _strs['subject']:
             ssl_vals['subject'][s] = None
-        for s in _subject:
+        for s in _strs['subject']:
             while not ssl_vals['subject'][s]:
                 _input = (input(
-                            ('\nWhat is {0}').format(_subject[s]['text'])
+                            ('\nWhat is {0}').format(
+                                _strs['subject'][s]['text'])
                         )).strip()
-                _chk = _subject[s]['check']
-                if _chk:
-                    if _chk == 'func':
-                        _chk = _subject[s]['func'](_input)
-                        if not _chk:
-                            print('Invalid value; retrying.')
-                            continue
                 print()
+                if s in _checks['subject']:
+                    if not _checks['subject'][s](_input):
+                        print('Invalid entry; try again.')
+                        ssl_vals['subject'][s] = None
+                        continue
                 ssl_vals['subject'][s] = _input
         _url = transform().url_to_dict(cn_url, no_None = True)
         ssl_vals['subject']['commonName'] = _url['host']
@@ -454,12 +550,12 @@ class transform(object):
     def py2xml(self, value, attrib = True):
         if value in (False, ''):
             if attrib:
-                return("no")
+                return("false")
             else:
                 return(None)
         elif isinstance(value, bool):
             # We handle the False case above.
-            return("yes")
+            return("true")
         elif isinstance(value, str):
             return(value)
         else:
@@ -477,7 +573,6 @@ class transform(object):
         text_out = re.sub('[^\w]', '', text_out)
         return(text_out)
 
-    # noinspection PyDictCreation
     def url_to_dict(self, orig_url, no_None = False):
         def _getuserinfo(uinfo_str):
             if len(uinfo_str) == 0:
@@ -622,6 +717,88 @@ class transform(object):
             url['full_url'] += '#{0}'.format('#'.join(_f))
         return(url)
 
+    def user(self, user_elem):
+        _attribs = ('hashed', 'hash_algo', 'salt')
+        acct = {}
+        for a in _attribs:
+            acct[a] = None
+        if len(user_elem):
+            elem = user_elem[0]
+            for a in _attribs:
+                if a in elem.attrib:
+                    acct[a] = self.xml2py(elem.attrib[a], attrib = True)
+            if acct['hashed']:
+                if not acct['hash_algo']:
+                    _hash = detect().password_hash(elem.text)
+                    if _hash:
+                        acct['hash_algo'] = _hash
+                    else:
+                        acct['hash_algo'] = None
+                        # We no longer raise ValueError. Per shadow(5):
+                        #######################################################
+                        # If the password field contains some string that is
+                        # not a valid result of crypt(3), for instance ! or *,
+                        # the user will not be able to use a unix password to
+                        # log in (but the user may log in the system by other
+                        # means).
+                        # This field may be empty, in which case no passwords
+                        # are required to authenticate as the specified login
+                        #  name. However, some applications which read the
+                        # /etc/shadow file may decide not to permit any access
+                        # at all if the password field is empty.
+                        # A password field which starts with an exclamation
+                        # mark means that the password is locked. The remaining
+                        # characters on the line represent the password field
+                        # before the password was locked.
+                        #######################################################
+                        # raise ValueError(
+                        #         'Invalid salted password hash: {0}'.format(
+                        #                 elem.text)
+                        #         )
+                acct['salt_hash'] = elem.text
+                acct['passphrase'] = None
+            else:
+                if not acct['hash_algo']:
+                    acct['hash_algo'] = 'sha512'
+                acct['passphrase'] = elem.text
+            _saltre = re.compile('^\s*(auto|none|)\s*$', re.IGNORECASE)
+            if acct['salt']:
+                if _saltre.search(acct['salt']):
+                    _salt = generate.salt(acct['hash_algo'])
+                    acct['salt'] = _salt
+            else:
+                if not acct['hashed']:
+                    acct['salt_hash'] = generate().hash_password(
+                                        acct['passphrase'],
+                                        algo = crypt_map[acct['hash_algo']])
+                acct['salt'] = detect().password_hash_salt(acct['salt_hash'])
+        if 'salt_hash' not in acct:
+            acct['salt_hash'] = generate().hash_password(
+                                        acct['passphrase'],
+                                        salt = acct['salt'],
+                                        algo = crypt_map[acct['hash_algo']])
+        return(acct)
+
+    def xml2py(self, value, attrib = True):
+        yes = re.compile('^\s*(true|1)\s*$', re.IGNORECASE)
+        no = re.compile('^\s*(false|0)\s*$', re.IGNORECASE)
+        none = re.compile('^\s*(none|)\s*$', re.IGNORECASE)
+        if no.search(value):
+            if attrib:
+                return(False)
+            else:
+                return(None)
+        elif yes.search(value):
+            # We handle the False case above.
+            return(True)
+        elif value.strip() == '' or none.search(value):
+            return(None)
+        elif valid().integer(value):
+            return(int(value))
+        else:
+            return(value)
+        return()
+
 class valid(object):
     def __init__(self):
         pass
@@ -664,6 +841,11 @@ class valid(object):
             return(False)
         return()
 
+    def nonempty_str(self, str_in):
+        if str_in.strip() == '':
+            return(False)
+        return(True)
+
     def password(self, passwd):
         # https://en.wikipedia.org/wiki/ASCII#Printable_characters
         # https://serverfault.com/a/513243/103116
@@ -693,11 +875,16 @@ class valid(object):
         return(True)
 
     def salt_hash(self, salthash):
-        _idents = ''.join([i.ident for i in crypt_map if i.ident])
+        _idents = ''.join([i.ident for i in crypt_map.values() if i.ident])
         # noinspection PyStringFormat
-        _regex = re.compile('^(\$[{0}]\$)?[./0-9A-Za-z]{{0,16}}\$?'.format(
-                                                                    _idents))
+        _regex = re.compile('^(\$[{0}]\$)?[./0-9A-Za-z]{{0,16}}\$?'.format(_idents))
         if not _regex.search(salthash):
+            return(False)
+        return(True)
+
+    def salt_hash_full(self, salthash, hash_type):
+        h = [re.sub('-', '', i.lower()).split()[0] for i in detect.any_hash(self, salthash, normalize = True)]
+        if hash_type.lower() not in h:
             return(False)
         return(True)
 
@@ -748,22 +935,38 @@ class valid(object):
 
 class xml_supplicant(object):
     def __init__(self, cfg, profile = None, max_recurse = 5):
-        raw = self._detect_cfg(cfg)
-        xmlroot = lxml.etree.fromstring(raw)
+        self.selector_ids = ('id', 'name', 'uuid')
         self.btags = {'xpath': {},
                       'regex': {},
                       'variable': {}}
+        raw = self._detect_cfg(cfg)
+        # This is changed in just a moment.
+        self.profile = profile
+        # This is retained so we can "refresh" the profile if needed.
+        self.orig_profile = profile
+        try:
+            self.orig_xml = lxml.etree.fromstring(raw)
+            # We need to strip the naked namespace for XPath to work.
+            self.xml = copy.deepcopy(self.orig_xml)
+            self.roottree = self.xml.getroottree()
+            self.tree = self.roottree.getroot()
+            self.strip_naked_ns()
+        except lxml.etree.XMLSyntaxError:
+            raise ValueError('The configuration provided does not seem to be '
+                             'valid')
+        self.get_profile(profile = profile)
+        # This is disabled; we set it above.
+        #self.xml = lxml.etree.fromstring(raw)
         self.fmt = XPathFmt()
-        self.max_recurse = max_recurse
+        self.max_recurse = int(self.profile.xpath(
+                                        '//meta/max_recurse/text()')[0])
         # I don't have permission to credit them, but to the person who helped
         # me with this regex - thank you. You know who you are.
+        # Originally this pattern was the one from:
+        # https://stackoverflow.com/a/12728199/733214
         self.ptrn = re.compile(('(?<=(?<!\{)\{)(?:[^{}]+'
                                 '|{{[^{}]*}})*(?=\}(?!\}))'))
-        self.root = lxml.etree.ElementTree(xmlroot)
-        if not profile:
-            self.profile = xmlroot.xpath('/bdisk/profile[1]')[0]
-        else:
-            self.profile = xmlroot.xpath(profile)[0]
+        self.root = lxml.etree.ElementTree(self.xml)
         self._parse_regexes()
         self._parse_variables()
         
@@ -794,17 +997,97 @@ class xml_supplicant(object):
         else:
             raise TypeError('Could not determine the object type.')
         return(cfg)
-    
+
     def _parse_regexes(self):
-        for regex in self.profile.xpath('//meta/regexes/pattern'):
-            self.btags['regex'][regex.attrib['id']] = re.compile(regex.text)
+        for regex in self.profile.xpath('./meta/regexes/pattern'):
+            _key = 'regex%{0}'.format(regex.attrib['id'])
+            self.btags['regex'][_key] = regex.text
         return()
 
     def _parse_variables(self):
-        for variable in self.profile.xpath('//meta/variables/variable'):
+        for variable in self.profile.xpath('./meta/variables/variable'):
             self.btags['variable'][
                                 'variable%{0}'.format(variable.attrib['id'])
                                     ] = variable.text
+        return()
+
+    def btags_to_dict(self, text_in):
+        d = {}
+        ptrn_id = self.ptrn.findall(text_in)
+        if len(ptrn_id) >= 1:
+            for item in ptrn_id:
+                try:
+                    btag, expr = item.split('%', 1)
+                    if btag not in self.btags:
+                        continue
+                    if item not in self.btags[btag]:
+                        self.btags[btag][item] = None
+                    #self.btags[btag][item] = expr # remove me?
+                    if btag == 'xpath':
+                        d[item] = (btag, expr)
+                    elif btag == 'variable':
+                        d[item] = (btag, self.btags['variable'][item])
+                except ValueError:
+                    return(d)
+        return(d)
+
+    def get_profile(self, profile = None):
+        """Get a configuration profile.
+
+        Get a configuration profile from the XML object and set that as a
+        profile object. If a profile is specified, attempt to find it. If not,
+        follow the default rules as specified in __init__.
+        """
+        if profile:
+            # A profile identifier was provided
+            if isinstance(profile, str):
+                _profile_name = profile
+                profile = {}
+                for i in self.selector_ids:
+                    profile[i] = None
+                profile['name'] = _profile_name
+            elif isinstance(profile, dict):
+                for k in self.selector_ids:
+                    if k not in profile.keys():
+                        profile[k] = None
+            else:
+                raise TypeError('profile must be a string (name of profile), '
+                                'a dictionary, or None')
+            xpath = '/bdisk/profile{0}'.format(self.xpath_selector(profile))
+            self.profile = self.xml.xpath(xpath)
+            if len(self.profile) != 1:
+                raise ValueError('Could not determine a valid, unique '
+                                 'profile; please check your profile '
+                                 'specifier(s)')
+            else:
+                # We need the actual *profile*, not a list of matching
+                # profile(s).
+                self.profile = self.profile[0]
+            if not len(self.profile):
+                raise RuntimeError('Could not find the profile specified in '
+                                   'the given configuration')
+        else:
+            # We need to find the default.
+            profiles = []
+            for p in self.xml.xpath('/bdisk/profile'):
+                profiles.append(p)
+            # Look for one named "default" or "DEFAULT" etc.
+            for idx, value in enumerate([e.attrib['name'].lower() \
+                                         for e in profiles]):
+                if value == 'default':
+                    #self.profile = copy.deepcopy(profiles[idx])
+                    self.profile = profiles[idx]
+                    break
+            # We couldn't find a profile with a default name. Try to grab the
+            # first profile.
+            if self.profile is None:
+                # Grab the first profile.
+                if profiles:
+                    self.profile = profiles[0]
+                else:
+                    # No profiles found.
+                    raise RuntimeError('Could not find any usable '
+                                       'configuration profiles')
         return()
 
     def get_path(self, element):
@@ -817,6 +1100,33 @@ class xml_supplicant(object):
                     'Could not find a path for the expression {0}'
                 ).format(element.text))
         return(path)
+
+    def return_full(self):
+        # https://stackoverflow.com/a/22553145/733214
+        local_xml = lxml.etree.Element('bdisk',
+                                       nsmap = self.orig_xml.nsmap,
+                                       attrib = self.orig_xml.attrib)
+        local_xml.text = '\n    '
+        for elem in self.xml.xpath('/bdisk/profile'):
+            local_xml.append(copy.deepcopy(elem))
+        return(lxml.etree.tostring(local_xml))
+
+    def return_naked_ns(self):
+        # It's so stupid I have to do this.
+        return(self.orig_xml.nsmap)
+
+    def strip_naked_ns(self):
+        # I cannot *believe* that LXML doesn't have this built-in, considering
+        # how common naked namespaces are.
+        # https://stackoverflow.com/a/18160164/733214
+        for elem in self.roottree.getiterator():
+            if not hasattr(elem.tag, 'find'):
+                continue
+            i = elem.tag.find('}')
+            if i >= 0:
+                elem.tag = elem.tag[i + 1:]
+        lxml.objectify.deannotate(self.roottree, cleanup_namespaces = True)
+        return()
 
     def substitute(self, element, recurse_count = 0):
         if recurse_count >= self.max_recurse:
@@ -858,33 +1168,10 @@ class xml_supplicant(object):
                         _dictmap = self.btags_to_dict(element.text)
         return(element)
 
-    def xpath_selector(self, selectors,
-                       selector_ids = ('id', 'name', 'uuid')):
+    def xpath_selector(self, selectors):
         # selectors is a dict of {attrib:value}
         xpath = ''
         for i in selectors.items():
-            if i[1] and i[0] in selector_ids:
+            if i[1] and i[0] in self.selector_ids:
                 xpath += '[@{0}="{1}"]'.format(*i)
         return(xpath)
-
-    def btags_to_dict(self, text_in):
-        d = {}
-        ptrn_id = self.ptrn.findall(text_in)
-        if len(ptrn_id) >= 1:
-            for item in ptrn_id:
-                try:
-                    btag, expr = item.split('%', 1)
-                    if btag not in self.btags:
-                        continue
-                    if item not in self.btags[btag]:
-                        self.btags[btag][item] = None
-                    #self.btags[btag][item] = expr # remove me?
-                    if btag == 'xpath':
-                        d[item] = (btag, expr)
-                    elif btag == 'variable':
-                        d[item] = (btag, self.btags['variable'][item])
-                except ValueError:
-                    return(d)
-        return(d)
-
-

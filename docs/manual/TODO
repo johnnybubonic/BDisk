@@ -8,3 +8,6 @@
 - in faq/ISOBIG.adoc and the doc section it references, make sure we reference that the package lists are now in the environment plugin!
 
 - change all references to build.ini to something like "BDisk configuration file"
+
+- reminder: users can specify a local file source for <sources><source> items by using "file:///absolute/path/to/file"
+-- todo: add http auth, ftp, ftps
