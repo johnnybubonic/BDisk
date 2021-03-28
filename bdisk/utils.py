@@ -193,6 +193,76 @@ class prompts(object):
                 return(False)
         return(True)
 
+    def gpg_keygen_attribs(self):
+        _attribs = {'algo': {'text': 'the subkey\'s encryption type/algorithm',
+                             'choices': ['rsa', 'dsa'],
+                             'default': 'rsa'},
+                    'keysize': {'text': 'the subkey\'s key size (in bits)',
+                                'choices': {'rsa': ['1024', '2048', '4096'],
+                                            'dsa': ['768', '2048', '3072']},
+                                'default': {'rsa': '4096',
+                                            'dsa': '3072'}}}
+        _params = {'name': None,
+                   'email': None,
+                   #'email': valid().email,  # Use this to force valid email.
+                   'comment': None}
+        gpg_vals = {'attribs': {},
+                    'params': {}}
+        for a in _attribs:
+            _a = None
+            while not _a:
+                if 'algo' in gpg_vals['attribs'] and a == 'keysize':
+                    _algo = gpg_vals['attribs']['algo']
+                    _choices = _attribs['keysize']['choices'][_algo]
+                    _dflt = _attribs['keysize']['default'][_algo]
+                else:
+                    _choices = _attribs[a]['choices']
+                    _dflt = _attribs[a]['default']
+                _a = (input(
+                    ('\nWhat should be {0}? (Default is {1}.)\nChoices:\n'
+                     '\n\t{2}\n\n{3}: ').format(
+                        _attribs[a]['text'],
+                        _dflt,
+                        '\n\t'.join(_choices),
+                        a.title()
+                        )
+                        )).strip().lower()
+                if _a == '':
+                    _a = _dflt
+                elif _a not in _choices:
+                    _a = _dflt
+                else:
+                    print('_dflt:', _dflt)
+                    print('_choices:', _choices)
+                    print('Invalid selection. Retrying.')
+                    _a = None
+                    continue
+            gpg_vals['attribs'][a] = _a
+        for p in _params:
+            _p = (input(
+                    ('\nWhat is the {0} for the subkey?\n{1}: ').format(
+                            p, p.title())
+                    ))
+            if p == 'name':
+                if _p.strip() == '':
+                    print('Name cannot be blank.')
+                    _p = None
+                    while not _p:
+                        _p = input(('\n{0}: ').format(p.title()))
+                        if _p.strip() == '':
+                            print('Trying again.')
+                            _p = None
+                            continue
+                    continue
+            elif _params[p]:
+                if not _params[p](_p):
+                    print('Invalid entry. Retrying...')
+                    _p = None
+                    continue
+            else:
+                gpg_vals['params'][p] = _p
+        return(gpg_vals)
+
     def hash_select(self, prompt = '',
                     hash_types = generate().hashlib_names()):
         _hash_types = hash_types

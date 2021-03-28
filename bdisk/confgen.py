@@ -840,7 +840,7 @@ class ConfGenerator(object):
                               'then trying the built-in ~/.gnupg directory).'
                               '\nGPG Home Directory: '))
             if _gpghome.strip() != '':
-                gpg.attrib['gnupghome'] == _gpghome
+                gpg.attrib['gnupghome'] = _gpghome
             else:
                 _gpghome = 'none'
         print('\n++ GPG || KEYSERVER PUSHING ++')
