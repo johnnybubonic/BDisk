@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
 
-from .. import download  # LOCAL # do i need to escalate two levels up?
 import os
-from .. import utils
-
-# TODO: can this be trimmed down?
-prereqs = ['arch-install-scripts', 'archiso', 'bzip2', 'coreutils', 'customizepkg-scripting', 'cronie', 'dhclient',
-           'dhcp', 'dhcpcd', 'dosfstools', 'dropbear', 'efibootmgr', 'efitools', 'efivar', 'file', 'findutils',
-           'iproute2', 'iputils', 'libisoburn', 'localepurge', 'lz4', 'lzo', 'lzop', 'mkinitcpio-nbd',
-           'mkinitcpio-nfs-utils', 'mkinitcpio-utils', 'nbd', 'ms-sys', 'mtools', 'net-tools', 'netctl',
-           'networkmanager', 'pv', 'python', 'python-pyroute2', 'rsync', 'sed', 'shorewall', 'squashfs-tools',
-           'sudo', 'sysfsutils', 'syslinux', 'traceroute', 'vi']
+from .. import utils  # LOCAL # do i need to escalate two levels up?
 
 class Manifest(object):
     def __init__(self, cfg):
@@ -23,24 +14,46 @@ class Manifest(object):
         self.gpg_authorities = ['4AA4767BBC9C4B1D18AE28B77F2D434B9741E8AC']
         self.tarball = None
         self.sig = None
+        self.mirror = None
         self.checksum = {'sha1': None,
                          'md5': None}
-        self._get_filename()
+        self.verified = False
+        self.arches = ('x86_64', )
+        self.bootsupport = ('uefi', 'bios', 'pxe', 'ipxe', 'iso')
+        self.kernel = '/boot/vmlinuz-linux'
+        self.initrd = '/boot/initramfs-linux.img'
+        # TODO: can this be trimmed down?
+        self.prereqs = ['arch-install-scripts', 'archiso', 'bzip2', 'coreutils', 'customizepkg-scripting', 'cronie',
+                        'dhclient', 'dhcp', 'dhcpcd', 'dosfstools', 'dropbear', 'efibootmgr', 'efitools', 'efivar',
+                        'file', 'findutils', 'iproute2', 'iputils', 'libisoburn', 'localepurge', 'lz4', 'lzo',
+                        'lzop', 'mkinitcpio-nbd', 'mkinitcpio-nfs-utils', 'mkinitcpio-utils', 'nbd', 'ms-sys',
+                        'mtools', 'net-tools', 'netctl', 'networkmanager', 'pv', 'python', 'python-pyroute2',
+                        'rsync', 'sed', 'shorewall', 'squashfs-tools', 'sudo', 'sysfsutils', 'syslinux',
+                        'traceroute', 'vi']
+        self._get_filenames()
 
-    def _get_filename(self):
+    def _get_filenames(self):
         # TODO: cache this info
         webroot = 'iso/latest'
         for m in self.cfg['mirrors']:
             uri = os.path.join(m, webroot)
             try:
-                self.tarball = utils.detect().remote_files(uri, ptrn = ('archlinux-'
-                                                                        'bootstrap-'
-                                                                        '[0-9]{4}\.'
-                                                                        '[0-9]{2}\.'
-                                                                        '[0-9]{2}-'
-                                                                        'x86_64\.tar\.gz$'))[0]
+                self.tarball = utils.detect().remote_files(uri, regex = ('archlinux-'
+                                                                         'bootstrap-'
+                                                                         '[0-9]{4}\.'
+                                                                         '[0-9]{2}\.'
+                                                                         '[0-9]{2}-'
+                                                                         'x86_64\.tar\.gz$'))[0]
+                self.sig = '{0}.sig'.format(self.tarball)
+                for h in self.checksum:
+                    self.checksum[h] = os.path.join(uri, '{0}sums.txt'.format(h))
+                self.mirror = m
+                break
             except Exception as e:
                 pass
+        if not self.tarball:
+            raise ValueError('Could not find the tarball URI. Check your network connection.')
+        return()
 
 
 def extern_prep(cfg, cur_arch = 'x86_64'):
@@ -113,17 +126,3 @@ packager = {'pre_check': False,
                                             '{PACKAGE}']
                             },
             }
-
-# These are packages *required* to exist on the base guest, no questions asked.
-# TODO: can this be trimmed down?
-prereqs = ['arch-install-scripts', 'archiso', 'bzip2', 'coreutils',
-           'customizepkg-scripting', 'cronie', 'dhclient', 'dhcp', 'dhcpcd',
-           'dosfstools', 'dropbear', 'efibootmgr', 'efitools', 'efivar',
-           'file', 'findutils', 'iproute2', 'iputils', 'libisoburn',
-           'localepurge', 'lz4', 'lzo', 'lzop', 'mkinitcpio-nbd',
-           'mkinitcpio-nfs-utils', 'mkinitcpio-utils', 'nbd', 'ms-sys',
-           'mtools', 'net-tools', 'netctl', 'networkmanager', 'pv',
-           'python', 'python-pyroute2', 'rsync', 'sed', 'shorewall',
-           'squashfs-tools', 'sudo', 'sysfsutils',
-           'syslinux', 'traceroute', 'vi']
-

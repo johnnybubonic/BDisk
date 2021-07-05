@@ -87,34 +87,33 @@ class detect(object):
         salt = _hash_list[2]
         return(salt)
 
-    def remote_files(self, url_base, ptrn = None, flags = []):
+    def remote_files(self, url_base, regex = None, sort = False):
         soup = BeautifulSoup(Download(url_base, progress = False).fetch().decode('utf-8'),
                              'lxml')
         urls = []
-        if 'regex' in flags:
-            if not isinstance(ptrn, str):
-                raise ValueError('"ptrn" must be a regex pattern to match '
+        if regex:
+            if not isinstance(regex, str):
+                raise ValueError('"regex" must be a regex pattern to match '
                                  'against')
             else:
-                ptrn = re.compile(ptrn)
+                ptrn = re.compile(regex)
         for u in soup.find_all('a'):
             if not u.has_attr('href'):
                 continue
-            if 'regex' in flags:
+            if regex:
                 if not ptrn.search(u.attrs['href']):
                     continue
             if u.has_attr('href'):
+                if re.search('/?\.\./?$', u.attrs['href']):
+                    continue
                 urls.append(u.attrs['href'])
         if not urls:
             return(None)
         # We certainly can't intelligently parse the printed timestamp since it
         # varies so much and that'd be a nightmare to get consistent...
-        # But we CAN sort by filename.
-        if 'latest' in flags:
+        # But we CAN sort by filename. MOST of the time, though, this will already be sorted.
+        if sort:
             urls = sorted(list(set(urls)))
-        #     urls = urls[-1]
-        # else:
-        #     urls = urls[0]
         return(urls)
 
     def gpgkeyID_from_url(self, url):
